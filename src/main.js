@@ -19,6 +19,7 @@ const defaultProfile = {
 const storageKeys = {
   contacts: 'safety-app-trusted-contacts',
   profile: 'safety-app-user-profile',
+  location: 'safety-app-last-location',
 };
 
 const navButtons = document.querySelectorAll('.nav-item');
@@ -38,6 +39,9 @@ const profilePhone = document.querySelector('#profile-phone');
 const profileNotes = document.querySelector('#profile-notes');
 const profileAvatar = document.querySelector('#profile-avatar');
 const profileStatus = document.querySelector('#profile-status');
+const locationText = document.querySelector('#location-text');
+const refreshLocationButton = document.querySelector('#refresh-location-button');
+const shareLocationButton = document.querySelector('#share-location-button');
 
 function loadJson(key, fallback) {
   try {
@@ -54,6 +58,7 @@ function saveJson(key, value) {
 
 let contacts = loadJson(storageKeys.contacts, defaultContacts);
 let profile = loadJson(storageKeys.profile, defaultProfile);
+let currentLocation = loadJson(storageKeys.location, null);
 
 function getInitials(name) {
   const initials = name
@@ -86,6 +91,130 @@ function showPage(nextPage) {
 
   pages.forEach((page) => page.classList.toggle('active', page.id === nextPage));
   pageTitle.textContent = pageTitles[nextPage];
+}
+
+function getLocationUrl(location) {
+  return `https://maps.google.com/?q=${location.latitude},${location.longitude}`;
+}
+
+function formatLocation(location) {
+  return `Πλάτος ${location.latitude.toFixed(5)}, μήκος ${location.longitude.toFixed(5)}`;
+}
+
+function setLocationButtonsLoading(isLoading) {
+  refreshLocationButton.disabled = isLoading;
+  shareLocationButton.disabled = isLoading;
+  refreshLocationButton.textContent = isLoading ? 'Εντοπισμός...' : 'Ανανέωση';
+}
+
+function showLocationMessage(message) {
+  locationText.textContent = message;
+}
+
+function renderLocation() {
+  if (!currentLocation) {
+    showLocationMessage('Πάτησε ανανέωση για να βρεθεί η θέση σου.');
+    return;
+  }
+
+  const accuracyText = currentLocation.accuracy ? ` • ακρίβεια περίπου ${Math.round(currentLocation.accuracy)}μ.` : '';
+  showLocationMessage(`${formatLocation(currentLocation)}${accuracyText}`);
+}
+
+function getGeolocationErrorMessage(error) {
+  if (error?.code === 1) return 'Δεν δόθηκε άδεια τοποθεσίας. Ενεργοποίησε Location permission για τον browser.';
+  if (error?.code === 2) return 'Δεν μπόρεσα να βρω τη θέση. Δοκίμασε ξανά σε λίγα δευτερόλεπτα.';
+  if (error?.code === 3) return 'Άργησε πολύ ο εντοπισμός. Δοκίμασε ξανά.';
+  return 'Η τοποθεσία δεν είναι διαθέσιμη σε αυτή τη συσκευή.';
+}
+
+function requestCurrentPosition() {
+  return new Promise((resolve, reject) => {
+    if (!('geolocation' in navigator)) {
+      reject(new Error('Geolocation is not supported'));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      timeout: 12000,
+      maximumAge: 30000,
+    });
+  });
+}
+
+async function refreshLocation() {
+  setLocationButtonsLoading(true);
+  showLocationMessage('Ψάχνω την τρέχουσα θέση σου...');
+
+  try {
+    const position = await requestCurrentPosition();
+    currentLocation = {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      accuracy: position.coords.accuracy,
+      updatedAt: new Date().toISOString(),
+    };
+
+    saveJson(storageKeys.location, currentLocation);
+    renderLocation();
+  } catch (error) {
+    showLocationMessage(getGeolocationErrorMessage(error));
+  } finally {
+    setLocationButtonsLoading(false);
+  }
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.setAttribute('readonly', '');
+  textArea.style.position = 'fixed';
+  textArea.style.opacity = '0';
+  document.body.appendChild(textArea);
+  textArea.select();
+  document.execCommand('copy');
+  textArea.remove();
+}
+
+async function shareLocation() {
+  if (!currentLocation) {
+    await refreshLocation();
+  }
+
+  if (!currentLocation) return;
+
+  const locationUrl = getLocationUrl(currentLocation);
+  const shareText = `Η τρέχουσα θέση μου: ${locationUrl}`;
+
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: 'SafeCircle τοποθεσία',
+        text: 'Η τρέχουσα θέση μου από το SafeCircle.',
+        url: locationUrl,
+      });
+      showLocationMessage(`${formatLocation(currentLocation)} • Η τοποθεσία είναι έτοιμη για κοινοποίηση.`);
+      return;
+    }
+
+    await copyTextToClipboard(shareText);
+    showLocationMessage(`${formatLocation(currentLocation)} • Ο σύνδεσμος αντιγράφηκε.`);
+  } catch (error) {
+    if (error?.name !== 'AbortError') {
+      try {
+        await copyTextToClipboard(shareText);
+        showLocationMessage(`${formatLocation(currentLocation)} • Ο σύνδεσμος αντιγράφηκε.`);
+      } catch {
+        showLocationMessage('Δεν μπόρεσα να μοιραστώ τη θέση. Δοκίμασε ξανά.');
+      }
+    }
+  }
 }
 
 function openSosModal() {
@@ -185,6 +314,9 @@ document.addEventListener('keydown', (event) => {
 
 contactsForm.addEventListener('submit', addContact);
 profileForm.addEventListener('submit', saveProfile);
+refreshLocationButton.addEventListener('click', refreshLocation);
+shareLocationButton.addEventListener('click', shareLocation);
 
 renderContacts();
 renderProfile();
+renderLocation();
