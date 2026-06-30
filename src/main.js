@@ -4,17 +4,17 @@ const pageTitles = {
   profile: 'Προφίλ χρήστη',
 };
 
-const defaultContacts = [
-  { name: 'Μαρία Παπαδοπούλου', relationship: 'Αδελφή • Κύρια επαφή', phone: '+306901234567', tone: 'primary' },
-  { name: 'Νίκος Γεωργίου', relationship: 'Φίλος • Κοντινή απόσταση', phone: '+306912345678', tone: 'default' },
-  { name: 'Άννα Κωνσταντίνου', relationship: 'Μητέρα • Έμπιστη επαφή', phone: '+306932109876', tone: 'default' },
-];
+const defaultContacts = [];
 
-const defaultProfile = {
-  name: 'Ελένη Αντωνίου',
-  phone: '+30 694 555 0198',
-  medicalNotes: 'Αλλεργία στην πενικιλίνη',
-};
+const defaultProfile = null;
+
+const legacyDemoContactPhones = new Set([
+  ['+30690', '1234567'].join(''),
+  ['+30691', '2345678'].join(''),
+  ['+30693', '2109876'].join(''),
+]);
+
+const legacyDemoProfilePhone = ['+30 694', ' 555', ' 0198'].join('');
 
 const storageKeys = {
   contacts: 'safety-app-trusted-contacts',
@@ -56,9 +56,30 @@ function saveJson(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-let contacts = loadJson(storageKeys.contacts, defaultContacts);
-let profile = loadJson(storageKeys.profile, defaultProfile);
+let contacts = sanitizeContacts(loadJson(storageKeys.contacts, defaultContacts));
+let profile = sanitizeProfile(loadJson(storageKeys.profile, defaultProfile));
 let currentLocation = loadJson(storageKeys.location, null);
+
+
+function isLegacyDemoContact(contact) {
+  return legacyDemoContactPhones.has(contact.phone);
+}
+
+function sanitizeContacts(savedContacts) {
+  if (!Array.isArray(savedContacts)) return [];
+
+  return savedContacts.filter((contact) => !isLegacyDemoContact(contact));
+}
+
+function sanitizeProfile(savedProfile) {
+  if (!savedProfile) return null;
+
+  return savedProfile.phone === legacyDemoProfilePhone ? null : savedProfile;
+}
+
+function getProfileValue(field, fallback) {
+  return profile?.[field] || fallback;
+}
 
 function getInitials(name) {
   const initials = name
@@ -234,12 +255,14 @@ function buildSosMessage(location = currentLocation) {
   const locationLine = location
     ? `Η τοποθεσία μου: ${getLocationUrl(location)}`
     : 'Δεν μπόρεσα να πάρω τοποθεσία από τη συσκευή μου.';
-  const medicalLine = profile.medicalNotes ? `Ιατρικές σημειώσεις: ${profile.medicalNotes}` : '';
+  const nameLine = profile?.name ? `Όνομα: ${profile.name}` : '';
+  const phoneLine = profile?.phone ? `Τηλέφωνο: ${profile.phone}` : '';
+  const medicalLine = profile?.medicalNotes ? `Ιατρικές σημειώσεις: ${profile.medicalNotes}` : '';
 
   return [
     'SOS - Χρειάζομαι βοήθεια.',
-    `Όνομα: ${profile.name}`,
-    `Τηλέφωνο: ${profile.phone}`,
+    nameLine,
+    phoneLine,
     locationLine,
     medicalLine,
   ]
@@ -317,6 +340,18 @@ async function confirmSos() {
 }
 
 function renderContacts() {
+  if (contacts.length === 0) {
+    contactsList.innerHTML = `
+      <article class="empty-state">
+        <div class="empty-icon" aria-hidden="true">👥</div>
+        <h3>Δεν έχεις προσθέσει έμπιστες επαφές</h3>
+        <p>Πρόσθεσε το πρώτο άτομο που θέλεις να ειδοποιείται σε ανάγκη.</p>
+      </article>
+    `;
+    contactCount.textContent = '0';
+    return;
+  }
+
   contactsList.innerHTML = contacts
     .map((contact) => {
       const extraClass = contact.tone === 'primary' ? ' primary-contact' : '';
@@ -345,7 +380,7 @@ function addContact(event) {
     name: formData.get('name').trim(),
     relationship: formData.get('relationship').trim(),
     phone: formData.get('phone').trim(),
-    tone: 'default',
+    tone: contacts.length === 0 ? 'primary' : 'default',
   };
 
   contacts = [...contacts, newContact];
@@ -355,13 +390,15 @@ function addContact(event) {
 }
 
 function renderProfile() {
-  profileName.textContent = profile.name;
-  profilePhone.textContent = profile.phone;
-  profileNotes.textContent = profile.medicalNotes;
-  profileAvatar.textContent = getInitials(profile.name);
-  profileForm.elements.name.value = profile.name;
-  profileForm.elements.phone.value = profile.phone;
-  profileForm.elements.medicalNotes.value = profile.medicalNotes;
+  const displayName = getProfileValue('name', 'Συμπλήρωσε το προφίλ σου');
+
+  profileName.textContent = displayName;
+  profilePhone.textContent = getProfileValue('phone', 'Δεν έχει προστεθεί τηλέφωνο');
+  profileNotes.textContent = getProfileValue('medicalNotes', 'Δεν έχουν προστεθεί ιατρικές σημειώσεις');
+  profileAvatar.textContent = profile?.name ? getInitials(profile.name) : '👤';
+  profileForm.elements.name.value = profile?.name || '';
+  profileForm.elements.phone.value = profile?.phone || '';
+  profileForm.elements.medicalNotes.value = profile?.medicalNotes || '';
 }
 
 function saveProfile(event) {
