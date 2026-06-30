@@ -395,3 +395,66 @@ body.modal-open { overflow: hidden; }
   width: 100%;
   justify-content: center;
 }
+
+.emergency-call-section {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  max-width: 430px;
+  margin: 24px auto 0;
+  padding: 18px;
+  text-align: left;
+  background: rgba(255, 241, 242, 0.78);
+  border: 1px solid rgba(239, 35, 60, 0.18);
+  border-radius: 24px;
+}
+.emergency-call-section h3 {
+  margin: 0;
+  color: #9f1239;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+.emergency-call-section p {
+  margin: 0;
+  color: #7f1d1d;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+.emergency-call-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.emergency-call-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  padding: 10px 14px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--red), var(--red-dark));
+  border-radius: 14px;
+  box-shadow: 0 12px 24px rgba(239, 35, 60, 0.22);
+}
+.emergency-call-button:focus-visible {
+  outline: 3px solid rgba(239, 35, 60, 0.28);
+  outline-offset: 3px;
+}
+.modal-emergency-calls {
+  width: 100%;
+  margin-top: 0;
+  padding: 14px;
+  text-align: center;
+  border-radius: 20px;
+}
+.modal-emergency-calls .emergency-call-buttons {
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .emergency-call-section { text-align: center; }
+  .emergency-call-buttons { flex-direction: column; }
+  .emergency-call-button { width: 100%; }
+}
