@@ -39,6 +39,7 @@ const profilePhone = document.querySelector('#profile-phone');
 const profileNotes = document.querySelector('#profile-notes');
 const profileAvatar = document.querySelector('#profile-avatar');
 const profileStatus = document.querySelector('#profile-status');
+const clearDataButton = document.querySelector('#clear-data-button');
 const locationText = document.querySelector('#location-text');
 const refreshLocationButton = document.querySelector('#refresh-location-button');
 const shareLocationButton = document.querySelector('#share-location-button');
@@ -448,6 +449,22 @@ function saveProfile(event) {
   profileStatus.textContent = 'Τα στοιχεία αποθηκεύτηκαν τοπικά στη συσκευή σου.';
 }
 
+function clearSafeMeData() {
+  const confirmed = window.confirm('Θέλεις σίγουρα να σβήσεις όλα τα αποθηκευμένα στοιχεία από αυτή τη συσκευή;');
+
+  if (!confirmed) return;
+
+  Object.values(storageKeys).forEach((key) => localStorage.removeItem(key));
+  contacts = [];
+  profile = null;
+  currentLocation = null;
+
+  renderContacts();
+  renderProfile();
+  renderLocation();
+  profileStatus.textContent = 'Τα αποθηκευμένα στοιχεία διαγράφηκαν από αυτή τη συσκευή.';
+}
+
 navButtons.forEach((button) => {
   button.addEventListener('click', () => showPage(button.dataset.page));
 });
@@ -464,6 +481,7 @@ document.addEventListener('keydown', (event) => {
 
 contactsForm.addEventListener('submit', addContact);
 profileForm.addEventListener('submit', saveProfile);
+clearDataButton.addEventListener('click', clearSafeMeData);
 refreshLocationButton.addEventListener('click', refreshLocation);
 shareLocationButton.addEventListener('click', shareLocation);
 
