@@ -169,13 +169,29 @@
     <div class="modal-backdrop" id="sos-modal" role="dialog" aria-modal="true" aria-labelledby="sos-modal-title" hidden>
       <div class="modal-card">
         <button class="modal-close" type="button" data-close-sos aria-label="Κλείσιμο">×</button>
-        <span class="modal-icon">⚡</span>
-        <p class="eyebrow">Επιβεβαίωση SOS</p>
-        <h2 id="sos-modal-title">Να ετοιμαστεί μήνυμα SOS;</h2>
-        <p>Θα δημιουργηθεί μήνυμα με τα στοιχεία σου και link τοποθεσίας για αποστολή σε έμπιστη επαφή.</p>
-        <div class="modal-actions">
-          <button class="ghost-button" type="button" data-close-sos>Άκυρο</button>
-          <button class="danger-button" id="sos-confirm" type="button">Ναι, ετοίμασε SOS</button>
+        <div id="sos-confirmation-step">
+          <span class="modal-icon">⚡</span>
+          <p class="eyebrow">Επιβεβαίωση SOS</p>
+          <h2 id="sos-modal-title">Να ετοιμαστεί μήνυμα SOS;</h2>
+          <p>Θα δημιουργηθεί μήνυμα με τα στοιχεία σου και link τοποθεσίας για αποστολή σε έμπιστη επαφή.</p>
+          <div class="modal-actions">
+            <button class="ghost-button" type="button" data-close-sos>Άκυρο</button>
+            <button class="danger-button" id="sos-confirm" type="button">Ναι, ετοίμασε SOS</button>
+          </div>
+        </div>
+        <div class="sos-action-panel" id="sos-action-panel" hidden>
+          <span class="modal-icon">🆘</span>
+          <p class="eyebrow">SafeMe SOS</p>
+          <h2 id="sos-action-title">Το μήνυμα SOS είναι έτοιμο</h2>
+          <p id="sos-action-description">Διάλεξε τρόπο αποστολής προς την κύρια έμπιστη επαφή ή αντιγραφή για χειροκίνητη χρήση.</p>
+          <div class="sos-message-preview" id="sos-message-preview" aria-live="polite"></div>
+          <p class="sos-action-feedback" id="sos-action-feedback" aria-live="polite"></p>
+          <div class="sos-action-buttons">
+            <button class="danger-button" id="sos-send-sms" type="button">Αποστολή με SMS</button>
+            <button class="secondary-button" id="sos-send-whatsapp" type="button">Αποστολή με WhatsApp</button>
+            <button class="ghost-button" id="sos-copy-message" type="button">Αντιγραφή μηνύματος</button>
+            <button class="ghost-button" id="sos-native-share" type="button">Κοινή χρήση</button>
+          </div>
         </div>
       </div>
     </div>

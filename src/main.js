@@ -28,6 +28,15 @@ const pageTitle = document.querySelector('#page-title');
 const sosButton = document.querySelector('#sos-button');
 const sosStatus = document.querySelector('#sos-status');
 const sosModal = document.querySelector('#sos-modal');
+const sosConfirmStep = document.querySelector('#sos-confirmation-step');
+const sosActionPanel = document.querySelector('#sos-action-panel');
+const sosActionTitle = document.querySelector('#sos-action-title');
+const sosMessagePreview = document.querySelector('#sos-message-preview');
+const sosActionFeedback = document.querySelector('#sos-action-feedback');
+const sosSendSmsButton = document.querySelector('#sos-send-sms');
+const sosSendWhatsappButton = document.querySelector('#sos-send-whatsapp');
+const sosCopyMessageButton = document.querySelector('#sos-copy-message');
+const sosNativeShareButton = document.querySelector('#sos-native-share');
 const sosConfirmButton = document.querySelector('#sos-confirm');
 const sosCancelButtons = document.querySelectorAll('[data-close-sos]');
 const contactsList = document.querySelector('#contacts-list');
@@ -61,6 +70,8 @@ function saveJson(key, value) {
 let contacts = ensureSinglePrimaryContact(sanitizeContacts(loadJson(storageKeys.contacts, defaultContacts)));
 let profile = sanitizeProfile(loadJson(storageKeys.profile, defaultProfile));
 let currentLocation = loadJson(storageKeys.location, null);
+let preparedSosMessage = '';
+let preparedSosContact = null;
 
 
 function isLegacyDemoContact(contact) {
@@ -292,37 +303,85 @@ function getSmsLink(contact, message) {
   return `sms:${phone}?&body=${encodeURIComponent(message)}`;
 }
 
-async function openPreparedSosMessage(message, contact) {
-  const locationUrl = currentLocation ? getLocationUrl(currentLocation) : undefined;
+function getWhatsappLink(message) {
+  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+}
+
+function showSosActionPanel(message, contact) {
+  preparedSosMessage = message;
+  preparedSosContact = contact;
+  sosConfirmStep.hidden = true;
+  sosActionPanel.hidden = false;
+  sosMessagePreview.textContent = message;
+  sosActionFeedback.textContent = contact
+    ? `Κύρια επαφή: ${contact.name} (${formatPhone(contact.phone)})`
+    : 'Δεν βρέθηκε κύρια επαφή.';
+  sosStatus.textContent = 'Το μήνυμα SOS είναι έτοιμο. Διάλεξε τρόπο αποστολής.';
+  sosActionTitle.focus?.();
+}
+
+function resetSosModal() {
+  sosConfirmStep.hidden = false;
+  sosActionPanel.hidden = true;
+  sosActionFeedback.textContent = '';
+  sosMessagePreview.textContent = '';
+}
+
+function sendPreparedSosSms() {
+  if (!preparedSosMessage || !preparedSosContact) return;
+
+  window.location.href = getSmsLink(preparedSosContact, preparedSosMessage);
+  sosActionFeedback.textContent = `Άνοιξε έτοιμο SMS προς ${preparedSosContact.name}. Πάτα αποστολή.`;
+  sosStatus.textContent = `Άνοιξε έτοιμο SMS προς ${preparedSosContact.name}. Πάτα αποστολή.`;
+}
+
+function sendPreparedSosWhatsapp() {
+  if (!preparedSosMessage) return;
+
+  window.open(getWhatsappLink(preparedSosMessage), '_blank', 'noopener');
+  sosActionFeedback.textContent = 'Άνοιξε WhatsApp με προσυμπληρωμένο μήνυμα SOS.';
+  sosStatus.textContent = 'Άνοιξε WhatsApp με προσυμπληρωμένο μήνυμα SOS.';
+}
+
+async function copyPreparedSosMessage() {
+  if (!preparedSosMessage) return;
 
   try {
-    if (navigator.share) {
-      await navigator.share({
-        title: 'SafeMe SOS',
-        text: message,
-        url: locationUrl,
-      });
-      sosStatus.textContent = 'Άνοιξε η κοινοποίηση SOS. Διάλεξε επαφή και πάτα αποστολή.';
-      return;
-    }
-  } catch (error) {
-    if (error?.name === 'AbortError') {
-      sosStatus.textContent = 'Η αποστολή ακυρώθηκε.';
-      return;
-    }
+    await copyTextToClipboard(preparedSosMessage);
+    sosActionFeedback.textContent = 'Το μήνυμα SOS αντιγράφηκε.';
+    sosStatus.textContent = 'Το μήνυμα SOS αντιγράφηκε.';
+  } catch {
+    sosActionFeedback.textContent = 'Δεν μπόρεσα να αντιγράψω το μήνυμα. Δοκίμασε ξανά.';
+    sosStatus.textContent = 'Δεν μπόρεσα να αντιγράψω το μήνυμα. Δοκίμασε ξανά.';
   }
+}
 
-  if (contact) {
-    window.location.href = getSmsLink(contact, message);
-    sosStatus.textContent = `Άνοιξε έτοιμο SMS προς ${contact.name}. Πάτα αποστολή.`;
+async function sharePreparedSosMessage() {
+  if (!preparedSosMessage) return;
+
+  if (!navigator.share) {
+    sosActionFeedback.textContent = 'Η κοινή χρήση δεν υποστηρίζεται σε αυτόν τον browser.';
+    sosStatus.textContent = 'Η κοινή χρήση δεν υποστηρίζεται σε αυτόν τον browser.';
     return;
   }
 
   try {
-    await copyTextToClipboard(message);
-    sosStatus.textContent = 'Το μήνυμα αντιγράφηκε. Επικόλλησέ το σε SMS ή WhatsApp.';
-  } catch {
-    sosStatus.textContent = 'Δεν μπόρεσα να ανοίξω μήνυμα. Δοκίμασε από κινητό.';
+    await navigator.share({
+      title: 'SafeMe SOS',
+      text: preparedSosMessage,
+      url: currentLocation ? getLocationUrl(currentLocation) : undefined,
+    });
+    sosActionFeedback.textContent = 'Άνοιξε η κοινή χρήση SOS.';
+    sosStatus.textContent = 'Άνοιξε η κοινή χρήση SOS.';
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      sosActionFeedback.textContent = 'Η κοινή χρήση ακυρώθηκε.';
+      sosStatus.textContent = 'Η κοινή χρήση ακυρώθηκε.';
+      return;
+    }
+
+    sosActionFeedback.textContent = 'Δεν μπόρεσα να ανοίξω την κοινή χρήση.';
+    sosStatus.textContent = 'Δεν μπόρεσα να ανοίξω την κοινή χρήση.';
   }
 }
 
@@ -352,6 +411,7 @@ function openSosModal() {
     return;
   }
 
+  resetSosModal();
   sosModal.hidden = false;
   document.body.classList.add('modal-open');
   sosConfirmButton.focus();
@@ -384,9 +444,8 @@ async function confirmSos() {
 
   sosButton.classList.add('activated');
   sosButton.setAttribute('aria-pressed', 'true');
-  closeSosModal();
   setSosConfirmLoading(false);
-  await openPreparedSosMessage(message, contact);
+  showSosActionPanel(message, contact);
 }
 
 function renderContacts() {
@@ -579,6 +638,10 @@ navButtons.forEach((button) => {
 sosButton.addEventListener('click', openSosModal);
 sosConfirmButton.addEventListener('click', confirmSos);
 sosCancelButtons.forEach((button) => button.addEventListener('click', closeSosModal));
+sosSendSmsButton.addEventListener('click', sendPreparedSosSms);
+sosSendWhatsappButton.addEventListener('click', sendPreparedSosWhatsapp);
+sosCopyMessageButton.addEventListener('click', copyPreparedSosMessage);
+sosNativeShareButton.addEventListener('click', sharePreparedSosMessage);
 sosModal.addEventListener('click', (event) => {
   if (event.target === sosModal) closeSosModal();
 });
