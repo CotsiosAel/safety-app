@@ -75,6 +75,10 @@ function formatPhone(phone) {
   return phone.replace(/(\+30)(\d{3})(\d{3})(\d{4})/, '$1 $2 $3 $4');
 }
 
+function normalizePhone(phone) {
+  return phone.replace(/[^\d+]/g, '');
+}
+
 function escapeHtml(value) {
   return value.replace(/[&<>'"]/g, (character) => {
     const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
@@ -105,6 +109,11 @@ function setLocationButtonsLoading(isLoading) {
   refreshLocationButton.disabled = isLoading;
   shareLocationButton.disabled = isLoading;
   refreshLocationButton.textContent = isLoading ? 'Εντοπισμός...' : 'Ανανέωση';
+}
+
+function setSosConfirmLoading(isLoading) {
+  sosConfirmButton.disabled = isLoading;
+  sosConfirmButton.textContent = isLoading ? 'Ετοιμάζω...' : 'Ναι, ετοίμασε SOS';
 }
 
 function showLocationMessage(message) {
@@ -217,6 +226,66 @@ async function shareLocation() {
   }
 }
 
+function getPrimaryContact() {
+  return contacts.find((contact) => contact.tone === 'primary') || contacts[0] || null;
+}
+
+function buildSosMessage(location = currentLocation) {
+  const locationLine = location
+    ? `Η τοποθεσία μου: ${getLocationUrl(location)}`
+    : 'Δεν μπόρεσα να πάρω τοποθεσία από τη συσκευή μου.';
+  const medicalLine = profile.medicalNotes ? `Ιατρικές σημειώσεις: ${profile.medicalNotes}` : '';
+
+  return [
+    'SOS - Χρειάζομαι βοήθεια.',
+    `Όνομα: ${profile.name}`,
+    `Τηλέφωνο: ${profile.phone}`,
+    locationLine,
+    medicalLine,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+function getSmsLink(contact, message) {
+  const phone = contact ? normalizePhone(contact.phone) : '';
+  return `sms:${phone}?&body=${encodeURIComponent(message)}`;
+}
+
+async function openPreparedSosMessage(message, contact) {
+  const locationUrl = currentLocation ? getLocationUrl(currentLocation) : undefined;
+
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: 'SafeCircle SOS',
+        text: message,
+        url: locationUrl,
+      });
+      sosStatus.textContent = 'Άνοιξε η κοινοποίηση SOS. Διάλεξε επαφή και πάτα αποστολή.';
+      return;
+    }
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      sosStatus.textContent = 'Η αποστολή ακυρώθηκε.';
+      return;
+    }
+  }
+
+  if (contact) {
+    window.location.href = getSmsLink(contact, message);
+    sosStatus.textContent = `Άνοιξε έτοιμο SMS προς ${contact.name}. Πάτα αποστολή.`;
+    return;
+  }
+
+  try {
+    await copyTextToClipboard(message);
+    sosStatus.textContent = 'Το μήνυμα αντιγράφηκε. Επικόλλησέ το σε SMS ή WhatsApp.';
+  } catch {
+    sosStatus.textContent = 'Δεν μπόρεσα να ανοίξω μήνυμα. Δοκίμασε από κινητό.';
+  }
+}
+
 function openSosModal() {
   sosModal.hidden = false;
   document.body.classList.add('modal-open');
@@ -229,11 +298,22 @@ function closeSosModal() {
   sosButton.focus();
 }
 
-function confirmSos() {
+async function confirmSos() {
+  setSosConfirmLoading(true);
+  sosStatus.textContent = 'Ετοιμάζω μήνυμα SOS με την τοποθεσία σου...';
+
+  if (!currentLocation) {
+    await refreshLocation();
+  }
+
+  const contact = getPrimaryContact();
+  const message = buildSosMessage(currentLocation);
+
   sosButton.classList.add('activated');
   sosButton.setAttribute('aria-pressed', 'true');
-  sosStatus.textContent = 'Η ειδοποίηση SOS στάλθηκε στις έμπιστες επαφές';
   closeSosModal();
+  setSosConfirmLoading(false);
+  await openPreparedSosMessage(message, contact);
 }
 
 function renderContacts() {
