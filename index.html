@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="el">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SafeCircle</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Βασικό μενού πλοήγησης">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">🛡️</div>
+          <div>
+            <p class="eyebrow">Safety app</p>
+            <h1>SafeCircle</h1>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-page="home">⌂ <span>Αρχική</span></button>
+          <button class="nav-item" data-page="contacts">👥 <span>Επαφές</span></button>
+          <button class="nav-item" data-page="profile">◎ <span>Προφίλ</span></button>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Πρώτη λειτουργική έκδοση</p>
+            <h2 id="page-title">Αρχική σελίδα</h2>
+          </div>
+          <div class="status-pill"><span></span> Online</div>
+        </header>
+
+        <section class="page page-grid active" id="home">
+          <div class="hero-card">
+            <div class="hero-copy">
+              <p class="eyebrow">Προσωπική ασφάλεια με ένα πάτημα</p>
+              <h3>Μείνε συνδεδεμένος με τους ανθρώπους που εμπιστεύεσαι.</h3>
+              <p>Το SafeCircle συγκεντρώνει SOS ειδοποίηση, γρήγορη πρόσβαση σε επαφές και βασικές πληροφορίες προφίλ σε ένα καθαρό περιβάλλον.</p>
+            </div>
+            <button class="sos-button" id="sos-button" aria-pressed="false">🔔<strong>SOS</strong></button>
+            <p class="sos-status" id="sos-status">Πάτησε SOS όταν χρειάζεσαι άμεση βοήθεια.</p>
+          </div>
+          <div class="info-card accent"><span>📍</span><h4>Τρέχουσα τοποθεσία</h4><p>Κέντρο Αθήνας, Ελλάδα</p></div>
+          <div class="info-card"><span>💗</span><h4>Κατάσταση</h4><p>Ασφαλής και διαθέσιμος</p></div>
+        </section>
+
+        <section class="page card-list" id="contacts">
+          <article class="contact-card"><div class="avatar">Μ</div><div><h3>Μαρία Παπαδοπούλου</h3><p>Αδελφή</p></div><a href="tel:+306901234567" class="call-link">☎ +30 690 123 4567</a></article>
+          <article class="contact-card"><div class="avatar">Ν</div><div><h3>Νίκος Γεωργίου</h3><p>Φίλος</p></div><a href="tel:+306912345678" class="call-link">☎ +30 691 234 5678</a></article>
+          <article class="contact-card"><div class="avatar">1</div><div><h3>Άμεση Βοήθεια</h3><p>Υπηρεσία έκτακτης ανάγκης</p></div><a href="tel:112" class="call-link">☎ 112</a></article>
+        </section>
+
+        <section class="page profile-card" id="profile">
+          <div class="profile-header"><div class="profile-avatar">Ε</div><div><p class="eyebrow">Χρήστης</p><h3>Ελένη Αντωνίου</h3><p>eleniantoniou@example.com</p></div></div>
+          <div class="profile-details">
+            <div><span>Ομάδα αίματος</span><strong>Ο+</strong></div>
+            <div><span>Ιατρική σημείωση</span><strong>Αλλεργία στην πενικιλίνη</strong></div>
+            <div><span>Προεπιλεγμένη επαφή</span><strong>Μαρία Παπαδοπούλου</strong></div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
