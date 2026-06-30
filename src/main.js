@@ -76,6 +76,7 @@ const storageMode = document.querySelector('#storage-mode');
 const locationText = document.querySelector('#location-text');
 const refreshLocationButton = document.querySelector('#refresh-location-button');
 const shareLocationButton = document.querySelector('#share-location-button');
+const sosHistoryList = document.querySelector('#sos-history-list');
 
 function loadJson(key, fallback) {
   try {
@@ -99,6 +100,8 @@ let preparedSosContact = null;
 let currentUser = null;
 let authMode = 'login';
 let isRemoteSyncing = false;
+let sosHistoryEvents = [];
+let sosHistoryStatus = '';
 
 
 function isLegacyDemoContact(contact) {
@@ -384,16 +387,131 @@ function getWhatsappLink(message) {
   return `https://wa.me/?text=${encodeURIComponent(message)}`;
 }
 
-function showSosActionPanel(message, contact) {
+function mapSosEventFromSupabase(event) {
+  return {
+    id: event.id,
+    message: event.message || '',
+    latitude: event.latitude,
+    longitude: event.longitude,
+    createdAt: event.created_at || event.createdAt || null,
+  };
+}
+
+function mapSosEventToSupabase(message, location = currentLocation) {
+  return {
+    user_id: currentUser.id,
+    message,
+    latitude: location?.latitude ?? null,
+    longitude: location?.longitude ?? null,
+  };
+}
+
+async function saveSosEventToSupabase(message, location = currentLocation) {
+  if (!currentUser) return null;
+
+  const { data, error } = await supabase
+    .from('sos_events')
+    .insert(mapSosEventToSupabase(message, location))
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  return mapSosEventFromSupabase(data);
+}
+
+function formatSosEventDate(value) {
+  if (!value) return 'Άγνωστη ώρα';
+
+  return new Intl.DateTimeFormat('el-GR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
+
+function getMessagePreview(message) {
+  return message.length > 92 ? `${message.slice(0, 92).trim()}…` : message;
+}
+
+function renderSosHistory() {
+  if (!sosHistoryList) return;
+
+  if (!currentUser) {
+    sosHistoryList.innerHTML = `
+      <article class="empty-state compact-empty">
+        <div class="empty-icon" aria-hidden="true">🕘</div>
+        <h3>Συνδέσου για ιστορικό SOS</h3>
+        <p>Χωρίς σύνδεση, το SOS λειτουργεί τοπικά και δεν αποθηκεύεται στο ιστορικό.</p>
+      </article>
+    `;
+    return;
+  }
+
+  if (sosHistoryStatus) {
+    sosHistoryList.innerHTML = `<p class="save-status error">${escapeHtml(sosHistoryStatus)}</p>`;
+    return;
+  }
+
+  if (sosHistoryEvents.length === 0) {
+    sosHistoryList.innerHTML = `
+      <article class="empty-state compact-empty">
+        <div class="empty-icon" aria-hidden="true">🆘</div>
+        <h3>Δεν υπάρχει ιστορικό SOS</h3>
+        <p>Τα νέα SOS που επιβεβαιώνεις θα εμφανίζονται εδώ.</p>
+      </article>
+    `;
+    return;
+  }
+
+  sosHistoryList.innerHTML = sosHistoryEvents
+    .map((event) => {
+      const hasLocation = event.latitude !== null && event.latitude !== undefined && event.longitude !== null && event.longitude !== undefined;
+      const locationUrl = hasLocation ? getLocationUrl(event) : '';
+
+      return `
+        <article class="sos-history-item">
+          <time datetime="${escapeHtml(event.createdAt || '')}">${escapeHtml(formatSosEventDate(event.createdAt))}</time>
+          <p>${escapeHtml(getMessagePreview(event.message))}</p>
+          ${hasLocation ? `<a href="${escapeHtml(locationUrl)}" target="_blank" rel="noopener">Άνοιγμα τοποθεσίας</a>` : '<span>Χωρίς τοποθεσία</span>'}
+        </article>
+      `;
+    })
+    .join('');
+}
+
+async function loadSosHistory() {
+  sosHistoryStatus = '';
+
+  if (!currentUser) {
+    sosHistoryEvents = [];
+    renderSosHistory();
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from('sos_events')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  if (error) throw error;
+
+  sosHistoryEvents = (data || []).map(mapSosEventFromSupabase);
+  renderSosHistory();
+}
+
+function showSosActionPanel(message, contact, historyMessage = '') {
   preparedSosMessage = message;
   preparedSosContact = contact;
   sosConfirmStep.hidden = true;
   sosActionPanel.hidden = false;
   sosMessagePreview.textContent = message;
   sosTestModeLabel.hidden = !isSosTestMode;
-  sosActionFeedback.textContent = contact
+  const contactMessage = contact
     ? `Κύρια επαφή: ${contact.name} (${formatPhone(contact.phone)})`
     : 'Δεν βρέθηκε κύρια επαφή.';
+  sosActionFeedback.textContent = historyMessage ? `${historyMessage} ${contactMessage}` : contactMessage;
   sosStatus.textContent = 'Το μήνυμα SOS είναι έτοιμο. Διάλεξε τρόπο αποστολής.';
   sosActionTitle.focus?.();
 }
@@ -524,7 +642,24 @@ async function confirmSos() {
   sosButton.classList.add('activated');
   sosButton.setAttribute('aria-pressed', 'true');
   setSosConfirmLoading(false);
-  showSosActionPanel(message, contact);
+
+  let historyMessage = '';
+
+  if (currentUser) {
+    try {
+      const savedEvent = await saveSosEventToSupabase(message, currentLocation);
+      historyMessage = 'Το SOS αποθηκεύτηκε στο ιστορικό.';
+      if (savedEvent) {
+        sosHistoryEvents = [savedEvent, ...sosHistoryEvents].slice(0, 5);
+        sosHistoryStatus = '';
+        renderSosHistory();
+      }
+    } catch (error) {
+      historyMessage = 'Το SOS ετοιμάστηκε, αλλά δεν αποθηκεύτηκε στο ιστορικό.';
+    }
+  }
+
+  showSosActionPanel(message, contact, historyMessage);
 }
 
 
@@ -781,19 +916,27 @@ async function loadSupabaseData() {
   isRemoteSyncing = true;
 
   try {
-    const [{ data: remoteProfile, error: profileError }, { data: remoteContacts, error: contactsError }] = await Promise.all([
+    const [
+      { data: remoteProfile, error: profileError },
+      { data: remoteContacts, error: contactsError },
+      { data: remoteSosEvents, error: sosHistoryError },
+    ] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle(),
       supabase.from('trusted_contacts').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: true }),
+      supabase.from('sos_events').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(5),
     ]);
 
     if (profileError) throw profileError;
     if (contactsError) throw contactsError;
+    if (sosHistoryError) throw sosHistoryError;
 
     const savedLocalProfile = profile;
     const savedLocalContacts = contacts;
 
     profile = mapProfileFromSupabase(remoteProfile) || savedLocalProfile;
     contacts = ensureSinglePrimaryContact(sanitizeContacts((remoteContacts || []).map(mapContactFromSupabase)));
+    sosHistoryEvents = (remoteSosEvents || []).map(mapSosEventFromSupabase);
+    sosHistoryStatus = '';
 
     if (contacts.length === 0 && savedLocalContacts.length > 0) contacts = savedLocalContacts;
 
@@ -805,8 +948,11 @@ async function loadSupabaseData() {
 
     renderProfile();
     renderContacts();
+    renderSosHistory();
     showAuthMessage(authStatusMessages.signedIn);
   } catch (error) {
+    sosHistoryStatus = `Δεν φορτώθηκε το ιστορικό SOS: ${error.message}`;
+    renderSosHistory();
     showAuthMessage(`Δεν έγινε συγχρονισμός Supabase: ${error.message}`, true);
   } finally {
     isRemoteSyncing = false;
@@ -853,6 +999,9 @@ async function logout() {
     authEmail.value = '';
     authPassword.value = '';
     showAuthMessage(authStatusMessages.signedOut);
+    sosHistoryEvents = [];
+    sosHistoryStatus = '';
+    renderSosHistory();
     renderAuth();
   } catch (error) {
     showAuthMessage(error.message || 'Η αποσύνδεση απέτυχε.', true);
@@ -871,7 +1020,12 @@ async function initializeAuth() {
   supabase.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user || null;
     if (currentUser) authEmail.value = currentUser.email || '';
-    if (!currentUser) showAuthMessage(authStatusMessages.signedOut);
+    if (!currentUser) {
+      sosHistoryEvents = [];
+      sosHistoryStatus = '';
+      renderSosHistory();
+      showAuthMessage(authStatusMessages.signedOut);
+    }
     renderAuth();
   });
 }
@@ -891,6 +1045,7 @@ function clearSafeMeData() {
   renderContacts();
   renderProfile();
   renderLocation();
+  renderSosHistory();
   profileStatus.textContent = 'Τα αποθηκευμένα στοιχεία διαγράφηκαν από αυτή τη συσκευή.';
 }
 
@@ -929,4 +1084,5 @@ syncSosTestModeToggle();
 renderContacts();
 renderProfile();
 renderLocation();
+renderSosHistory();
 initializeAuth();

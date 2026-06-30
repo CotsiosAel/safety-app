@@ -504,3 +504,51 @@ body.modal-open { overflow: hidden; }
 .auth-card { margin-top: 22px; padding: clamp(22px, 4vw, 32px); }
 .auth-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .save-status.error { color: #be123c; }
+
+.sos-history-card {
+  margin-top: 22px;
+  padding: clamp(22px, 4vw, 32px);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+.sos-history-list {
+  display: grid;
+  gap: 12px;
+}
+.sos-history-item {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+}
+.sos-history-item time {
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+.sos-history-item p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.sos-history-item a,
+.sos-history-item span {
+  width: fit-content;
+  color: #1d4ed8;
+  font-weight: 900;
+  text-decoration: none;
+}
+.sos-history-item span { color: #64748b; }
+.compact-empty {
+  padding: 22px 18px;
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .sos-history-card { border-radius: 24px; }
+}
