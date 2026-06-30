@@ -33,6 +33,7 @@ const sosCancelButtons = document.querySelectorAll('[data-close-sos]');
 const contactsList = document.querySelector('#contacts-list');
 const contactsForm = document.querySelector('#contact-form');
 const contactCount = document.querySelector('#contact-count');
+const clearContactsButton = document.querySelector('#clear-contacts-button');
 const profileForm = document.querySelector('#profile-form');
 const profileName = document.querySelector('#profile-name');
 const profilePhone = document.querySelector('#profile-phone');
@@ -387,7 +388,7 @@ function renderContacts() {
   }
 
   contactsList.innerHTML = contacts
-    .map((contact) => {
+    .map((contact, index) => {
       const extraClass = contact.tone === 'primary' ? ' primary-contact' : '';
       const phoneForLink = contact.phone.replace(/\s+/g, '');
 
@@ -398,13 +399,54 @@ function renderContacts() {
             <h3>${escapeHtml(contact.name)}</h3>
             <p>${escapeHtml(contact.relationship)}</p>
           </div>
-          <a href="tel:${escapeHtml(phoneForLink)}" class="call-link">☎ ${escapeHtml(formatPhone(contact.phone))}</a>
+          <div class="contact-actions">
+            <a href="tel:${escapeHtml(phoneForLink)}" class="call-link">☎ ${escapeHtml(formatPhone(contact.phone))}</a>
+            <button class="danger-outline-button delete-contact-button" type="button" data-contact-index="${index}">Διαγραφή</button>
+          </div>
         </article>
       `;
     })
     .join('');
 
   contactCount.textContent = contacts.length;
+}
+
+function ensurePrimaryContact() {
+  if (contacts.length === 0 || contacts.some((contact) => contact.tone === 'primary')) return;
+
+  contacts = contacts.map((contact, index) => ({
+    ...contact,
+    tone: index === 0 ? 'primary' : contact.tone,
+  }));
+}
+
+function deleteContact(index) {
+  const confirmed = window.confirm('Θέλεις σίγουρα να διαγράψεις αυτή την επαφή;');
+
+  if (!confirmed) return;
+
+  contacts = contacts.filter((_, contactIndex) => contactIndex !== index);
+  ensurePrimaryContact();
+  saveJson(storageKeys.contacts, contacts);
+  renderContacts();
+}
+
+function clearTrustedContacts() {
+  const confirmed = window.confirm('Θέλεις σίγουρα να διαγράψεις όλες τις έμπιστες επαφές;');
+
+  if (!confirmed) return;
+
+  contacts = [];
+  saveJson(storageKeys.contacts, contacts);
+  renderContacts();
+}
+
+function handleContactsListClick(event) {
+  const deleteButton = event.target.closest('.delete-contact-button');
+
+  if (!deleteButton) return;
+
+  deleteContact(Number(deleteButton.dataset.contactIndex));
 }
 
 function addContact(event) {
@@ -480,6 +522,8 @@ document.addEventListener('keydown', (event) => {
 });
 
 contactsForm.addEventListener('submit', addContact);
+contactsList.addEventListener('click', handleContactsListClick);
+clearContactsButton.addEventListener('click', clearTrustedContacts);
 profileForm.addEventListener('submit', saveProfile);
 clearDataButton.addEventListener('click', clearSafeMeData);
 refreshLocationButton.addEventListener('click', refreshLocation);
