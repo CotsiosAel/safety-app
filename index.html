@@ -80,7 +80,7 @@
           </article>
 
           <article class="quick-card">
-            <strong>3</strong>
+            <strong id="contact-count">3</strong>
             <span>έμπιστες επαφές έτοιμες για ειδοποίηση</span>
           </article>
         </section>
@@ -92,54 +92,80 @@
             <p>Κάλεσε άμεσα ή ενημέρωσε τα άτομα που έχεις επιλέξει για καταστάσεις ανάγκης.</p>
           </div>
 
-          <div class="card-list">
-            <article class="contact-card primary-contact">
-              <div class="avatar">Μ</div>
-              <div class="contact-info">
-                <h3>Μαρία Παπαδοπούλου</h3>
-                <p>Αδελφή • Κύρια επαφή</p>
-              </div>
-              <a href="tel:+306901234567" class="call-link">☎ +30 690 123 4567</a>
-            </article>
-            <article class="contact-card">
-              <div class="avatar">Ν</div>
-              <div class="contact-info">
-                <h3>Νίκος Γεωργίου</h3>
-                <p>Φίλος • Κοντινή απόσταση</p>
-              </div>
-              <a href="tel:+306912345678" class="call-link">☎ +30 691 234 5678</a>
-            </article>
-            <article class="contact-card emergency-contact">
-              <div class="avatar">112</div>
-              <div class="contact-info">
-                <h3>Άμεση Βοήθεια</h3>
-                <p>Ευρωπαϊκός αριθμός έκτακτης ανάγκης</p>
-              </div>
-              <a href="tel:112" class="call-link emergency-link">☎ 112</a>
-            </article>
-          </div>
+          <div class="card-list" id="contacts-list" aria-live="polite"></div>
+
+          <form class="form-card" id="contact-form">
+            <div class="section-heading compact-heading">
+              <p class="eyebrow">Νέα επαφή</p>
+              <h2>Προσθήκη έμπιστης επαφής</h2>
+            </div>
+            <div class="form-grid">
+              <label>
+                <span>Όνομα</span>
+                <input name="name" type="text" placeholder="π.χ. Γιώργος Δημητρίου" required />
+              </label>
+              <label>
+                <span>Σχέση</span>
+                <input name="relationship" type="text" placeholder="π.χ. Πατέρας" required />
+              </label>
+              <label>
+                <span>Τηλέφωνο</span>
+                <input name="phone" type="tel" placeholder="π.χ. +306941234567" required />
+              </label>
+            </div>
+            <button class="primary-button inline-button" type="submit">Αποθήκευση επαφής</button>
+          </form>
         </section>
 
         <section class="page profile-card" id="profile" aria-label="Προφίλ χρήστη">
           <div class="profile-header">
-            <div class="profile-avatar">Ε</div>
+            <div class="profile-avatar" id="profile-avatar">Ε</div>
             <div>
               <p class="eyebrow">Προφίλ χρήστη</p>
-              <h2>Ελένη Αντωνίου</h2>
-              <p>eleniantoniou@example.com</p>
+              <h2 id="profile-name">Ελένη Αντωνίου</h2>
+              <p id="profile-phone">+30 694 555 0198</p>
             </div>
           </div>
 
           <div class="profile-details">
-            <div><span>Ομάδα αίματος</span><strong>Ο+</strong></div>
-            <div><span>Ιατρική σημείωση</span><strong>Αλλεργία στην πενικιλίνη</strong></div>
-            <div><span>Προεπιλεγμένη επαφή</span><strong>Μαρία Παπαδοπούλου</strong></div>
-            <div><span>Τελευταίο check-in</span><strong>Σήμερα, 18:42</strong></div>
+            <div><span>Ιατρικές σημειώσεις</span><strong id="profile-notes">Αλλεργία στην πενικιλίνη</strong></div>
+            <div><span>Αποθήκευση</span><strong>Τοπικά, χωρίς backend</strong></div>
           </div>
 
-          <button class="primary-button" type="button">Επεξεργασία προφίλ</button>
+          <form class="profile-form" id="profile-form">
+            <div class="form-grid">
+              <label>
+                <span>Όνομα χρήστη</span>
+                <input name="name" type="text" required />
+              </label>
+              <label>
+                <span>Τηλέφωνο</span>
+                <input name="phone" type="tel" required />
+              </label>
+              <label class="full-field">
+                <span>Ιατρικές σημειώσεις</span>
+                <textarea name="medicalNotes" rows="4" required></textarea>
+              </label>
+            </div>
+            <button class="primary-button inline-button" type="submit">Αποθήκευση προφίλ</button>
+            <p class="save-status" id="profile-status" aria-live="polite"></p>
+          </form>
         </section>
       </main>
+    </div>
+
+    <div class="modal-backdrop" id="sos-modal" role="dialog" aria-modal="true" aria-labelledby="sos-modal-title" hidden>
+      <div class="modal-card">
+        <button class="modal-close" type="button" data-close-sos aria-label="Κλείσιμο">×</button>
+        <span class="modal-icon">⚡</span>
+        <p class="eyebrow">Επιβεβαίωση SOS</p>
+        <h2 id="sos-modal-title">Να σταλεί ειδοποίηση SOS;</h2>
+        <p>Θα ενημερωθούν άμεσα οι έμπιστες επαφές σου ότι χρειάζεσαι βοήθεια.</p>
+        <div class="modal-actions">
+          <button class="ghost-button" type="button" data-close-sos>Άκυρο</button>
+          <button class="danger-button" id="sos-confirm" type="button">Ναι, στείλε SOS</button>
+        </div>
+      </div>
     </div>
     <script type="module" src="./src/main.js"></script>
   </body>
