@@ -6,6 +6,7 @@
   "scripts": {
     "start": "python3 -m http.server 4173",
     "dev": "python3 -m http.server 4173",
-    "build": "node scripts/build.js"
+    "build": "node scripts/build.js",
+    "check:text-only": "node scripts/check-text-only.js"
   }
 }

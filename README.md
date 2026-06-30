@@ -23,3 +23,11 @@ npm run start
 ```bash
 npm run build
 ```
+
+## Έλεγχος PR
+
+Το repository κρατά μόνο text/code αλλαγές ώστε το Create PR να μη μπλοκάρεται από binary εικόνες ή άλλα binary assets.
+
+```bash
+npm run check:text-only
+```
