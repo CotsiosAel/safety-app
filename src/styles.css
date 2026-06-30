@@ -616,3 +616,88 @@ body.modal-open { overflow: hidden; }
   .active-sos-details div { grid-template-columns: 1fr; gap: 4px; }
   .active-sos-actions { flex-direction: column; }
 }
+
+body.tracking-mode .app-shell,
+body.tracking-mode .modal-backdrop {
+  display: none;
+}
+
+.public-tracking-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(18px, 4vw, 48px);
+  background:
+    radial-gradient(circle at 82% 8%, rgba(37, 99, 235, 0.20), transparent 29rem),
+    radial-gradient(circle at 12% 88%, rgba(239, 35, 60, 0.12), transparent 25rem),
+    linear-gradient(135deg, #f8fbff 0%, #edf3fb 52%, #f7f9fc 100%);
+}
+
+.public-tracking-card {
+  width: min(100%, 620px);
+  padding: clamp(26px, 5vw, 46px);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.public-tracking-card h1 {
+  margin: 0 0 20px;
+  color: var(--ink);
+  font-size: clamp(2rem, 7vw, 3.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.public-tracking-details {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 22px;
+}
+
+.public-tracking-details div {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e7edf5;
+}
+
+.public-tracking-details dt {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.public-tracking-details dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.public-tracking-map {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 18px;
+  color: #1d4ed8;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.public-tracking-muted,
+.public-tracking-ended,
+.public-tracking-error {
+  color: var(--muted);
+  line-height: 1.65;
+  font-weight: 800;
+}
+
+.public-tracking-ended { color: #be123c; }
+.public-tracking-error { color: #be123c; }
+
+@media (max-width: 640px) {
+  .public-tracking-card { border-radius: 24px; }
+  .public-tracking-details div { grid-template-columns: 1fr; gap: 4px; }
+}

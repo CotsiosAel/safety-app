@@ -4,6 +4,8 @@ const SUPABASE_URL = 'https://tkzgaejomyyrhbvfksas.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const SOS_TRACKING_BASE_URL = 'https://cotsiosael.github.io/safety-app/';
+const trackingToken = new URLSearchParams(window.location.search).get('track');
 
 const pageTitles = {
   home: 'Αρχική σελίδα',
@@ -29,6 +31,127 @@ const storageKeys = {
   location: 'safety-app-last-location',
   sosTestMode: 'safety-app-sos-test-mode',
 };
+
+
+function formatPublicTrackingDate(value) {
+  if (!value) return '—';
+
+  return new Intl.DateTimeFormat('el-GR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
+
+function normalizePublicSosSession(session) {
+  if (!session) return null;
+
+  return {
+    status: session.status || 'ended',
+    startedAt: session.started_at || session.startedAt || null,
+    endedAt: session.ended_at || session.endedAt || null,
+    latestLatitude: session.latest_latitude ?? session.latestLatitude ?? null,
+    latestLongitude: session.latest_longitude ?? session.latestLongitude ?? null,
+    latestLocationAt: session.latest_location_at || session.latestLocationAt || null,
+  };
+}
+
+function publicTrackingHasLocation(session) {
+  return session?.latestLatitude !== null && session?.latestLatitude !== undefined
+    && session?.latestLongitude !== null && session?.latestLongitude !== undefined;
+}
+
+function renderPublicTrackingPage(state) {
+  const existingPage = document.querySelector('#public-tracking-page');
+  const page = existingPage || document.createElement('main');
+  page.id = 'public-tracking-page';
+  page.className = 'public-tracking-page';
+
+  if (!existingPage) document.body.appendChild(page);
+
+  if (state.loading) {
+    page.innerHTML = `
+      <section class="public-tracking-card" aria-live="polite">
+        <p class="eyebrow">SafeMe public link</p>
+        <h1>SafeMe SOS Tracking</h1>
+        <p class="public-tracking-muted">Φορτώνω την κατάσταση SOS...</p>
+      </section>
+    `;
+    return;
+  }
+
+  if (state.error) {
+    page.innerHTML = `
+      <section class="public-tracking-card" aria-live="polite">
+        <p class="eyebrow">SafeMe public link</p>
+        <h1>SafeMe SOS Tracking</h1>
+        <p class="public-tracking-error">${escapeHtml(state.error)}</p>
+        <button class="primary-button inline-button" id="public-tracking-refresh" type="button">Ανανέωση τοποθεσίας</button>
+      </section>
+    `;
+    document.querySelector('#public-tracking-refresh')?.addEventListener('click', fetchPublicTrackingSession);
+    return;
+  }
+
+  const session = state.session;
+  const hasLocation = publicTrackingHasLocation(session);
+  const mapsUrl = hasLocation ? `https://maps.google.com/?q=${session.latestLatitude},${session.latestLongitude}` : '';
+  const endedMessage = session.status === 'ended' ? '<p class="public-tracking-ended">Το SOS έχει τερματιστεί.</p>' : '';
+
+  page.innerHTML = `
+    <section class="public-tracking-card" aria-live="polite">
+      <p class="eyebrow">SafeMe public link</p>
+      <h1>SafeMe SOS Tracking</h1>
+      ${endedMessage}
+      <dl class="public-tracking-details">
+        <div><dt>Status</dt><dd>${escapeHtml(session.status)}</dd></div>
+        <div><dt>Started</dt><dd>${escapeHtml(formatPublicTrackingDate(session.startedAt))}</dd></div>
+        ${session.endedAt ? `<div><dt>Ended</dt><dd>${escapeHtml(formatPublicTrackingDate(session.endedAt))}</dd></div>` : ''}
+        ${session.latestLocationAt ? `<div><dt>Latest location time</dt><dd>${escapeHtml(formatPublicTrackingDate(session.latestLocationAt))}</dd></div>` : ''}
+      </dl>
+      ${hasLocation
+        ? `<a class="public-tracking-map" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener">Άνοιγμα τελευταίας τοποθεσίας στο Google Maps</a>`
+        : '<p class="public-tracking-muted">Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα.</p>'}
+      <button class="primary-button inline-button" id="public-tracking-refresh" type="button">Ανανέωση τοποθεσίας</button>
+    </section>
+  `;
+  document.querySelector('#public-tracking-refresh')?.addEventListener('click', fetchPublicTrackingSession);
+}
+
+let publicTrackingRefreshTimer = null;
+
+async function fetchPublicTrackingSession() {
+  if (!trackingToken) return;
+
+  renderPublicTrackingPage({ loading: true });
+
+  try {
+    const { data, error } = await supabase.rpc('get_sos_session_by_token', {
+      token: trackingToken,
+    });
+
+    if (error) throw error;
+
+    const session = normalizePublicSosSession(Array.isArray(data) ? data[0] : data);
+    if (!session) throw new Error('Δεν βρέθηκε ενεργό SOS για αυτόν τον σύνδεσμο.');
+
+    renderPublicTrackingPage({ session });
+
+    window.clearInterval(publicTrackingRefreshTimer);
+    publicTrackingRefreshTimer = session.status === 'active'
+      ? window.setInterval(fetchPublicTrackingSession, 20000)
+      : null;
+  } catch (error) {
+    window.clearInterval(publicTrackingRefreshTimer);
+    publicTrackingRefreshTimer = null;
+    renderPublicTrackingPage({ error: error.message || 'Δεν φορτώθηκε το SOS tracking.' });
+  }
+}
+
+function initializePublicTrackingMode() {
+  document.body.classList.add('tracking-mode');
+  renderPublicTrackingPage({ loading: true });
+  fetchPublicTrackingSession();
+}
 
 const authStatusMessages = {
   signedOut: 'Δεν έχεις συνδεθεί. Τα στοιχεία αποθηκεύονται τοπικά.',
@@ -367,19 +490,31 @@ function getSosMessageIntro() {
     : 'SOS - Χρειάζομαι βοήθεια.';
 }
 
-function buildSosMessage(location = currentLocation) {
+function getSosTrackingUrl(shareToken) {
+  if (!shareToken) return '';
+
+  const url = new URL(SOS_TRACKING_BASE_URL);
+  url.searchParams.set('track', shareToken);
+  return url.toString();
+}
+
+function buildSosMessage(location = currentLocation, shareToken = activeSosSession?.shareToken) {
   const locationLine = location
     ? `Η τοποθεσία μου: ${getLocationUrl(location)}`
     : 'Δεν μπόρεσα να πάρω τοποθεσία από τη συσκευή μου.';
   const nameLine = profile?.name ? `Όνομα: ${profile.name}` : '';
   const phoneLine = profile?.phone ? `Τηλέφωνο: ${profile.phone}` : '';
   const medicalLine = profile?.medicalNotes ? `Ιατρικές σημειώσεις: ${profile.medicalNotes}` : '';
+  const trackingUrl = getSosTrackingUrl(shareToken);
+  const trackingIntro = trackingUrl ? 'Άνοιξε εδώ για να δεις την τελευταία μου τοποθεσία:' : '';
 
   return [
     getSosMessageIntro(),
     nameLine,
     phoneLine,
     locationLine,
+    trackingIntro,
+    trackingUrl,
     medicalLine,
   ]
     .filter(Boolean)
@@ -446,6 +581,7 @@ function mapActiveSosSessionFromSupabase(session) {
     latestLatitude: session.latest_latitude,
     latestLongitude: session.latest_longitude,
     latestLocationAt: session.latest_location_at || null,
+    shareToken: session.share_token || session.shareToken || null,
     updatedAt: session.updated_at || null,
   };
 }
@@ -464,6 +600,23 @@ function mapActiveSosSessionToSupabase(sosEventId, location = currentLocation) {
     latest_location_at: hasLocation ? now : null,
     updated_at: now,
   };
+}
+
+async function attachSosEventToActiveSession(sosEventId) {
+  if (!currentUser || !activeSosSession || !sosEventId) return;
+
+  const { data, error } = await supabase
+    .from('active_sos_sessions')
+    .update({ sos_event_id: sosEventId, updated_at: new Date().toISOString() })
+    .eq('id', activeSosSession.id)
+    .eq('user_id', currentUser.id)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  activeSosSession = mapActiveSosSessionFromSupabase(data);
+  renderActiveSosSession();
 }
 
 function getActiveSosLocationUrl(session) {
@@ -828,34 +981,37 @@ async function confirmSos() {
   }
 
   const contact = getPrimaryContact();
-  const message = buildSosMessage(currentLocation);
+  let historyMessage = '';
+
+  if (currentUser) {
+    try {
+      await createActiveSosSession(null, currentLocation);
+      historyMessage = 'Δημιουργήθηκε ενεργό SOS.';
+    } catch (error) {
+      historyMessage = 'Δεν δημιουργήθηκε ενεργό SOS.';
+    }
+  }
+
+  const message = buildSosMessage(currentLocation, activeSosSession?.shareToken);
 
   sosButton.classList.add('activated');
   sosButton.setAttribute('aria-pressed', 'true');
   setSosConfirmLoading(false);
-
-  let historyMessage = '';
 
   if (currentUser) {
     let savedEvent = null;
 
     try {
       savedEvent = await saveSosEventToSupabase(message, currentLocation);
-      historyMessage = 'Το SOS αποθηκεύτηκε στο ιστορικό.';
+      historyMessage = `${historyMessage || 'Το SOS ετοιμάστηκε.'} Το SOS αποθηκεύτηκε στο ιστορικό.`;
       if (savedEvent) {
         sosHistoryEvents = [savedEvent, ...sosHistoryEvents].slice(0, 5);
         sosHistoryStatus = '';
         renderSosHistory();
+        await attachSosEventToActiveSession(savedEvent.id);
       }
     } catch (error) {
-      historyMessage = 'Το SOS ετοιμάστηκε, αλλά δεν αποθηκεύτηκε στο ιστορικό.';
-    }
-
-    try {
-      await createActiveSosSession(savedEvent?.id, currentLocation);
-      historyMessage = `${historyMessage || 'Το SOS ετοιμάστηκε.'} Δημιουργήθηκε ενεργό SOS.`;
-    } catch (error) {
-      historyMessage = `${historyMessage || 'Το SOS ετοιμάστηκε.'} Δεν δημιουργήθηκε ενεργό SOS.`;
+      historyMessage = `${historyMessage || 'Το SOS ετοιμάστηκε.'} Το SOS δεν αποθηκεύτηκε στο ιστορικό.`;
     }
   }
 
@@ -1296,6 +1452,8 @@ refreshLocationButton.addEventListener('click', refreshLocation);
 shareLocationButton.addEventListener('click', shareLocation);
 updateActiveSosLocationButton.addEventListener('click', updateActiveSosLocation);
 endActiveSosButton.addEventListener('click', endActiveSosSession);
+
+if (trackingToken) initializePublicTrackingMode();
 
 syncSosTestModeToggle();
 renderContacts();
