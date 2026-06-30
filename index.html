@@ -154,8 +154,32 @@
 
           <div class="profile-details">
             <div><span>Ιατρικές σημειώσεις</span><strong id="profile-notes">Δεν έχουν προστεθεί ιατρικές σημειώσεις</strong></div>
-            <div><span>Αποθήκευση</span><strong>Τοπικά, χωρίς backend</strong></div>
+            <div><span>Αποθήκευση</span><strong id="storage-mode">Τοπικά, χωρίς backend</strong></div>
           </div>
+
+          <form class="auth-card" id="auth-form">
+            <div class="section-heading compact-heading">
+              <p class="eyebrow">Supabase auth</p>
+              <h2>Σύνδεση ή εγγραφή</h2>
+              <p>Συνδέσου για συγχρονισμό προφίλ και έμπιστων επαφών. Χωρίς σύνδεση, το SafeMe συνεχίζει με localStorage.</p>
+            </div>
+            <div class="form-grid">
+              <label>
+                <span>Email</span>
+                <input id="auth-email" name="email" type="email" autocomplete="email" required />
+              </label>
+              <label>
+                <span>Κωδικός</span>
+                <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="6" required />
+              </label>
+            </div>
+            <div class="auth-actions">
+              <button class="primary-button inline-button" id="auth-login-button" type="submit">Σύνδεση</button>
+              <button class="ghost-button inline-button" id="auth-signup-button" type="submit">Εγγραφή</button>
+              <button class="danger-outline-button inline-button" id="auth-logout-button" type="button" hidden>Αποσύνδεση</button>
+            </div>
+            <p class="save-status" id="auth-status" aria-live="polite"></p>
+          </form>
 
           <form class="profile-form" id="profile-form">
             <div class="form-grid">

@@ -283,7 +283,7 @@ button { -webkit-tap-highlight-color: transparent; }
 
 body.modal-open { overflow: hidden; }
 
-.form-card, .profile-form {
+.form-card, .profile-form, .auth-card {
   padding: clamp(22px, 4vw, 32px);
   background: var(--card);
   border: 1px solid var(--line);
@@ -386,7 +386,7 @@ body.modal-open { overflow: hidden; }
 
 @media (max-width: 640px) {
   .form-grid { grid-template-columns: 1fr; }
-  .form-card, .profile-form { border-radius: 24px; }
+  .form-card, .profile-form, .auth-card { border-radius: 24px; }
   .inline-button, .modal-actions .ghost-button, .danger-button, .danger-outline-button { width: 100%; }
   .modal-card {
     max-height: calc(100dvh - 24px);
@@ -500,3 +500,7 @@ body.modal-open { overflow: hidden; }
   .emergency-call-buttons { flex-direction: column; }
   .emergency-call-button { width: 100%; }
 }
+
+.auth-card { margin-top: 22px; padding: clamp(22px, 4vw, 32px); }
+.auth-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.save-status.error { color: #be123c; }

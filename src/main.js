@@ -1,3 +1,10 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://tkzgaejomyyrhbvfksas.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
 const pageTitles = {
   home: 'Αρχική σελίδα',
   contacts: 'Έμπιστες επαφές',
@@ -21,6 +28,11 @@ const storageKeys = {
   profile: 'safety-app-user-profile',
   location: 'safety-app-last-location',
   sosTestMode: 'safety-app-sos-test-mode',
+};
+
+const authStatusMessages = {
+  signedOut: 'Δεν έχεις συνδεθεί. Τα στοιχεία αποθηκεύονται τοπικά.',
+  signedIn: 'Συνδεδεμένος/η στο Supabase. Τα στοιχεία συγχρονίζονται.',
 };
 
 const navButtons = document.querySelectorAll('.nav-item');
@@ -53,6 +65,14 @@ const profileNotes = document.querySelector('#profile-notes');
 const profileAvatar = document.querySelector('#profile-avatar');
 const profileStatus = document.querySelector('#profile-status');
 const clearDataButton = document.querySelector('#clear-data-button');
+const authForm = document.querySelector('#auth-form');
+const authEmail = document.querySelector('#auth-email');
+const authPassword = document.querySelector('#auth-password');
+const authSignupButton = document.querySelector('#auth-signup-button');
+const authLoginButton = document.querySelector('#auth-login-button');
+const authLogoutButton = document.querySelector('#auth-logout-button');
+const authStatus = document.querySelector('#auth-status');
+const storageMode = document.querySelector('#storage-mode');
 const locationText = document.querySelector('#location-text');
 const refreshLocationButton = document.querySelector('#refresh-location-button');
 const shareLocationButton = document.querySelector('#share-location-button');
@@ -76,6 +96,9 @@ let currentLocation = loadJson(storageKeys.location, null);
 let isSosTestMode = loadJson(storageKeys.sosTestMode, false) === true;
 let preparedSosMessage = '';
 let preparedSosContact = null;
+let currentUser = null;
+let authMode = 'login';
+let isRemoteSyncing = false;
 
 
 function isLegacyDemoContact(contact) {
@@ -98,9 +121,53 @@ function ensureSinglePrimaryContact(contactList) {
   }));
 }
 
-function persistContacts() {
+function mapContactFromSupabase(contact) {
+  return {
+    id: contact.id,
+    name: contact.name || '',
+    relationship: contact.relationship || '',
+    phone: contact.phone || '',
+    tone: contact.tone || 'default',
+  };
+}
+
+function mapContactToSupabase(contact) {
+  return {
+    user_id: currentUser.id,
+    name: contact.name,
+    relationship: contact.relationship,
+    phone: contact.phone,
+    tone: contact.tone || 'default',
+  };
+}
+
+function mapProfileFromSupabase(savedProfile) {
+  if (!savedProfile) return null;
+
+  return sanitizeProfile({
+    name: savedProfile.name || '',
+    phone: savedProfile.phone || '',
+    medicalNotes: savedProfile.medical_notes || savedProfile.medicalNotes || '',
+  });
+}
+
+function mapProfileToSupabase(savedProfile) {
+  return {
+    id: currentUser.id,
+    name: savedProfile.name,
+    phone: savedProfile.phone,
+    medical_notes: savedProfile.medicalNotes,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+async function persistContacts() {
   contacts = ensureSinglePrimaryContact(contacts);
   saveJson(storageKeys.contacts, contacts);
+
+  if (currentUser && !isRemoteSyncing) {
+    await saveContactsToSupabase();
+  }
 }
 
 function sanitizeProfile(savedProfile) {
@@ -521,18 +588,18 @@ function ensurePrimaryContact() {
   contacts = ensureSinglePrimaryContact(contacts);
 }
 
-function deleteContact(index) {
+async function deleteContact(index) {
   const confirmed = window.confirm('Θέλεις σίγουρα να διαγράψεις αυτή την επαφή;');
 
   if (!confirmed) return;
 
   contacts = contacts.filter((_, contactIndex) => contactIndex !== index);
   ensurePrimaryContact();
-  persistContacts();
+  await persistContacts();
   renderContacts();
 }
 
-function editContact(index) {
+async function editContact(index) {
   const contact = contacts[index];
 
   if (!contact) return;
@@ -557,27 +624,27 @@ function editContact(index) {
       : savedContact
   ));
 
-  persistContacts();
+  await persistContacts();
   renderContacts();
 }
 
-function setPrimaryContact(index) {
+async function setPrimaryContact(index) {
   contacts = contacts.map((contact, contactIndex) => ({
     ...contact,
     tone: contactIndex === index ? 'primary' : 'default',
   }));
 
-  persistContacts();
+  await persistContacts();
   renderContacts();
 }
 
-function clearTrustedContacts() {
+async function clearTrustedContacts() {
   const confirmed = window.confirm('Θέλεις σίγουρα να διαγράψεις όλες τις έμπιστες επαφές;');
 
   if (!confirmed) return;
 
   contacts = [];
-  saveJson(storageKeys.contacts, contacts);
+  await persistContacts();
   renderContacts();
 }
 
@@ -601,7 +668,7 @@ function handleContactsListClick(event) {
   }
 }
 
-function addContact(event) {
+async function addContact(event) {
   event.preventDefault();
   const formData = new FormData(contactsForm);
   const newContact = {
@@ -612,7 +679,7 @@ function addContact(event) {
   };
 
   contacts = [...contacts, newContact];
-  persistContacts();
+  await persistContacts();
   renderContacts();
   contactsForm.reset();
 }
@@ -629,7 +696,7 @@ function renderProfile() {
   profileForm.elements.medicalNotes.value = profile?.medicalNotes || '';
 }
 
-function saveProfile(event) {
+async function saveProfile(event) {
   event.preventDefault();
   const formData = new FormData(profileForm);
   profile = {
@@ -639,8 +706,174 @@ function saveProfile(event) {
   };
 
   saveJson(storageKeys.profile, profile);
+
+  try {
+    if (currentUser) {
+      await saveProfileToSupabase();
+    }
+
+    profileStatus.textContent = currentUser
+      ? 'Τα στοιχεία αποθηκεύτηκαν και συγχρονίστηκαν στο Supabase.'
+      : 'Τα στοιχεία αποθηκεύτηκαν τοπικά στη συσκευή σου.';
+  } catch (error) {
+    profileStatus.textContent = `Αποθηκεύτηκε τοπικά, αλλά απέτυχε ο συγχρονισμός Supabase: ${error.message}`;
+  }
+
   renderProfile();
-  profileStatus.textContent = 'Τα στοιχεία αποθηκεύτηκαν τοπικά στη συσκευή σου.';
+}
+
+
+function setAuthLoading(isLoading) {
+  authSignupButton.disabled = isLoading;
+  authLoginButton.disabled = isLoading;
+  authLogoutButton.disabled = isLoading || !currentUser;
+}
+
+function renderAuth() {
+  const signedIn = Boolean(currentUser);
+  authLogoutButton.hidden = !signedIn;
+  authEmail.disabled = signedIn;
+  authPassword.disabled = signedIn;
+  storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικά, χωρίς backend';
+
+  if (!authStatus.textContent) {
+    authStatus.textContent = signedIn ? authStatusMessages.signedIn : authStatusMessages.signedOut;
+  }
+}
+
+function showAuthMessage(message, isError = false) {
+  authStatus.textContent = message;
+  authStatus.classList.toggle('error', isError);
+}
+
+async function saveProfileToSupabase() {
+  if (!currentUser || !profile) return;
+
+  const { error } = await supabase
+    .from('profiles')
+    .upsert(mapProfileToSupabase(profile), { onConflict: 'id' });
+
+  if (error) throw error;
+}
+
+async function saveContactsToSupabase() {
+  if (!currentUser) return;
+
+  const { error: deleteError } = await supabase
+    .from('trusted_contacts')
+    .delete()
+    .eq('user_id', currentUser.id);
+
+  if (deleteError) throw deleteError;
+
+  if (contacts.length === 0) return;
+
+  const { error: insertError } = await supabase
+    .from('trusted_contacts')
+    .insert(contacts.map(mapContactToSupabase));
+
+  if (insertError) throw insertError;
+}
+
+async function loadSupabaseData() {
+  if (!currentUser) return;
+
+  isRemoteSyncing = true;
+
+  try {
+    const [{ data: remoteProfile, error: profileError }, { data: remoteContacts, error: contactsError }] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle(),
+      supabase.from('trusted_contacts').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: true }),
+    ]);
+
+    if (profileError) throw profileError;
+    if (contactsError) throw contactsError;
+
+    const savedLocalProfile = profile;
+    const savedLocalContacts = contacts;
+
+    profile = mapProfileFromSupabase(remoteProfile) || savedLocalProfile;
+    contacts = ensureSinglePrimaryContact(sanitizeContacts((remoteContacts || []).map(mapContactFromSupabase)));
+
+    if (contacts.length === 0 && savedLocalContacts.length > 0) contacts = savedLocalContacts;
+
+    saveJson(storageKeys.profile, profile);
+    saveJson(storageKeys.contacts, contacts);
+
+    if (!remoteProfile && profile) await saveProfileToSupabase();
+    if ((remoteContacts || []).length === 0 && contacts.length > 0) await saveContactsToSupabase();
+
+    renderProfile();
+    renderContacts();
+    showAuthMessage(authStatusMessages.signedIn);
+  } catch (error) {
+    showAuthMessage(`Δεν έγινε συγχρονισμός Supabase: ${error.message}`, true);
+  } finally {
+    isRemoteSyncing = false;
+  }
+}
+
+async function handleAuthSubmit(event) {
+  event.preventDefault();
+  setAuthLoading(true);
+
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+
+  try {
+    const authRequest = authMode === 'signup'
+      ? supabase.auth.signUp({ email, password })
+      : supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await authRequest;
+
+    if (error) throw error;
+
+    currentUser = data.user || currentUser;
+    authPassword.value = '';
+    showAuthMessage(authMode === 'signup'
+      ? 'Ο λογαριασμός δημιουργήθηκε. Έλεγξε email επιβεβαίωσης αν ζητηθεί.'
+      : 'Συνδέθηκες επιτυχώς.');
+    renderAuth();
+    await loadSupabaseData();
+  } catch (error) {
+    showAuthMessage(error.message || 'Η σύνδεση απέτυχε.', true);
+  } finally {
+    setAuthLoading(false);
+  }
+}
+
+async function logout() {
+  setAuthLoading(true);
+
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+
+    currentUser = null;
+    authEmail.value = '';
+    authPassword.value = '';
+    showAuthMessage(authStatusMessages.signedOut);
+    renderAuth();
+  } catch (error) {
+    showAuthMessage(error.message || 'Η αποσύνδεση απέτυχε.', true);
+  } finally {
+    setAuthLoading(false);
+  }
+}
+
+async function initializeAuth() {
+  const { data } = await supabase.auth.getSession();
+  currentUser = data.session?.user || null;
+  if (currentUser) authEmail.value = currentUser.email || '';
+  renderAuth();
+  await loadSupabaseData();
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    currentUser = session?.user || null;
+    if (currentUser) authEmail.value = currentUser.email || '';
+    if (!currentUser) showAuthMessage(authStatusMessages.signedOut);
+    renderAuth();
+  });
 }
 
 function clearSafeMeData() {
@@ -680,6 +913,10 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !sosModal.hidden) closeSosModal();
 });
 
+authSignupButton.addEventListener('click', () => { authMode = 'signup'; });
+authLoginButton.addEventListener('click', () => { authMode = 'login'; });
+authForm.addEventListener('submit', handleAuthSubmit);
+authLogoutButton.addEventListener('click', logout);
 contactsForm.addEventListener('submit', addContact);
 contactsList.addEventListener('click', handleContactsListClick);
 clearContactsButton.addEventListener('click', clearTrustedContacts);
@@ -692,3 +929,4 @@ syncSosTestModeToggle();
 renderContacts();
 renderProfile();
 renderLocation();
+initializeAuth();
