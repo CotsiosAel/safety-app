@@ -78,6 +78,23 @@
               <span>Λειτουργία δοκιμής SOS</span>
             </label>
 
+            <section class="active-sos-card" id="active-sos-section" aria-labelledby="active-sos-title" hidden>
+              <div>
+                <p class="eyebrow">Live SOS</p>
+                <h3 id="active-sos-title">Ενεργό SOS</h3>
+              </div>
+              <dl class="active-sos-details">
+                <div><dt>Έναρξη</dt><dd id="active-sos-started">—</dd></div>
+                <div><dt>Κατάσταση</dt><dd id="active-sos-status">active</dd></div>
+                <div><dt>Τοποθεσία</dt><dd id="active-sos-location">Χωρίς τοποθεσία</dd></div>
+              </dl>
+              <p class="active-sos-feedback" id="active-sos-feedback" aria-live="polite"></p>
+              <div class="active-sos-actions">
+                <button class="ghost-button" id="update-active-sos-location" type="button">Ενημέρωση τοποθεσίας SOS</button>
+                <button class="danger-outline-button" id="end-active-sos" type="button">Τερματισμός SOS</button>
+              </div>
+            </section>
+
             <section class="emergency-call-section" aria-labelledby="emergency-call-title">
               <h3 id="emergency-call-title">Άμεση κλήση έκτακτης ανάγκης</h3>
               <div class="emergency-call-buttons">
