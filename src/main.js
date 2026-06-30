@@ -20,6 +20,7 @@ const storageKeys = {
   contacts: 'safety-app-trusted-contacts',
   profile: 'safety-app-user-profile',
   location: 'safety-app-last-location',
+  sosTestMode: 'safety-app-sos-test-mode',
 };
 
 const navButtons = document.querySelectorAll('.nav-item');
@@ -27,11 +28,13 @@ const pages = document.querySelectorAll('.page');
 const pageTitle = document.querySelector('#page-title');
 const sosButton = document.querySelector('#sos-button');
 const sosStatus = document.querySelector('#sos-status');
+const sosTestModeToggle = document.querySelector('#sos-test-mode');
 const sosModal = document.querySelector('#sos-modal');
 const sosConfirmStep = document.querySelector('#sos-confirmation-step');
 const sosActionPanel = document.querySelector('#sos-action-panel');
 const sosActionTitle = document.querySelector('#sos-action-title');
 const sosMessagePreview = document.querySelector('#sos-message-preview');
+const sosTestModeLabel = document.querySelector('#sos-test-mode-label');
 const sosActionFeedback = document.querySelector('#sos-action-feedback');
 const sosSendSmsButton = document.querySelector('#sos-send-sms');
 const sosSendWhatsappButton = document.querySelector('#sos-send-whatsapp');
@@ -70,6 +73,7 @@ function saveJson(key, value) {
 let contacts = ensureSinglePrimaryContact(sanitizeContacts(loadJson(storageKeys.contacts, defaultContacts)));
 let profile = sanitizeProfile(loadJson(storageKeys.profile, defaultProfile));
 let currentLocation = loadJson(storageKeys.location, null);
+let isSosTestMode = loadJson(storageKeys.sosTestMode, false) === true;
 let preparedSosMessage = '';
 let preparedSosContact = null;
 
@@ -279,6 +283,12 @@ function getPrimaryContact() {
   return contacts.find((contact) => contact.tone === 'primary') || contacts[0] || null;
 }
 
+function getSosMessageIntro() {
+  return isSosTestMode
+    ? 'ΔΟΚΙΜΗ SOS - Δεν πρόκειται για πραγματική ανάγκη.'
+    : 'SOS - Χρειάζομαι βοήθεια.';
+}
+
 function buildSosMessage(location = currentLocation) {
   const locationLine = location
     ? `Η τοποθεσία μου: ${getLocationUrl(location)}`
@@ -288,7 +298,7 @@ function buildSosMessage(location = currentLocation) {
   const medicalLine = profile?.medicalNotes ? `Ιατρικές σημειώσεις: ${profile.medicalNotes}` : '';
 
   return [
-    'SOS - Χρειάζομαι βοήθεια.',
+    getSosMessageIntro(),
     nameLine,
     phoneLine,
     locationLine,
@@ -313,6 +323,7 @@ function showSosActionPanel(message, contact) {
   sosConfirmStep.hidden = true;
   sosActionPanel.hidden = false;
   sosMessagePreview.textContent = message;
+  sosTestModeLabel.hidden = !isSosTestMode;
   sosActionFeedback.textContent = contact
     ? `Κύρια επαφή: ${contact.name} (${formatPhone(contact.phone)})`
     : 'Δεν βρέθηκε κύρια επαφή.';
@@ -323,6 +334,7 @@ function showSosActionPanel(message, contact) {
 function resetSosModal() {
   sosConfirmStep.hidden = false;
   sosActionPanel.hidden = true;
+  sosTestModeLabel.hidden = true;
   sosActionFeedback.textContent = '';
   sosMessagePreview.textContent = '';
 }
@@ -446,6 +458,22 @@ async function confirmSos() {
   sosButton.setAttribute('aria-pressed', 'true');
   setSosConfirmLoading(false);
   showSosActionPanel(message, contact);
+}
+
+
+function syncSosTestModeToggle() {
+  sosTestModeToggle.checked = isSosTestMode;
+}
+
+function handleSosTestModeChange() {
+  isSosTestMode = sosTestModeToggle.checked;
+  saveJson(storageKeys.sosTestMode, isSosTestMode);
+
+  if (preparedSosMessage) {
+    preparedSosMessage = buildSosMessage(currentLocation);
+    sosMessagePreview.textContent = preparedSosMessage;
+    sosTestModeLabel.hidden = !isSosTestMode;
+  }
 }
 
 function renderContacts() {
@@ -624,6 +652,8 @@ function clearSafeMeData() {
   contacts = [];
   profile = null;
   currentLocation = null;
+  isSosTestMode = false;
+  syncSosTestModeToggle();
 
   renderContacts();
   renderProfile();
@@ -636,6 +666,7 @@ navButtons.forEach((button) => {
 });
 
 sosButton.addEventListener('click', openSosModal);
+sosTestModeToggle.addEventListener('change', handleSosTestModeChange);
 sosConfirmButton.addEventListener('click', confirmSos);
 sosCancelButtons.forEach((button) => button.addEventListener('click', closeSosModal));
 sosSendSmsButton.addEventListener('click', sendPreparedSosSms);
@@ -657,6 +688,7 @@ clearDataButton.addEventListener('click', clearSafeMeData);
 refreshLocationButton.addEventListener('click', refreshLocation);
 shareLocationButton.addEventListener('click', shareLocation);
 
+syncSosTestModeToggle();
 renderContacts();
 renderProfile();
 renderLocation();
