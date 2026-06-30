@@ -58,7 +58,7 @@ function saveJson(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-let contacts = sanitizeContacts(loadJson(storageKeys.contacts, defaultContacts));
+let contacts = ensureSinglePrimaryContact(sanitizeContacts(loadJson(storageKeys.contacts, defaultContacts)));
 let profile = sanitizeProfile(loadJson(storageKeys.profile, defaultProfile));
 let currentLocation = loadJson(storageKeys.location, null);
 
@@ -71,6 +71,21 @@ function sanitizeContacts(savedContacts) {
   if (!Array.isArray(savedContacts)) return [];
 
   return savedContacts.filter((contact) => !isLegacyDemoContact(contact));
+}
+
+function ensureSinglePrimaryContact(contactList) {
+  const primaryIndex = contactList.findIndex((contact) => contact.tone === 'primary');
+  const activePrimaryIndex = primaryIndex >= 0 ? primaryIndex : 0;
+
+  return contactList.map((contact, index) => ({
+    ...contact,
+    tone: index === activePrimaryIndex ? 'primary' : 'default',
+  }));
+}
+
+function persistContacts() {
+  contacts = ensureSinglePrimaryContact(contacts);
+  saveJson(storageKeys.contacts, contacts);
 }
 
 function sanitizeProfile(savedProfile) {
@@ -389,7 +404,8 @@ function renderContacts() {
 
   contactsList.innerHTML = contacts
     .map((contact, index) => {
-      const extraClass = contact.tone === 'primary' ? ' primary-contact' : '';
+      const isPrimary = contact.tone === 'primary';
+      const extraClass = isPrimary ? ' primary-contact' : '';
       const phoneForLink = contact.phone.replace(/\s+/g, '');
 
       return `
@@ -398,9 +414,12 @@ function renderContacts() {
           <div class="contact-info">
             <h3>${escapeHtml(contact.name)}</h3>
             <p>${escapeHtml(contact.relationship)}</p>
+            ${isPrimary ? '<span class="primary-contact-badge">Κύρια επαφή SOS</span>' : ''}
           </div>
           <div class="contact-actions">
             <a href="tel:${escapeHtml(phoneForLink)}" class="call-link">☎ ${escapeHtml(formatPhone(contact.phone))}</a>
+            <button class="ghost-button edit-contact-button" type="button" data-contact-index="${index}">Επεξεργασία</button>
+            <button class="secondary-button primary-contact-button" type="button" data-contact-index="${index}" ${isPrimary ? 'disabled aria-disabled="true"' : ''}>Κύρια επαφή</button>
             <button class="danger-outline-button delete-contact-button" type="button" data-contact-index="${index}">Διαγραφή</button>
           </div>
         </article>
@@ -412,12 +431,7 @@ function renderContacts() {
 }
 
 function ensurePrimaryContact() {
-  if (contacts.length === 0 || contacts.some((contact) => contact.tone === 'primary')) return;
-
-  contacts = contacts.map((contact, index) => ({
-    ...contact,
-    tone: index === 0 ? 'primary' : contact.tone,
-  }));
+  contacts = ensureSinglePrimaryContact(contacts);
 }
 
 function deleteContact(index) {
@@ -427,7 +441,46 @@ function deleteContact(index) {
 
   contacts = contacts.filter((_, contactIndex) => contactIndex !== index);
   ensurePrimaryContact();
-  saveJson(storageKeys.contacts, contacts);
+  persistContacts();
+  renderContacts();
+}
+
+function editContact(index) {
+  const contact = contacts[index];
+
+  if (!contact) return;
+
+  const name = window.prompt('Όνομα επαφής', contact.name);
+  if (name === null) return;
+
+  const relationship = window.prompt('Σχέση', contact.relationship);
+  if (relationship === null) return;
+
+  const phone = window.prompt('Τηλέφωνο', contact.phone);
+  if (phone === null) return;
+
+  contacts = contacts.map((savedContact, contactIndex) => (
+    contactIndex === index
+      ? {
+          ...savedContact,
+          name: name.trim() || savedContact.name,
+          relationship: relationship.trim() || savedContact.relationship,
+          phone: phone.trim() || savedContact.phone,
+        }
+      : savedContact
+  ));
+
+  persistContacts();
+  renderContacts();
+}
+
+function setPrimaryContact(index) {
+  contacts = contacts.map((contact, contactIndex) => ({
+    ...contact,
+    tone: contactIndex === index ? 'primary' : 'default',
+  }));
+
+  persistContacts();
   renderContacts();
 }
 
@@ -442,11 +495,23 @@ function clearTrustedContacts() {
 }
 
 function handleContactsListClick(event) {
+  const editButton = event.target.closest('.edit-contact-button');
+  const primaryButton = event.target.closest('.primary-contact-button');
   const deleteButton = event.target.closest('.delete-contact-button');
 
-  if (!deleteButton) return;
+  if (editButton) {
+    editContact(Number(editButton.dataset.contactIndex));
+    return;
+  }
 
-  deleteContact(Number(deleteButton.dataset.contactIndex));
+  if (primaryButton) {
+    setPrimaryContact(Number(primaryButton.dataset.contactIndex));
+    return;
+  }
+
+  if (deleteButton) {
+    deleteContact(Number(deleteButton.dataset.contactIndex));
+  }
 }
 
 function addContact(event) {
@@ -460,7 +525,7 @@ function addContact(event) {
   };
 
   contacts = [...contacts, newContact];
-  saveJson(storageKeys.contacts, contacts);
+  persistContacts();
   renderContacts();
   contactsForm.reset();
 }
