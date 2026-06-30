@@ -2,12 +2,13 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const ignoredDirectories = new Set(['.git', 'dist', 'node_modules']);
-const allowedTextExtensions = new Set([
+const allowedExtensions = new Set([
   '.css',
   '.html',
   '.js',
   '.json',
   '.md',
+  '.png',
   '.txt',
   '.svg',
   '.webmanifest',
@@ -41,6 +42,10 @@ function isBinary(buffer) {
   return buffer.includes(0);
 }
 
+function isAllowedAsset(extension) {
+  return extension === '.png';
+}
+
 const files = await collectFiles('.');
 const unsupportedFiles = [];
 
@@ -48,15 +53,15 @@ for (const file of files) {
   const buffer = await readFile(file);
   const extension = getExtension(file);
 
-  if (isBinary(buffer) || !(allowedTextExtensions.has(extension) || allowedFilenames.has(file))) {
+  if ((isBinary(buffer) && !isAllowedAsset(extension)) || !(allowedExtensions.has(extension) || allowedFilenames.has(file))) {
     unsupportedFiles.push(file);
   }
 }
 
 if (unsupportedFiles.length > 0) {
-  console.error('Binary or unsupported non-text files are not allowed in this PR:');
+  console.error('Unsupported files are not allowed in this PR:');
   for (const file of unsupportedFiles) console.error(`- ${file}`);
   process.exit(1);
 }
 
-console.log('All tracked app files are text/code files.');
+console.log('All tracked app files use supported formats.');
