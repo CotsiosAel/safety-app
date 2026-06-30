@@ -9,6 +9,8 @@ const allowedTextExtensions = new Set([
   '.json',
   '.md',
   '.txt',
+  '.svg',
+  '.webmanifest',
 ]);
 const allowedFilenames = new Set(['.gitignore']);
 
