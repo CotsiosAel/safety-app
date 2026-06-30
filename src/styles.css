@@ -552,3 +552,67 @@ body.modal-open { overflow: hidden; }
 @media (max-width: 640px) {
   .sos-history-card { border-radius: 24px; }
 }
+
+.active-sos-card {
+  display: grid;
+  gap: 16px;
+  max-width: 520px;
+  margin: 24px auto 0;
+  padding: 20px;
+  text-align: left;
+  background: linear-gradient(145deg, rgba(255, 241, 242, 0.94), rgba(255, 255, 255, 0.92));
+  border: 1px solid rgba(239, 35, 60, 0.26);
+  border-radius: 26px;
+  box-shadow: 0 20px 52px rgba(239, 35, 60, 0.14);
+}
+.active-sos-card[hidden] { display: none; }
+.active-sos-card h3 {
+  margin: 0;
+  color: #9f1239;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+}
+.active-sos-details {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+.active-sos-details div {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+}
+.active-sos-details dt {
+  color: #7f1d1d;
+  font-weight: 900;
+}
+.active-sos-details dd {
+  margin: 0;
+  color: #172033;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.active-sos-details a {
+  color: #1d4ed8;
+  text-decoration: none;
+}
+.active-sos-feedback {
+  min-height: 1.5em;
+  margin: 0;
+  color: #be123c;
+  font-weight: 900;
+}
+.active-sos-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.active-sos-actions .ghost-button,
+.active-sos-actions .danger-outline-button { margin-top: 0; }
+
+@media (max-width: 640px) {
+  .active-sos-card { text-align: center; border-radius: 24px; }
+  .active-sos-details div { grid-template-columns: 1fr; gap: 4px; }
+  .active-sos-actions { flex-direction: column; }
+}
