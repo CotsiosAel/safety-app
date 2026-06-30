@@ -360,3 +360,38 @@ body.modal-open { overflow: hidden; }
   .inline-button, .modal-actions .ghost-button, .danger-button, .danger-outline-button { width: 100%; }
   .modal-actions { flex-direction: column-reverse; }
 }
+
+.sos-action-panel {
+  display: grid;
+  gap: 16px;
+}
+.sos-action-panel[hidden] { display: none; }
+.sos-message-preview {
+  max-height: 180px;
+  overflow: auto;
+  padding: 16px;
+  color: #172033;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  text-align: left;
+  white-space: pre-wrap;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+.sos-action-feedback {
+  min-height: 1.5em;
+  margin: 0;
+  color: #1d4ed8;
+  font-weight: 900;
+}
+.sos-action-buttons {
+  display: grid;
+  gap: 10px;
+}
+.sos-action-buttons .danger-button,
+.sos-action-buttons .secondary-button,
+.sos-action-buttons .ghost-button {
+  width: 100%;
+  justify-content: center;
+}
