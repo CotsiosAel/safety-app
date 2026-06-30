@@ -189,6 +189,9 @@ button { -webkit-tap-highlight-color: transparent; }
 .section-heading p:last-child { color: var(--muted); line-height: 1.65; }
 .card-list { display: grid; gap: 16px; }
 .contact-card { justify-content: space-between; gap: 18px; padding: 20px; }
+.contact-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.delete-contact-button { padding: 10px 12px; font-size: .88rem; }
+.contacts-clear-button { justify-self: start; }
 .empty-state { padding: 34px 24px; text-align: center; }
 .empty-icon { display: grid; place-items: center; width: 58px; height: 58px; margin: 0 auto 16px; border-radius: 19px; color: #1d4ed8; background: #edf4ff; font-size: 1.7rem; }
 .empty-state h3 { margin: 0; color: var(--ink); letter-spacing: -0.03em; }
@@ -234,7 +237,7 @@ button { -webkit-tap-highlight-color: transparent; }
   .content { padding: 22px 14px 34px; }
   .topbar, .topbar-actions, .contact-card { align-items: stretch; flex-direction: column; }
   .topbar-actions { justify-content: stretch; }
-  .ghost-button, .status-pill, .call-link { justify-content: center; width: 100%; }
+  .ghost-button, .status-pill, .call-link, .contact-actions, .contacts-clear-button, .delete-contact-button { justify-content: center; width: 100%; }
   .brand { justify-content: flex-start; }
   .brand-mark { width: 46px; height: 46px; }
   .nav-item { flex-direction: column; gap: 6px; font-size: .82rem; }
