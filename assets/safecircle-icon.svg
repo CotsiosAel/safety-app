@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">SafeCircle app icon</title>
+  <desc id="desc">A blue shield inside a circular safety ring.</desc>
+  <rect width="512" height="512" rx="116" fill="#0f172a" />
+  <circle cx="256" cy="256" r="176" fill="#2563eb" opacity="0.22" />
+  <circle cx="256" cy="256" r="136" fill="#38bdf8" opacity="0.22" />
+  <path fill="#ffffff" d="M256 106 371 151v89c0 80-47 132-115 166-68-34-115-86-115-166v-89l115-45Z" />
+  <path fill="#2563eb" d="M256 145 334 176v62c0 52-28 88-78 116-50-28-78-64-78-116v-62l78-31Z" />
+  <path fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="30" d="m218 253 27 27 55-62" />
+</svg>
