@@ -1,6 +1,7 @@
 {
-  "name": "SafeCircle",
-  "short_name": "SafeCircle",
+  "name": "SafeMe",
+  "short_name": "SafeMe",
+  "description": "Personal safety app with SOS, trusted contacts, and location sharing.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -8,8 +9,14 @@
   "theme_color": "#0f172a",
   "icons": [
     {
-      "src": "./assets/safecircle-icon.svg",
-      "sizes": "any",
+      "src": "./assets/safeme-icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./assets/safeme-icon.svg",
+      "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }

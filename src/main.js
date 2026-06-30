@@ -204,8 +204,8 @@ async function shareLocation() {
   try {
     if (navigator.share) {
       await navigator.share({
-        title: 'SafeCircle τοποθεσία',
-        text: 'Η τρέχουσα θέση μου από το SafeCircle.',
+        title: 'SafeMe τοποθεσία',
+        text: 'Η τρέχουσα θέση μου από το SafeMe.',
         url: locationUrl,
       });
       showLocationMessage(`${formatLocation(currentLocation)} • Η τοποθεσία είναι έτοιμη για κοινοποίηση.`);
@@ -258,7 +258,7 @@ async function openPreparedSosMessage(message, contact) {
   try {
     if (navigator.share) {
       await navigator.share({
-        title: 'SafeCircle SOS',
+        title: 'SafeMe SOS',
         text: message,
         url: locationUrl,
       });
