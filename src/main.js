@@ -309,7 +309,32 @@ async function openPreparedSosMessage(message, contact) {
   }
 }
 
+function hasRequiredProfileDetails() {
+  return Boolean(profile?.name?.trim() && profile?.phone?.trim());
+}
+
+function getSosValidationMessage() {
+  if (contacts.length === 0) {
+    return 'Πρόσθεσε τουλάχιστον μία έμπιστη επαφή πριν χρησιμοποιήσεις το SOS.';
+  }
+
+  if (!hasRequiredProfileDetails()) {
+    return 'Συμπλήρωσε το όνομα και το τηλέφωνό σου πριν χρησιμοποιήσεις το SOS.';
+  }
+
+  return '';
+}
+
 function openSosModal() {
+  const validationMessage = getSosValidationMessage();
+
+  if (validationMessage) {
+    sosStatus.textContent = validationMessage;
+    sosButton.classList.remove('activated');
+    sosButton.setAttribute('aria-pressed', 'false');
+    return;
+  }
+
   sosModal.hidden = false;
   document.body.classList.add('modal-open');
   sosConfirmButton.focus();
@@ -322,6 +347,14 @@ function closeSosModal() {
 }
 
 async function confirmSos() {
+  const validationMessage = getSosValidationMessage();
+
+  if (validationMessage) {
+    closeSosModal();
+    sosStatus.textContent = validationMessage;
+    return;
+  }
+
   setSosConfirmLoading(true);
   sosStatus.textContent = 'Ετοιμάζω μήνυμα SOS με την τοποθεσία σου...';
 
