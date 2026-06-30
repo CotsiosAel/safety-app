@@ -388,6 +388,18 @@ body.modal-open { overflow: hidden; }
   .form-grid { grid-template-columns: 1fr; }
   .form-card, .profile-form { border-radius: 24px; }
   .inline-button, .modal-actions .ghost-button, .danger-button, .danger-outline-button { width: 100%; }
+  .modal-card {
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(clamp(28px, 5vw, 42px) + env(safe-area-inset-bottom, 0px) + 56px);
+  }
+  .modal-close {
+    position: sticky;
+    top: 16px;
+    margin: -12px -12px -26px auto;
+    z-index: 1;
+  }
   .modal-actions { flex-direction: column-reverse; }
 }
 
