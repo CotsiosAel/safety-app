@@ -31,3 +31,12 @@ npm run build
 ```bash
 npm run check:text-only
 ```
+
+
+## Account/auth foundation
+
+The app uses Supabase Auth (email/password) with Postgres tables for user profile, trusted contacts, SOS events, and active SOS sessions. The checked-in browser client uses the public publishable Supabase key in `src/main.js`; use `supabase/schema.sql.md` to recreate the database tables, row-level-security policies, and public tracking RPC in another Supabase project.
+
+### Environment/configuration
+
+This static app currently has no build-time environment variable injection. To point to another backend, update `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SOS_TRACKING_BASE_URL`, and `PASSWORD_RESET_REDIRECT_URL` in `src/main.js`.
