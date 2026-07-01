@@ -201,6 +201,7 @@ const sosActionFeedback = document.querySelector('#sos-action-feedback');
 const sosSendSmsButton = document.querySelector('#sos-send-sms');
 const sosSendWhatsappButton = document.querySelector('#sos-send-whatsapp');
 const sosCopyMessageButton = document.querySelector('#sos-copy-message');
+const sosCopyTrackingButton = document.querySelector('#sos-copy-tracking');
 const sosNativeShareButton = document.querySelector('#sos-native-share');
 const sosConfirmButton = document.querySelector('#sos-confirm');
 const sosCancelButtons = document.querySelectorAll('[data-close-sos]');
@@ -258,6 +259,7 @@ let currentLocation = loadJson(storageKeys.location, null);
 let isSosTestMode = loadJson(storageKeys.sosTestMode, false) === true;
 let preparedSosMessage = '';
 let preparedSosContact = null;
+let preparedSosTrackingUrl = '';
 let currentUser = null;
 let authMode = 'login';
 let isRemoteSyncing = false;
@@ -1061,6 +1063,9 @@ async function loadSosHistory() {
 function showSosActionPanel(message, contact, historyMessage = '') {
   preparedSosMessage = message;
   preparedSosContact = contact;
+  preparedSosTrackingUrl = getSosTrackingUrl(activeSosSession?.shareToken);
+  sosCopyTrackingButton.hidden = !preparedSosTrackingUrl;
+  sosCopyTrackingButton.disabled = !preparedSosTrackingUrl;
   sosConfirmStep.hidden = true;
   sosActionPanel.hidden = false;
   sosMessagePreview.textContent = message;
@@ -1079,6 +1084,9 @@ function resetSosModal() {
   sosTestModeLabel.hidden = true;
   sosActionFeedback.textContent = '';
   sosMessagePreview.textContent = '';
+  preparedSosTrackingUrl = '';
+  sosCopyTrackingButton.hidden = true;
+  sosCopyTrackingButton.disabled = true;
 }
 
 function sendPreparedSosSms() {
@@ -1107,6 +1115,19 @@ async function copyPreparedSosMessage() {
   } catch {
     sosActionFeedback.textContent = 'Δεν μπόρεσα να αντιγράψω το μήνυμα. Δοκίμασε ξανά.';
     sosStatus.textContent = 'Δεν μπόρεσα να αντιγράψω το μήνυμα. Δοκίμασε ξανά.';
+  }
+}
+
+async function copyPreparedSosTrackingLink() {
+  if (!preparedSosTrackingUrl) return;
+
+  try {
+    await copyTextToClipboard(preparedSosTrackingUrl);
+    sosActionFeedback.textContent = 'Το tracking link αντιγράφηκε.';
+    sosStatus.textContent = 'Το tracking link αντιγράφηκε.';
+  } catch {
+    sosActionFeedback.textContent = 'Δεν μπόρεσα να αντιγράψω το tracking link. Δοκίμασε ξανά.';
+    sosStatus.textContent = 'Δεν μπόρεσα να αντιγράψω το tracking link. Δοκίμασε ξανά.';
   }
 }
 
@@ -1649,6 +1670,7 @@ sosCancelButtons.forEach((button) => button.addEventListener('click', closeSosMo
 sosSendSmsButton.addEventListener('click', sendPreparedSosSms);
 sosSendWhatsappButton.addEventListener('click', sendPreparedSosWhatsapp);
 sosCopyMessageButton.addEventListener('click', copyPreparedSosMessage);
+sosCopyTrackingButton.addEventListener('click', copyPreparedSosTrackingLink);
 sosNativeShareButton.addEventListener('click', sharePreparedSosMessage);
 sosModal.addEventListener('click', (event) => {
   if (event.target === sosModal) closeSosModal();
