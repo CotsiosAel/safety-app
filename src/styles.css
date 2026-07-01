@@ -609,6 +609,13 @@ body.modal-open { overflow: hidden; }
   border-radius: 999px;
 }
 .active-sos-live-status[hidden] { display: none; }
+.active-sos-live-note {
+  margin: -4px 0 0;
+  color: #475569;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
 .active-sos-feedback {
   min-height: 1.5em;
   margin: 0;
