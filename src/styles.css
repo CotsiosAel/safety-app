@@ -1873,3 +1873,97 @@ body.tracking-mode .modal-backdrop {
   .health-summary-card { border-radius: 24px; }
   .health-card-header { flex-direction: column; }
 }
+
+.app-update-banner {
+  position: fixed;
+  z-index: 80;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(92vw, 560px);
+  padding: 12px 14px;
+  color: #172554;
+  background: rgba(239, 246, 255, 0.96);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  border-radius: 18px;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.18);
+  transform: translateX(-50%);
+}
+.app-update-banner[hidden] { display: none; }
+.app-update-banner span { flex: 1; font-weight: 900; }
+
+.sos-contact-notify {
+  margin: 22px 0;
+  padding: 18px;
+  text-align: left;
+  background: #fff7f7;
+  border: 1px solid rgba(239, 35, 60, 0.28);
+  border-radius: 24px;
+}
+.sos-contact-notify[hidden] { display: none; }
+.sos-contact-notify-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.sos-contact-notify h4,
+.sos-notification-history h5 { margin: 0; color: #7f1d1d; letter-spacing: -0.03em; }
+.sos-contact-notify p { color: #7f1d1d; }
+.compact-danger-button { margin-top: 0; white-space: nowrap; }
+.sos-contact-warning {
+  margin: 12px 0;
+  color: #9f1239;
+  font-weight: 900;
+}
+.sos-contact-list { display: grid; gap: 12px; }
+.sos-contact-notify-card,
+.sos-contact-empty,
+.sos-notification-history-item {
+  padding: 14px;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(239, 35, 60, 0.16);
+  border-radius: 18px;
+}
+.sos-contact-notify-card > div:first-child { display: grid; gap: 3px; }
+.sos-contact-notify-card strong { color: #111827; }
+.sos-contact-notify-card span,
+.sos-notification-history-item span { color: #64748b; font-weight: 800; }
+.sos-contact-missing,
+.missing-contact-inline { color: #be123c; font-weight: 900; }
+.sos-contact-notify-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.sos-contact-notify-actions a,
+.sos-contact-notify-actions button { margin: 0; width: 100%; text-align: center; text-decoration: none; }
+.sos-contact-notify-actions [aria-disabled="true"] {
+  opacity: 0.48;
+  pointer-events: none;
+}
+.sos-notification-history { margin-top: 16px; }
+.sos-notification-history-list { display: grid; gap: 8px; margin-top: 10px; }
+.sos-notification-history-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+}
+.sos-notification-history-item em {
+  grid-row: span 2;
+  align-self: center;
+  color: #047857;
+  font-style: normal;
+  font-weight: 900;
+}
+.sos-notification-empty { margin: 0; }
+
+@media (max-width: 720px) {
+  .app-update-banner { align-items: stretch; flex-direction: column; }
+  .sos-contact-notify-header,
+  .sos-contact-notify-actions { grid-template-columns: 1fr; flex-direction: column; }
+  .compact-danger-button { width: 100%; }
+}

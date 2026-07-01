@@ -5,6 +5,8 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const SOS_TRACKING_BASE_URL = 'https://cotsiosael.github.io/safety-app/';
+const APP_VERSION = '2026-07-01-1';
+const APP_VERSION_URL = './version.json';
 const trackingParams = new URLSearchParams(window.location.search);
 const hasTrackingTokenParam = trackingParams.has('track');
 const trackingToken = (trackingParams.get('track') || '').trim();
@@ -40,6 +42,7 @@ const storageKeys = {
   testSosCompleted: 'safety-app-test-sos-completed',
   setupChecklistCollapsed: 'safety-app-setup-checklist-collapsed',
   safeWalkOutcome: 'safety-app-last-safe-walk-outcome',
+  notificationHistory: 'safety-app-sos-notification-history',
 };
 
 
@@ -258,6 +261,10 @@ const clearDataButton = document.querySelector('#clear-data-button');
 const settingsOpenProfileButton = document.querySelector('#settings-open-profile');
 const settingsOpenContactsButton = document.querySelector('#settings-open-contacts');
 const settingsRefreshLocationButton = document.querySelector('#settings-refresh-location');
+const settingsRefreshAppButton = document.querySelector('#settings-refresh-app');
+const appUpdateBanner = document.querySelector('#app-update-banner');
+const appUpdateMessage = document.querySelector('#app-update-message');
+const appUpdateRefreshButton = document.querySelector('#app-update-refresh');
 const settingsClearDataButton = document.querySelector('#settings-clear-data');
 const settingsStatus = document.querySelector('#settings-status');
 const healthChecklist = document.querySelector('#health-checklist');
@@ -358,6 +365,182 @@ const setupChecklist = document.querySelector('#setup-checklist');
 const setupChecklistItems = document.querySelector('#setup-checklist-items');
 const setupChecklistProgress = document.querySelector('#setup-checklist-progress');
 const setupChecklistSummary = document.querySelector('#setup-checklist-summary');
+const sosContactNotify = document.querySelector('#sos-contact-notify');
+const sosContactList = document.querySelector('#sos-contact-list');
+const sosContactWarning = document.querySelector('#sos-contact-warning');
+const notifyAllSosContactsButton = document.querySelector('#notify-all-sos-contacts');
+const sosNotificationHistoryList = document.querySelector('#sos-notification-history-list');
+
+
+function isActiveSosInProgress() {
+  return activeSosSession?.status === 'active';
+}
+
+function showAppUpdateBanner(message = 'Update available / Νέα έκδοση διαθέσιμη.') {
+  hasAppUpdateAvailable = true;
+  if (!appUpdateBanner) return;
+  appUpdateMessage.textContent = message;
+  appUpdateBanner.hidden = false;
+}
+
+function refreshAppSafely() {
+  if (waitingServiceWorker) waitingServiceWorker.postMessage({ type: 'SKIP_WAITING' });
+  window.location.reload();
+}
+
+async function checkForAppUpdate({ force = false } = {}) {
+  const now = Date.now();
+  if (!force && now - lastVersionCheckAt < 30000) return;
+  lastVersionCheckAt = now;
+
+  try {
+    const response = await fetch(`${APP_VERSION_URL}?t=${now}`, { cache: 'no-store' });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.version && data.version !== APP_VERSION) {
+        showAppUpdateBanner(isActiveSosInProgress()
+          ? 'Νέα έκδοση διαθέσιμη. Το SOS είναι ενεργό — πάτησε Refresh app μόνο όταν είναι ασφαλές.'
+          : 'Update available / Νέα έκδοση διαθέσιμη.');
+      }
+    }
+  } catch {}
+
+  if (navigator.serviceWorker?.getRegistration) {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (registration) await registration.update();
+  }
+}
+
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+
+  navigator.serviceWorker.register('./sw.js').then((registration) => {
+    if (registration.waiting) {
+      waitingServiceWorker = registration.waiting;
+      showAppUpdateBanner(isActiveSosInProgress()
+        ? 'Νέα έκδοση διαθέσιμη. Το SOS είναι ενεργό — κάνε refresh όταν είναι ασφαλές.'
+        : 'Update available / Νέα έκδοση διαθέσιμη.');
+    }
+
+    registration.addEventListener('updatefound', () => {
+      const worker = registration.installing;
+      if (!worker) return;
+      worker.addEventListener('statechange', () => {
+        if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+          waitingServiceWorker = worker;
+          showAppUpdateBanner(isActiveSosInProgress()
+            ? 'Νέα έκδοση διαθέσιμη. Το SOS είναι ενεργό — κάνε refresh όταν είναι ασφαλές.'
+            : 'Update available / Νέα έκδοση διαθέσιμη.');
+        }
+      });
+    });
+  }).catch(() => {});
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing || isActiveSosInProgress()) return;
+    refreshing = true;
+    window.location.reload();
+  });
+}
+
+function setupAppFreshnessChecks() {
+  registerServiceWorker();
+  checkForAppUpdate({ force: true });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      checkForAppUpdate({ force: true });
+      if (currentUser) loadSupabaseData();
+    }
+  });
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) checkForAppUpdate({ force: true });
+  });
+  window.addEventListener('online', () => {
+    checkForAppUpdate({ force: true });
+    if (currentUser) loadSupabaseData();
+    if (hasRequestedLocationPermission) refreshLocation();
+  });
+}
+
+function getActiveSosEmergencyMessage() {
+  return buildSosMessage(currentLocation, activeSosSession?.shareToken);
+}
+
+function logSosNotification(contact, method, status) {
+  const entry = { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, contactName: contact?.name || 'Όλες οι επαφές', method, status, at: new Date().toISOString() };
+  sosNotificationHistory = [entry, ...sosNotificationHistory].slice(0, 12);
+  saveJson(storageKeys.notificationHistory, sosNotificationHistory);
+  renderSosNotificationHistory();
+}
+
+function renderSosNotificationHistory() {
+  if (!sosNotificationHistoryList) return;
+  if (!sosNotificationHistory.length) {
+    sosNotificationHistoryList.innerHTML = '<p class="sos-notification-empty">Δεν υπάρχουν ειδοποιήσεις ακόμα.</p>';
+    return;
+  }
+  sosNotificationHistoryList.innerHTML = sosNotificationHistory.map((entry) => `
+    <article class="sos-notification-history-item">
+      <strong>${escapeHtml(entry.contactName)}</strong>
+      <span>${escapeHtml(entry.method)} • ${escapeHtml(formatSosEventTime(entry.at))}</span>
+      <em>${escapeHtml(entry.status)}</em>
+    </article>
+  `).join('');
+}
+
+function renderSosContactNotifications() {
+  if (!sosContactNotify || !sosContactList) return;
+  const hasActive = isActiveSosInProgress();
+  sosContactNotify.hidden = !hasActive;
+  if (!hasActive) return;
+
+  const trackingUrl = getSosTrackingUrl(activeSosSession?.shareToken);
+  notifyAllSosContactsButton.disabled = !trackingUrl || contacts.length === 0;
+  sosContactWarning.textContent = !trackingUrl
+    ? 'Προσοχή: δεν υπάρχει active tracking link. Συνδέσου ή δημιούργησε link πριν στείλεις SOS μήνυμα.'
+    : contacts.length === 0
+      ? 'Δεν υπάρχουν emergency contacts. Πήγαινε στις Επαφές για setup.'
+      : '';
+
+  if (contacts.length === 0) {
+    sosContactList.innerHTML = '<article class="sos-contact-empty"><strong>Δεν υπάρχουν emergency contacts</strong><p>Άνοιξε τις Επαφές και πρόσθεσε τουλάχιστον ένα άτομο.</p><button class="ghost-button" type="button" data-sos-open-contacts>Άνοιγμα επαφών</button></article>';
+    renderSosNotificationHistory();
+    return;
+  }
+
+  const message = getActiveSosEmergencyMessage();
+  sosContactList.innerHTML = contacts.map((contact, index) => {
+    const phone = normalizePhone(contact.phone || '');
+    const hasPhone = Boolean(phone);
+    const hasEmail = Boolean(contact.email);
+    return `
+      <article class="sos-contact-notify-card">
+        <div><strong>${escapeHtml(contact.name)}</strong><span>${escapeHtml(contact.relationship || 'Emergency contact')}</span></div>
+        ${!hasPhone && !hasEmail ? '<p class="sos-contact-missing">Missing contact details</p>' : ''}
+        <div class="sos-contact-notify-actions">
+          <a class="danger-button" href="${escapeHtml(getSmsLink(contact, message))}" data-sos-notify-index="${index}" data-sos-method="SMS" ${!hasPhone || !trackingUrl ? 'aria-disabled="true" tabindex="-1"' : ''}>Send SMS</a>
+          <a class="ghost-button" href="${escapeHtml(getWhatsappLink(message, contact))}" target="_blank" rel="noopener" data-sos-notify-index="${index}" data-sos-method="WhatsApp" ${!hasPhone || !trackingUrl ? 'aria-disabled="true" tabindex="-1"' : ''}>Open WhatsApp</a>
+          <a class="ghost-button" href="${escapeHtml(getEmailLink(contact, message))}" data-sos-notify-index="${index}" data-sos-method="Email" ${!hasEmail || !trackingUrl ? 'aria-disabled="true" tabindex="-1"' : ''}>Send Email</a>
+          <button class="ghost-button" type="button" data-sos-copy-contact="${index}" ${!trackingUrl ? 'disabled' : ''}>Copy emergency message</button>
+        </div>
+      </article>`;
+  }).join('');
+  renderSosNotificationHistory();
+}
+
+async function notifyAllSosContacts() {
+  const message = getActiveSosEmergencyMessage();
+  const trackingUrl = getSosTrackingUrl(activeSosSession?.shareToken);
+  if (!trackingUrl) { renderActiveSosSession('Δεν υπάρχει tracking link — δεν στέλνω broken SOS μήνυμα.'); return; }
+  if (navigator.share) {
+    try { await navigator.share({ title: 'SafeMe SOS', text: message, url: trackingUrl }); logSosNotification(null, 'Share', 'Opened'); return; }
+    catch (error) { if (error?.name === 'AbortError') return; }
+  }
+  await copyTextToClipboard(message);
+  logSosNotification(null, 'Copy', 'Copied');
+  renderActiveSosSession('Το SOS μήνυμα αντιγράφηκε για αποστολή σε όλες τις επαφές.');
+}
 
 function loadJson(key, fallback) {
   try {
@@ -413,6 +596,10 @@ let activeSosDiagnostics = {
   lastErrorMessage: '',
 };
 let locationPermissionStatus = null;
+let sosNotificationHistory = loadJson(storageKeys.notificationHistory, []);
+let waitingServiceWorker = null;
+let hasAppUpdateAvailable = false;
+let lastVersionCheckAt = 0;
 
 
 function isLegacyDemoContact(contact) {
@@ -441,6 +628,7 @@ function mapContactFromSupabase(contact) {
     name: contact.name || '',
     relationship: contact.relationship || '',
     phone: contact.phone || '',
+    email: contact.email || '',
     tone: contact.tone || 'default',
   };
 }
@@ -1134,7 +1322,7 @@ function buildSosMessage(location = currentLocation, shareToken = activeSosSessi
   const medicalText = profile?.medicalNotes || 'Δεν έχουν προστεθεί.';
 
   return [
-    getSosMessageIntro(),
+    `${getSosMessageIntro()} Please check my live SafeMe status and contact emergency services if needed.`,
     '',
     `👤 Όνομα: ${profile?.name || 'Δεν έχει συμπληρωθεί.'}`,
     `☎️ Τηλέφωνο: ${profile?.phone || 'Δεν έχει συμπληρωθεί.'}`,
@@ -1142,6 +1330,7 @@ function buildSosMessage(location = currentLocation, shareToken = activeSosSessi
     `📍 Άμεση τοποθεσία Google Maps: ${locationText}`,
     '',
     `🔴 Live tracking SafeMe: ${trackingText}`,
+    'Άνοιξε το link και έλεγξε τη live κατάσταση/τελευταία τοποθεσία μου.',
     '',
     `🧾 Ιατρικές σημειώσεις: ${medicalText}`,
   ].join('\n');
@@ -1152,8 +1341,14 @@ function getSmsLink(contact, message) {
   return `sms:${phone}?&body=${encodeURIComponent(message)}`;
 }
 
-function getWhatsappLink(message) {
-  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+function getWhatsappLink(message, contact = null) {
+  const phone = contact ? normalizePhone(contact.phone).replace(/^\+/, '') : '';
+  return phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : `https://wa.me/?text=${encodeURIComponent(message)}`;
+}
+
+function getEmailLink(contact, message) {
+  const email = contact?.email || '';
+  return `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('SafeMe SOS')}&body=${encodeURIComponent(message)}`;
 }
 
 function mapSosEventFromSupabase(event) {
@@ -1340,6 +1535,7 @@ function renderActiveSosSession(message = '') {
     activeSosLastAutoUpdateAt = null;
     renderActiveSosDiagnostics();
     renderSafetyStatusCard();
+    renderSosContactNotifications();
     return;
   }
 
@@ -1399,6 +1595,7 @@ function renderActiveSosSession(message = '') {
     ? 'Υπάρχει ήδη ενεργό SOS από προηγούμενη χρήση. Αν ήταν δοκιμή, πάτησε Τερματισμός SOS.'
     : 'Το SOS είναι ενεργό. Κράτα την εφαρμογή ανοιχτή, αντέγραψε/μοιράσου το tracking link και κάλεσε 112 αν υπάρχει άμεσος κίνδυνος.');
   renderSafetyStatusCard();
+  renderSosContactNotifications();
 }
 
 function shouldAutoUpdateActiveSosLocation() {
@@ -2477,10 +2674,11 @@ function renderContacts() {
           <div class="contact-info">
             <h3>${escapeHtml(contact.name)}</h3>
             <p>${escapeHtml(contact.relationship)}</p>
+            ${contact.email ? `<p>${escapeHtml(contact.email)}</p>` : ''}
             ${isPrimary ? '<span class="primary-contact-badge">Κύρια επαφή SOS</span>' : ''}
           </div>
           <div class="contact-actions">
-            <a href="tel:${escapeHtml(phoneForLink)}" class="call-link">☎ ${escapeHtml(formatPhone(contact.phone))}</a>
+            ${phoneForLink ? `<a href="tel:${escapeHtml(phoneForLink)}" class="call-link">☎ ${escapeHtml(formatPhone(contact.phone))}</a>` : '<span class="missing-contact-inline">Missing phone</span>'}
             <button class="ghost-button contact-invite-button" type="button" data-contact-index="${index}">Ενημέρωση επαφής</button>
             <button class="ghost-button edit-contact-button" type="button" data-contact-index="${index}">Επεξεργασία</button>
             <button class="secondary-button primary-contact-button" type="button" data-contact-index="${index}" ${isPrimary ? 'disabled aria-disabled="true"' : ''}>Κύρια επαφή</button>
@@ -2522,8 +2720,11 @@ async function editContact(index) {
   const relationship = window.prompt('Σχέση', contact.relationship);
   if (relationship === null) return;
 
-  const phone = window.prompt('Τηλέφωνο', contact.phone);
+  const phone = window.prompt('Τηλέφωνο', contact.phone || '');
   if (phone === null) return;
+
+  const email = window.prompt('Email (προαιρετικό)', contact.email || '');
+  if (email === null) return;
 
   contacts = contacts.map((savedContact, contactIndex) => (
     contactIndex === index
@@ -2531,7 +2732,8 @@ async function editContact(index) {
           ...savedContact,
           name: name.trim() || savedContact.name,
           relationship: relationship.trim() || savedContact.relationship,
-          phone: phone.trim() || savedContact.phone,
+          phone: phone.trim(),
+          email: email.trim(),
         }
       : savedContact
   ));
@@ -2636,6 +2838,7 @@ async function addContact(event) {
     name: formData.get('name').trim(),
     relationship: formData.get('relationship').trim(),
     phone: formData.get('phone').trim(),
+    email: formData.get('email').trim(),
     tone: contacts.length === 0 ? 'primary' : 'default',
   };
 
@@ -3199,6 +3402,8 @@ clearDataButton.addEventListener('click', clearSafeMeData);
 settingsOpenProfileButton.addEventListener('click', openSettingsProfile);
 settingsOpenContactsButton.addEventListener('click', openSettingsContacts);
 settingsRefreshLocationButton.addEventListener('click', refreshLocationFromSettings);
+settingsRefreshAppButton.addEventListener('click', refreshAppSafely);
+appUpdateRefreshButton?.addEventListener('click', refreshAppSafely);
 settingsClearDataButton.addEventListener('click', clearSafeMeData);
 healthOpenProfileButton.addEventListener('click', () => handleHealthAction('profile'));
 healthOpenContactsButton.addEventListener('click', () => handleHealthAction('contacts'));
@@ -3243,6 +3448,26 @@ checkInCustomMinutes.addEventListener('input', renderCheckIn);
 checkInStartButton.addEventListener('click', startCheckIn);
 checkInSafeButton.addEventListener('click', completeCheckInSafely);
 checkInCancelButton.addEventListener('click', cancelCheckIn);
+notifyAllSosContactsButton?.addEventListener('click', notifyAllSosContacts);
+sosContactList?.addEventListener('click', async (event) => {
+  const disabledAction = event.target.closest('[aria-disabled="true"]');
+  if (disabledAction) { event.preventDefault(); return; }
+  const openContactsButton = event.target.closest('[data-sos-open-contacts]');
+  if (openContactsButton) { focusContactForm(); return; }
+  const copyButton = event.target.closest('[data-sos-copy-contact]');
+  if (copyButton) {
+    const contact = contacts[Number(copyButton.dataset.sosCopyContact)];
+    await copyTextToClipboard(getActiveSosEmergencyMessage());
+    logSosNotification(contact, 'Copy', 'Copied');
+    renderActiveSosSession(`Το SOS μήνυμα αντιγράφηκε για ${contact?.name || 'την επαφή'}.`);
+    return;
+  }
+  const action = event.target.closest('[data-sos-notify-index]');
+  if (action) {
+    const contact = contacts[Number(action.dataset.sosNotifyIndex)];
+    logSosNotification(contact, action.dataset.sosMethod, 'Opened');
+  }
+});
 
 syncSosTestModeToggle();
 renderContacts();
@@ -3255,6 +3480,7 @@ renderActiveSosSession();
 restoreSafeWalkOnLoad();
 restoreCheckInOnLoad();
 refreshLocationPermissionStatus();
+setupAppFreshnessChecks();
 initializeAuth();
 }
 
