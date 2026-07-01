@@ -33,6 +33,7 @@ const storageKeys = {
   location: 'safety-app-last-location',
   sosTestMode: 'safety-app-sos-test-mode',
   checkIn: 'safety-app-active-check-in',
+  safeWalk: 'safety-app-active-safe-walk',
   locationPermissionRequested: 'safety-app-location-permission-requested',
   testSosCompleted: 'safety-app-test-sos-completed',
   setupChecklistCollapsed: 'safety-app-setup-checklist-collapsed',
@@ -272,6 +273,22 @@ const updateActiveSosLocationButton = document.querySelector('#update-active-sos
 const endActiveSosButton = document.querySelector('#end-active-sos');
 const copyActiveSosTrackingButton = document.querySelector('#copy-active-sos-tracking');
 const disableActiveSosTrackingButton = document.querySelector('#disable-active-sos-tracking');
+const safeWalkPresetButtons = document.querySelectorAll('.safe-walk-preset');
+const safeWalkDestination = document.querySelector('#safe-walk-destination');
+const safeWalkCustomMinutes = document.querySelector('#safe-walk-custom-minutes');
+const safeWalkStartButton = document.querySelector('#safe-walk-start-button');
+const safeWalkActivePanel = document.querySelector('#safe-walk-active-panel');
+const safeWalkCountdown = document.querySelector('#safe-walk-countdown');
+const safeWalkActiveDestination = document.querySelector('#safe-walk-active-destination');
+const safeWalkStartedTime = document.querySelector('#safe-walk-started-time');
+const safeWalkExpectedTime = document.querySelector('#safe-walk-expected-time');
+const safeWalkStatusText = document.querySelector('#safe-walk-status-text');
+const safeWalkLocationTime = document.querySelector('#safe-walk-location-time');
+const safeWalkStatusPill = document.querySelector('#safe-walk-status-pill');
+const safeWalkSafeButton = document.querySelector('#safe-walk-safe-button');
+const safeWalkRefreshLocationButton = document.querySelector('#safe-walk-refresh-location');
+const safeWalkCancelButton = document.querySelector('#safe-walk-cancel-button');
+const safeWalkMessage = document.querySelector('#safe-walk-message');
 const checkInPresetButtons = document.querySelectorAll('.checkin-preset');
 const checkInCustomMinutes = document.querySelector('#checkin-custom-minutes');
 const checkInStartButton = document.querySelector('#checkin-start-button');
@@ -313,6 +330,10 @@ let isSosTestMode = loadJson(storageKeys.sosTestMode, false) === true;
 let hasCompletedTestSos = loadJson(storageKeys.testSosCompleted, false) === true;
 let hasRequestedLocationPermission = loadJson(storageKeys.locationPermissionRequested, false) === true;
 let isSetupChecklistCollapsed = loadJson(storageKeys.setupChecklistCollapsed, true) === true;
+let activeSafeWalk = loadJson(storageKeys.safeWalk, null);
+let selectedSafeWalkMinutes = 10;
+let safeWalkTimer = null;
+let safeWalkExpiryInProgress = false;
 let activeCheckIn = loadJson(storageKeys.checkIn, null);
 let selectedCheckInMinutes = 5;
 let checkInTimer = null;
@@ -728,6 +749,7 @@ function updateCurrentLocationFromPosition(position) {
     lastErrorMessage: '',
   });
   renderLocation();
+  renderSafeWalk();
   renderSetupChecklist();
   return currentLocation;
 }
@@ -998,13 +1020,19 @@ function renderSafetyStatusCard() {
   if (!safetyStatusCard || !safetyStatusTitle || !safetyStatusDescription) return;
 
   const hasActiveSos = activeSosSession?.status === 'active';
+  const hasActiveSafeWalk = activeSafeWalk?.status === 'active';
   const hasActiveCheckIn = activeCheckIn?.status === 'active';
-  const status = hasActiveSos ? 'sos' : hasActiveCheckIn ? 'checkin' : 'normal';
+  const status = hasActiveSos ? 'sos' : hasActiveSafeWalk ? 'safe-walk' : hasActiveCheckIn ? 'checkin' : 'normal';
   const copy = {
     normal: {
       icon: '💗',
       title: 'Κατάσταση',
       description: 'Ασφαλής και διαθέσιμη για check-in',
+    },
+    'safe-walk': {
+      icon: '🚶',
+      title: 'Safe Walk ενεργό',
+      description: 'Το SafeMe παρακολουθεί τη διαδρομή όσο η εφαρμογή είναι ανοιχτή.',
     },
     checkin: {
       icon: '⏱️',
@@ -1018,7 +1046,7 @@ function renderSafetyStatusCard() {
     },
   }[status];
 
-  safetyStatusCard.classList.remove('status-normal', 'status-checkin', 'status-sos');
+  safetyStatusCard.classList.remove('status-normal', 'status-safe-walk', 'status-checkin', 'status-sos');
   safetyStatusCard.classList.add(`status-${status}`);
   if (safetyStatusIcon) safetyStatusIcon.textContent = copy.icon;
   safetyStatusTitle.textContent = copy.title;
@@ -1526,7 +1554,147 @@ function scheduleCheckInTimer() {
   checkInTimer = window.setInterval(tick, 1000);
 }
 
+function getSafeWalkValidationMessage() {
+  if (activeCheckIn?.status === 'active') return 'Υπάρχει ήδη ενεργό check-in. Τερμάτισέ το πριν ξεκινήσεις Safe Walk.';
+  if (!hasRequiredProfileDetails()) return 'Συμπλήρωσε πρώτα το προφίλ σου με όνομα και τηλέφωνο.';
+  if (contacts.length === 0) return 'Πρόσθεσε τουλάχιστον μία έμπιστη επαφή πριν ξεκινήσεις Safe Walk.';
+  if (!currentLocation && !hasRequestedLocationPermission) return 'Πάτησε πρώτα «Ανανέωση» στην τοποθεσία ώστε ο browser να ζητήσει άδεια location.';
+  return '';
+}
+
+function getSelectedSafeWalkMinutes() {
+  const customValue = Number(safeWalkCustomMinutes.value);
+  if (Number.isFinite(customValue) && customValue >= 1) return Math.min(240, Math.floor(customValue));
+  return selectedSafeWalkMinutes;
+}
+
+function saveActiveSafeWalk() {
+  if (activeSafeWalk?.status === 'active') {
+    saveJson(storageKeys.safeWalk, activeSafeWalk);
+    return;
+  }
+  localStorage.removeItem(storageKeys.safeWalk);
+}
+
+function setSafeWalkMessage(message, isError = false) {
+  safeWalkMessage.textContent = message;
+  safeWalkMessage.classList.toggle('error', isError);
+}
+
+function renderSafeWalk() {
+  const isActive = activeSafeWalk?.status === 'active';
+  safeWalkActivePanel.hidden = !isActive;
+  safeWalkStartButton.disabled = isActive || safeWalkExpiryInProgress;
+  safeWalkDestination.disabled = isActive || safeWalkExpiryInProgress;
+  safeWalkCustomMinutes.disabled = isActive || safeWalkExpiryInProgress;
+  safeWalkPresetButtons.forEach((button) => {
+    button.disabled = isActive || safeWalkExpiryInProgress;
+    button.classList.toggle('active', Number(button.dataset.minutes) === selectedSafeWalkMinutes && !safeWalkCustomMinutes.value);
+  });
+  if (!isActive) {
+    safeWalkStatusPill.textContent = safeWalkExpiryInProgress ? 'ενεργοποίηση SOS' : 'έτοιμο';
+    renderSafetyStatusCard();
+    return;
+  }
+  const remainingMs = new Date(activeSafeWalk.expiresAt).getTime() - Date.now();
+  safeWalkCountdown.textContent = formatCheckInDuration(remainingMs);
+  safeWalkActiveDestination.textContent = activeSafeWalk.destination || 'Δεν ορίστηκε';
+  safeWalkStartedTime.textContent = formatCheckInDateTime(activeSafeWalk.startedAt);
+  safeWalkExpectedTime.textContent = formatCheckInDateTime(activeSafeWalk.expiresAt);
+  safeWalkStatusText.textContent = 'active';
+  safeWalkLocationTime.textContent = currentLocation?.updatedAt ? formatCheckInDateTime(currentLocation.updatedAt) : 'Δεν υπάρχει ακόμα';
+  safeWalkStatusPill.textContent = 'active';
+  renderSafetyStatusCard();
+}
+
+function stopSafeWalkTimer() { window.clearInterval(safeWalkTimer); safeWalkTimer = null; }
+
+function scheduleSafeWalkTimer() {
+  stopSafeWalkTimer();
+  if (activeSafeWalk?.status !== 'active') { renderSafeWalk(); return; }
+  const tick = () => {
+    if (!activeSafeWalk || activeSafeWalk.status !== 'active') { stopSafeWalkTimer(); renderSafeWalk(); return; }
+    if (Date.now() >= new Date(activeSafeWalk.expiresAt).getTime()) { stopSafeWalkTimer(); expireSafeWalkWhileOpen(); return; }
+    renderSafeWalk();
+  };
+  tick();
+  safeWalkTimer = window.setInterval(tick, 1000);
+}
+
+function startSafeWalk() {
+  const validationMessage = getSafeWalkValidationMessage();
+  if (validationMessage) { setSafeWalkMessage(validationMessage, true); return; }
+  const minutes = getSelectedSafeWalkMinutes();
+  const startedAt = new Date();
+  const expiresAt = new Date(startedAt.getTime() + minutes * 60 * 1000);
+  activeSafeWalk = { status: 'active', destination: safeWalkDestination.value.trim(), minutes, startedAt: startedAt.toISOString(), expiresAt: expiresAt.toISOString() };
+  saveActiveSafeWalk();
+  setSafeWalkMessage('Το Safe Walk ξεκίνησε. Επιβεβαίωσε ότι έφτασες/είσαι καλά πριν λήξει.');
+  scheduleSafeWalkTimer();
+}
+
+function completeSafeWalkSafely() {
+  activeSafeWalk = null; saveActiveSafeWalk(); stopSafeWalkTimer(); renderSafeWalk();
+  setSafeWalkMessage('Το Safe Walk ολοκληρώθηκε. Είσαι ασφαλής.');
+}
+
+function cancelSafeWalk() {
+  activeSafeWalk = null; saveActiveSafeWalk(); stopSafeWalkTimer(); renderSafeWalk();
+  setSafeWalkMessage('Το Safe Walk ακυρώθηκε.');
+}
+
+async function refreshSafeWalkLocation() {
+  setSafeWalkMessage('Ανανεώνω την τοποθεσία Safe Walk...');
+  await refreshLocation();
+  renderSafeWalk();
+  setSafeWalkMessage(currentLocation ? 'Η τοποθεσία Safe Walk ενημερώθηκε.' : 'Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα.', !currentLocation);
+}
+
+function restoreSafeWalkOnLoad() {
+  if (activeSafeWalk?.status !== 'active') { activeSafeWalk = null; saveActiveSafeWalk(); renderSafeWalk(); return; }
+  if (Date.now() >= new Date(activeSafeWalk.expiresAt).getTime()) {
+    activeSafeWalk = null; saveActiveSafeWalk(); renderSafeWalk();
+    setSafeWalkMessage('Το Safe Walk έληξε όσο η εφαρμογή δεν ήταν ενεργή. Πάτησε SOS αν χρειάζεσαι βοήθεια.', true);
+    return;
+  }
+  safeWalkDestination.value = activeSafeWalk.destination || '';
+  setSafeWalkMessage('Το ενεργό Safe Walk αποκαταστάθηκε σε αυτή τη συσκευή.');
+  scheduleSafeWalkTimer();
+}
+
+async function expireSafeWalkWhileOpen() {
+  if (safeWalkExpiryInProgress) return;
+  safeWalkExpiryInProgress = true;
+  const expiredWalk = activeSafeWalk;
+  activeSafeWalk = null; saveActiveSafeWalk(); renderSafeWalk();
+  setSafeWalkMessage('Το Safe Walk έληξε και ενεργοποιήθηκε SOS.');
+  sosStatus.textContent = 'Το Safe Walk έληξε και ενεργοποιήθηκε SOS.';
+  try {
+    if (!currentLocation) { hasRequestedLocationPermission = true; saveJson(storageKeys.locationPermissionRequested, true); updateCurrentLocationFromPosition(await requestCurrentPosition()); }
+  } catch (error) { showLocationMessage(getGeolocationErrorMessage(error)); }
+  const contact = getPrimaryContact();
+  let historyMessage = 'Το Safe Walk έληξε και ενεργοποιήθηκε SOS.';
+  try {
+    if (currentUser) {
+      if (activeSosSession?.status === 'active') { if (currentLocation) await syncActiveSosLocationToSupabase(currentLocation, { successMessage: '', source: 'safe-walk' }); }
+      else { await createActiveSosSession(null, currentLocation); }
+    } else { createLocalActiveSosSession(currentLocation); }
+  } catch (error) { historyMessage = `${historyMessage} Δεν ενημερώθηκε το active_sos_sessions: ${error.message}`; }
+  const safeWalkNote = `Το Safe Walk έληξε χωρίς επιβεβαίωση.${expiredWalk?.destination ? ` Προορισμός: ${expiredWalk.destination}.` : ''}`;
+  const message = `${buildSosMessage(currentLocation, activeSosSession?.shareToken)}\n\n${safeWalkNote}`;
+  sosButton.classList.add('activated'); sosButton.setAttribute('aria-pressed', 'true');
+  if (currentUser) {
+    try { const savedEvent = await saveSosEventToSupabase(message, currentLocation); if (savedEvent) { sosHistoryEvents = [savedEvent, ...sosHistoryEvents].slice(0, 5); sosHistoryStatus = ''; renderSosHistory(); await attachSosEventToActiveSession(savedEvent.id); } }
+    catch { historyMessage = `${historyMessage} Το SOS δεν αποθηκεύτηκε στο ιστορικό.`; }
+  }
+  resetSosModal(); sosModal.hidden = false; document.body.classList.add('modal-open');
+  showSosActionPanel(message, contact, `${historyMessage} Δεν στάλθηκε αυτόματα SMS ή WhatsApp — διάλεξε παρακάτω χειροκίνητη αποστολή.`);
+  showPage('home'); activeSosSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  safeWalkExpiryInProgress = false; renderSafeWalk();
+}
+
 function getCheckInValidationMessage() {
+  if (activeSafeWalk?.status === 'active') return 'Υπάρχει ήδη ενεργό Safe Walk. Τερμάτισέ το πριν ξεκινήσεις check-in.';
   if (!hasRequiredProfileDetails()) return 'Συμπλήρωσε πρώτα το προφίλ σου με όνομα και τηλέφωνο.';
   if (contacts.length === 0) return 'Πρόσθεσε τουλάχιστον μία έμπιστη επαφή πριν ξεκινήσεις check-in.';
   if (!currentLocation && !hasRequestedLocationPermission) return 'Πάτησε πρώτα «Ανανέωση» στην τοποθεσία ώστε ο browser να ζητήσει άδεια location.';
@@ -2492,7 +2660,9 @@ function clearSafeMeData() {
   hasCompletedTestSos = false;
   isSetupChecklistCollapsed = true;
   activeCheckIn = null;
+  activeSafeWalk = null;
   stopCheckInTimer();
+  stopSafeWalkTimer();
   syncSosTestModeToggle();
 
   renderContacts();
@@ -2502,6 +2672,7 @@ function clearSafeMeData() {
   renderSosHistory();
   renderActiveSosSession();
   syncActiveSosLocationAutoUpdate();
+  renderSafeWalk();
   renderCheckIn();
   renderSetupChecklist();
   profileStatus.textContent = 'Τα αποθηκευμένα στοιχεία διαγράφηκαν από αυτή τη συσκευή.';
@@ -2548,6 +2719,18 @@ updateActiveSosLocationButton.addEventListener('click', updateActiveSosLocation)
 copyActiveSosTrackingButton.addEventListener('click', copyActiveSosTrackingLink);
 disableActiveSosTrackingButton.addEventListener('click', disableActiveSosTrackingLink);
 endActiveSosButton.addEventListener('click', endActiveSosSession);
+safeWalkPresetButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    selectedSafeWalkMinutes = Number(button.dataset.minutes);
+    safeWalkCustomMinutes.value = '';
+    renderSafeWalk();
+  });
+});
+safeWalkCustomMinutes.addEventListener('input', renderSafeWalk);
+safeWalkStartButton.addEventListener('click', startSafeWalk);
+safeWalkSafeButton.addEventListener('click', completeSafeWalkSafely);
+safeWalkRefreshLocationButton.addEventListener('click', refreshSafeWalkLocation);
+safeWalkCancelButton.addEventListener('click', cancelSafeWalk);
 checkInPresetButtons.forEach((button) => {
   button.addEventListener('click', () => {
     selectedCheckInMinutes = Number(button.dataset.minutes);
@@ -2567,6 +2750,7 @@ renderLocation();
 renderSetupChecklist();
 renderSosHistory();
 renderActiveSosSession();
+restoreSafeWalkOnLoad();
 restoreCheckInOnLoad();
 refreshLocationPermissionStatus();
 initializeAuth();

@@ -1272,3 +1272,166 @@ body.tracking-mode .modal-backdrop {
   .setup-checklist-item { grid-template-columns: auto minmax(0, 1fr); }
   .setup-checklist-action { grid-column: 1 / -1; width: 100%; }
 }
+
+.safe-walk-card {
+  display: grid;
+  gap: 18px;
+  max-width: 760px;
+  margin: 30px auto 0;
+  padding: clamp(22px, 4vw, 34px);
+  text-align: left;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.14), transparent 16rem),
+    rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-radius: 30px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+}
+.safe-walk-header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.safe-walk-card h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.55rem, 4vw, 2.2rem);
+  letter-spacing: -0.04em;
+}
+.safe-walk-intro {
+  margin: 0;
+  color: #475569;
+  line-height: 1.65;
+  font-weight: 700;
+}
+.safe-walk-status-pill {
+  padding: 8px 12px;
+  color: #047857;
+  background: #dcfce7;
+  border: 1px solid rgba(16, 185, 129, 0.24);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+.safe-walk-destination-label,
+.safe-walk-custom-label {
+  display: grid;
+  gap: 8px;
+  color: #334155;
+  font-weight: 900;
+}
+.safe-walk-destination-label input,
+.safe-walk-custom-label input {
+  width: 100%;
+  border: 1px solid #dbe4f0;
+  border-radius: 16px;
+  padding: 13px 14px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.9);
+  font: inherit;
+  outline: none;
+}
+.safe-walk-presets {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.safe-walk-preset {
+  min-height: 46px;
+  padding: 10px;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  border-radius: 15px;
+  cursor: pointer;
+  font-weight: 900;
+}
+.safe-walk-preset.active,
+.safe-walk-preset:hover {
+  color: #fff;
+  background: linear-gradient(135deg, #10b981, #047857);
+  box-shadow: 0 14px 28px rgba(16, 185, 129, 0.18);
+}
+.safe-walk-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+.safe-walk-start-button { margin-top: 0; white-space: nowrap; }
+.safe-walk-active-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  background: linear-gradient(145deg, rgba(236, 253, 245, 0.94), rgba(255, 255, 255, 0.90));
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  border-radius: 24px;
+}
+.safe-walk-active-panel[hidden] { display: none; }
+.safe-walk-countdown {
+  color: #065f46;
+  font-size: clamp(2.4rem, 8vw, 4.3rem);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  text-align: center;
+}
+.safe-walk-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.safe-walk-details div {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 16px;
+}
+.safe-walk-details dt {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+.safe-walk-details dd {
+  margin: 6px 0 0;
+  color: #172033;
+  font-weight: 900;
+}
+.safe-walk-active-actions {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 12px;
+}
+.safe-walk-safe-button {
+  min-height: 62px;
+  border: 0;
+  border-radius: 18px;
+  color: #fff;
+  background: linear-gradient(135deg, #10b981, #047857);
+  box-shadow: 0 18px 34px rgba(16, 185, 129, 0.24);
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+.safe-walk-message {
+  min-height: 1.45em;
+  margin: 0;
+  color: #047857;
+  font-weight: 900;
+  line-height: 1.5;
+}
+.safe-walk-message.error { color: #be123c; }
+.safety-status-card.status-safe-walk { border-color: rgba(16, 185, 129, 0.42); box-shadow: 0 18px 42px rgba(16, 185, 129, 0.14); }
+.safety-status-card.status-safe-walk .card-icon { background: #ecfdf5; }
+.safety-status-card.status-safe-walk .progress span { width: 72%; background: linear-gradient(90deg, #10b981, #06b6d4); }
+
+@media (max-width: 760px) {
+  .safe-walk-presets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .safe-walk-controls,
+  .safe-walk-details,
+  .safe-walk-active-actions { grid-template-columns: 1fr; }
+  .safe-walk-card { border-radius: 24px; }
+}

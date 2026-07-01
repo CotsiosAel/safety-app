@@ -135,6 +135,55 @@
 
 
 
+            <section class="safe-walk-card" id="safe-walk-section" aria-labelledby="safe-walk-title">
+              <div class="safe-walk-header">
+                <div>
+                  <p class="eyebrow">SafeMe monitored trip</p>
+                  <h3 id="safe-walk-title">Safe Walk</h3>
+                </div>
+                <span class="safe-walk-status-pill" id="safe-walk-status-pill">έτοιμο</span>
+              </div>
+              <p class="safe-walk-intro">Ξεκίνα μια ασφαλή διαδρομή. Αν δεν επιβεβαιώσεις ότι έφτασες/είσαι καλά πριν λήξει ο χρόνος, το SafeMe θα ενεργοποιήσει SOS.</p>
+
+              <label class="safe-walk-destination-label" for="safe-walk-destination">
+                <span>Πού πας;</span>
+                <input id="safe-walk-destination" type="text" maxlength="80" placeholder="π.χ. σπίτι, δουλειά, parking" />
+              </label>
+
+              <div class="safe-walk-presets" aria-label="Εκτιμώμενη διάρκεια">
+                <button class="safe-walk-preset active" type="button" data-minutes="10">10 λεπτά</button>
+                <button class="safe-walk-preset" type="button" data-minutes="20">20 λεπτά</button>
+                <button class="safe-walk-preset" type="button" data-minutes="30">30 λεπτά</button>
+                <button class="safe-walk-preset" type="button" data-minutes="45">45 λεπτά</button>
+                <button class="safe-walk-preset" type="button" data-minutes="60">60 λεπτά</button>
+              </div>
+
+              <div class="safe-walk-controls">
+                <label class="safe-walk-custom-label" for="safe-walk-custom-minutes">
+                  <span>Προσαρμοσμένα λεπτά</span>
+                  <input id="safe-walk-custom-minutes" type="number" min="1" max="240" inputmode="numeric" placeholder="π.χ. 25" />
+                </label>
+                <button class="primary-button safe-walk-start-button" id="safe-walk-start-button" type="button">Έναρξη Safe Walk</button>
+              </div>
+
+              <section class="safe-walk-active-panel" id="safe-walk-active-panel" aria-live="polite" hidden>
+                <div class="safe-walk-countdown" id="safe-walk-countdown">--:--</div>
+                <dl class="safe-walk-details">
+                  <div><dt>Destination</dt><dd id="safe-walk-active-destination">—</dd></div>
+                  <div><dt>Started time</dt><dd id="safe-walk-started-time">—</dd></div>
+                  <div><dt>Expected arrival time</dt><dd id="safe-walk-expected-time">—</dd></div>
+                  <div><dt>Status</dt><dd id="safe-walk-status-text">active</dd></div>
+                  <div><dt>Latest location time</dt><dd id="safe-walk-location-time">—</dd></div>
+                </dl>
+                <div class="safe-walk-active-actions">
+                  <button class="safe-walk-safe-button" id="safe-walk-safe-button" type="button">Έφτασα / Είμαι καλά</button>
+                  <button class="ghost-button" id="safe-walk-refresh-location" type="button">Ανανέωση τοποθεσίας</button>
+                  <button class="danger-outline-button" id="safe-walk-cancel-button" type="button">Ακύρωση Safe Walk</button>
+                </div>
+              </section>
+              <p class="safe-walk-message" id="safe-walk-message" aria-live="polite"></p>
+            </section>
+
             <section class="checkin-card" id="checkin-section" aria-labelledby="checkin-title">
               <div class="checkin-header">
                 <div>
