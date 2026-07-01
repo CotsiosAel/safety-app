@@ -83,48 +83,59 @@ function renderPublicTrackingPage(state) {
 
   if (!existingPage) document.body.appendChild(page);
 
-  if (state.loading) {
+  const renderShell = (content) => {
     page.innerHTML = `
       <section class="public-tracking-card" aria-live="polite">
-        <p class="eyebrow">SafeMe public link</p>
-        <h1>SafeMe SOS Tracking</h1>
-        <p class="public-tracking-muted">Φορτώνω την κατάσταση SOS...</p>
+        <p class="eyebrow">SafeMe SOS link</p>
+        <h1>Ενεργό SOS SafeMe</h1>
+        ${content}
       </section>
     `;
+  };
+
+  if (state.loading) {
+    renderShell('<p class="public-tracking-muted">Φορτώνω την κατάσταση SOS...</p>');
     return;
   }
 
   if (state.error) {
-    page.innerHTML = `
-      <section class="public-tracking-card" aria-live="polite">
-        <p class="eyebrow">SafeMe public link</p>
-        <h1>SafeMe SOS Tracking</h1>
-        <p class="public-tracking-error">${escapeHtml(state.error)}</p>
-        <button class="primary-button inline-button" id="public-tracking-refresh" type="button">Ανανέωση τοποθεσίας</button>
-      </section>
-    `;
-    document.querySelector('#public-tracking-refresh')?.addEventListener('click', fetchPublicTrackingSession);
+    renderShell(`<p class="public-tracking-error">${escapeHtml(state.error)}</p>`);
     return;
   }
 
   const session = state.session;
   const hasLocation = publicTrackingHasLocation(session);
   const coordinates = hasLocation ? `${session.latestLatitude},${session.latestLongitude}` : '';
-  const mapsUrl = hasLocation ? `https://maps.google.com/?q=${coordinates}` : '';
-  const embedMapUrl = hasLocation ? `https://maps.google.com/maps?q=${coordinates}&z=16&output=embed` : '';
-  const endedMessage = session.status === 'ended' ? '<p class="public-tracking-ended">Το SOS έχει τερματιστεί.</p>' : '';
+  const encodedCoordinates = encodeURIComponent(coordinates);
+  const mapsUrl = hasLocation ? `https://maps.google.com/?q=${encodedCoordinates}` : '';
+  const embedMapUrl = hasLocation ? `https://maps.google.com/maps?q=${encodedCoordinates}&z=16&output=embed` : '';
+  const isActive = session.status === 'active';
+  const statusText = isActive ? 'Ενεργό' : 'Τερματισμένο';
+  const statusBanner = isActive
+    ? '<p class="public-tracking-status-banner public-tracking-status-banner-active">Υπάρχει ενεργό SOS.</p>'
+    : '<p class="public-tracking-status-banner public-tracking-status-banner-ended">Το SOS έχει τερματιστεί.</p>';
 
   page.innerHTML = `
     <section class="public-tracking-card" aria-live="polite">
-      <p class="eyebrow">SafeMe public link</p>
-      <h1>SafeMe SOS Tracking</h1>
-      ${endedMessage}
+      <p class="eyebrow">SafeMe SOS link</p>
+      <h1>Ενεργό SOS SafeMe</h1>
+      ${statusBanner}
       <dl class="public-tracking-details">
-        <div><dt>Status</dt><dd>${escapeHtml(session.status)}</dd></div>
-        <div><dt>Started</dt><dd>${escapeHtml(formatPublicTrackingDate(session.startedAt))}</dd></div>
-        ${session.endedAt ? `<div><dt>Ended</dt><dd>${escapeHtml(formatPublicTrackingDate(session.endedAt))}</dd></div>` : ''}
-        ${session.latestLocationAt ? `<div><dt>Latest location time</dt><dd>${escapeHtml(formatPublicTrackingDate(session.latestLocationAt))}</dd></div>` : ''}
+        <div><dt>Κατάσταση</dt><dd>${escapeHtml(statusText)}</dd></div>
+        <div><dt>Έναρξη SOS</dt><dd>${escapeHtml(formatPublicTrackingDate(session.startedAt))}</dd></div>
+        <div><dt>Τελευταία τοποθεσία</dt><dd>${escapeHtml(formatPublicTrackingDate(session.latestLocationAt))}</dd></div>
+        <div><dt>Τελευταία ανανέωση σελίδας</dt><dd>${escapeHtml(formatPublicTrackingDate(state.refreshedAt))}</dd></div>
       </dl>
+
+      <section class="public-tracking-guidance" aria-labelledby="public-tracking-guidance-title">
+        <h2 id="public-tracking-guidance-title">Τι να κάνεις τώρα</h2>
+        <ol>
+          <li>Προσπάθησε να επικοινωνήσεις με το άτομο.</li>
+          <li>Άνοιξε την τελευταία τοποθεσία στο Google Maps.</li>
+          <li>Αν πιστεύεις ότι υπάρχει άμεσος κίνδυνος, κάλεσε τις υπηρεσίες έκτακτης ανάγκης.</li>
+        </ol>
+      </section>
+
       ${hasLocation
         ? `<div class="public-tracking-map-embed">
             <iframe
@@ -135,16 +146,21 @@ function renderPublicTrackingPage(state) {
               allowfullscreen>
             </iframe>
           </div>
-          <p class="public-tracking-coordinates">Συντεταγμένες: ${escapeHtml(coordinates)}</p>
-          <p class="public-tracking-map-fallback">Αν ο χάρτης δεν εμφανίζεται, άνοιξέ τον στο Google Maps.</p>
-          <a class="public-tracking-map" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener">Άνοιγμα στο Google Maps</a>`
-        : '<p class="public-tracking-muted">Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα.</p>'}
-      <button class="primary-button inline-button" id="public-tracking-refresh" type="button">Ανανέωση τοποθεσίας</button>
+          <p class="public-tracking-coordinates">Συντεταγμένες: ${escapeHtml(coordinates)}</p>`
+        : '<p class="public-tracking-no-location">Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα. Δοκίμασε ξανά σε λίγα δευτερόλεπτα.</p>'}
+
+      <div class="public-tracking-actions">
+        ${hasLocation ? `<a class="public-tracking-action public-tracking-action-primary" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener">Άνοιγμα στο Google Maps</a>` : ''}
+        <button class="public-tracking-action" id="public-tracking-refresh" type="button">Ανανέωση τοποθεσίας</button>
+        <a class="public-tracking-action public-tracking-call" href="tel:112">Κλήση 112</a>
+        <a class="public-tracking-action public-tracking-call" href="tel:199">Κλήση 199</a>
+      </div>
+
+      ${isActive ? '<p class="public-tracking-auto-refresh">Η σελίδα ανανεώνεται αυτόματα όσο το SOS είναι ενεργό.</p>' : ''}
     </section>
   `;
   document.querySelector('#public-tracking-refresh')?.addEventListener('click', fetchPublicTrackingSession);
 }
-
 let publicTrackingRefreshTimer = null;
 
 async function fetchPublicTrackingSession() {
@@ -165,7 +181,7 @@ async function fetchPublicTrackingSession() {
     const session = normalizePublicSosSession(Array.isArray(data) ? data[0] : data);
     if (!session) throw new Error('Το tracking link δεν είναι πλέον διαθέσιμο.');
 
-    renderPublicTrackingPage({ session });
+    renderPublicTrackingPage({ session, refreshedAt: new Date().toISOString() });
 
     window.clearInterval(publicTrackingRefreshTimer);
     publicTrackingRefreshTimer = session.status === 'active'
