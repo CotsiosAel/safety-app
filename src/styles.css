@@ -236,10 +236,24 @@ button { -webkit-tap-highlight-color: transparent; }
 .contacts-page { gap: 22px; max-width: 980px; }
 .section-heading { max-width: 650px; }
 .section-heading p:last-child { color: var(--muted); line-height: 1.65; }
+.section-heading > p:not(.eyebrow) { color: var(--muted); line-height: 1.65; }
+.contacts-note {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 12px;
+  padding: 10px 14px;
+  color: #172554;
+  background: #eaf2ff;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: 16px;
+  font-weight: 800;
+}
+.contacts-note::before { content: "ℹ️"; margin-right: 8px; }
 .card-list { display: grid; gap: 16px; }
 .contact-card { justify-content: space-between; gap: 18px; padding: 20px; }
 .contact-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
-.delete-contact-button, .edit-contact-button, .primary-contact-button { padding: 10px 12px; font-size: .88rem; margin-top: 0; }
+.delete-contact-button, .edit-contact-button, .primary-contact-button, .contact-invite-button { padding: 10px 12px; font-size: .88rem; margin-top: 0; }
 .primary-contact-button:disabled { opacity: .66; cursor: default; }
 .contacts-clear-button { justify-self: start; }
 .empty-state { padding: 34px 24px; text-align: center; }
@@ -288,7 +302,7 @@ button { -webkit-tap-highlight-color: transparent; }
   .content { padding: 22px 14px 34px; }
   .topbar, .topbar-actions, .contact-card { align-items: stretch; flex-direction: column; }
   .topbar-actions { justify-content: stretch; }
-  .ghost-button, .status-pill, .call-link, .contact-actions, .contacts-clear-button, .delete-contact-button, .edit-contact-button, .primary-contact-button { justify-content: center; width: 100%; }
+  .ghost-button, .status-pill, .call-link, .contact-actions, .contacts-clear-button, .delete-contact-button, .edit-contact-button, .primary-contact-button, .contact-invite-button { justify-content: center; width: 100%; }
   .brand { justify-content: flex-start; }
   .brand-mark { width: 46px; height: 46px; }
   .nav-item { flex-direction: column; gap: 6px; font-size: .82rem; }
@@ -476,6 +490,20 @@ body.modal-open { overflow: hidden; }
 .sos-action-buttons {
   display: grid;
   gap: 10px;
+}
+.contact-invite-card {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.12), transparent 16rem),
+    rgba(255, 255, 255, 0.96);
+}
+.contact-invite-card .modal-icon {
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  box-shadow: 0 18px 44px rgba(37, 99, 235, 0.26);
+}
+.contact-invite-preview { max-height: 190px; }
+.contact-invite-actions .danger-button {
+  background: linear-gradient(135deg, var(--blue), #1d4ed8);
+  box-shadow: 0 16px 32px rgba(37, 99, 235, 0.22);
 }
 .sos-action-buttons .danger-button,
 .sos-action-buttons .secondary-button,

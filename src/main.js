@@ -238,6 +238,13 @@ const contactsList = document.querySelector('#contacts-list');
 const contactsForm = document.querySelector('#contact-form');
 const contactCount = document.querySelector('#contact-count');
 const clearContactsButton = document.querySelector('#clear-contacts-button');
+const contactInviteModal = document.querySelector('#contact-invite-modal');
+const contactInviteCloseButton = document.querySelector('#contact-invite-close');
+const contactInvitePreview = document.querySelector('#contact-invite-preview');
+const contactInviteFeedback = document.querySelector('#contact-invite-feedback');
+const contactInviteSmsButton = document.querySelector('#contact-invite-sms');
+const contactInviteWhatsappButton = document.querySelector('#contact-invite-whatsapp');
+const contactInviteCopyButton = document.querySelector('#contact-invite-copy');
 const profileForm = document.querySelector('#profile-form');
 const profileName = document.querySelector('#profile-name');
 const profilePhone = document.querySelector('#profile-phone');
@@ -363,6 +370,7 @@ let checkInTimer = null;
 let checkInExpiryInProgress = false;
 let preparedSosMessage = '';
 let preparedSosContact = null;
+let preparedContactInvite = null;
 let preparedSosTrackingUrl = '';
 let currentUser = null;
 let authMode = 'login';
@@ -865,6 +873,12 @@ async function shareLocation() {
 function getPrimaryContact() {
   return contacts.find((contact) => contact.tone === 'primary') || contacts[0] || null;
 }
+
+const trustedContactInviteMessage = [
+  'Σε έχω προσθέσει ως έμπιστη επαφή στο SafeMe.',
+  'Αν λάβεις SOS από εμένα, άνοιξε το link τοποθεσίας και προσπάθησε να επικοινωνήσεις μαζί μου.',
+  'Αν πιστεύεις ότι υπάρχει άμεσος κίνδυνος, κάλεσε τις υπηρεσίες έκτακτης ανάγκης στο 112 ή 199.',
+].join('\n');
 
 function getSosMessageIntro() {
   return isSosTestMode
@@ -2208,6 +2222,7 @@ function renderContacts() {
           </div>
           <div class="contact-actions">
             <a href="tel:${escapeHtml(phoneForLink)}" class="call-link">☎ ${escapeHtml(formatPhone(contact.phone))}</a>
+            <button class="ghost-button contact-invite-button" type="button" data-contact-index="${index}">Ενημέρωση επαφής</button>
             <button class="ghost-button edit-contact-button" type="button" data-contact-index="${index}">Επεξεργασία</button>
             <button class="secondary-button primary-contact-button" type="button" data-contact-index="${index}" ${isPrimary ? 'disabled aria-disabled="true"' : ''}>Κύρια επαφή</button>
             <button class="danger-outline-button delete-contact-button" type="button" data-contact-index="${index}">Διαγραφή</button>
@@ -2287,10 +2302,57 @@ async function clearTrustedContacts() {
   renderSetupChecklist();
 }
 
+function openContactInviteModal(index) {
+  const contact = contacts[index];
+  if (!contact) return;
+
+  preparedContactInvite = contact;
+  contactInvitePreview.textContent = trustedContactInviteMessage;
+  contactInviteFeedback.textContent = `Έτοιμο μήνυμα για ${contact.name}. Διάλεξε SMS ή WhatsApp και πάτα αποστολή στην εφαρμογή που θα ανοίξει.`;
+  contactInviteSmsButton.disabled = !normalizePhone(contact.phone);
+  contactInviteModal.hidden = false;
+  document.body.classList.add('modal-open');
+  contactInviteSmsButton.focus();
+}
+
+function closeContactInviteModal() {
+  contactInviteModal.hidden = true;
+  document.body.classList.remove('modal-open');
+  preparedContactInvite = null;
+  contactInviteFeedback.textContent = '';
+}
+
+function sendContactInviteSms() {
+  if (!preparedContactInvite) return;
+
+  window.location.href = getSmsLink(preparedContactInvite, trustedContactInviteMessage);
+  contactInviteFeedback.textContent = `Άνοιξε έτοιμο SMS προς ${preparedContactInvite.name}. Πάτα αποστολή αν θέλεις να το στείλεις.`;
+}
+
+function sendContactInviteWhatsapp() {
+  window.open(getWhatsappLink(trustedContactInviteMessage), '_blank', 'noopener');
+  contactInviteFeedback.textContent = 'Άνοιξε WhatsApp με προσυμπληρωμένο μήνυμα. Διάλεξε παραλήπτη και πάτα αποστολή.';
+}
+
+async function copyContactInviteMessage() {
+  try {
+    await copyTextToClipboard(trustedContactInviteMessage);
+    contactInviteFeedback.textContent = 'Το μήνυμα αντιγράφηκε.';
+  } catch {
+    contactInviteFeedback.textContent = 'Δεν μπόρεσα να αντιγράψω το μήνυμα. Δοκίμασε ξανά.';
+  }
+}
+
 function handleContactsListClick(event) {
+  const inviteButton = event.target.closest('.contact-invite-button');
   const editButton = event.target.closest('.edit-contact-button');
   const primaryButton = event.target.closest('.primary-contact-button');
   const deleteButton = event.target.closest('.delete-contact-button');
+
+  if (inviteButton) {
+    openContactInviteModal(Number(inviteButton.dataset.contactIndex));
+    return;
+  }
 
   if (editButton) {
     editContact(Number(editButton.dataset.contactIndex));
@@ -2817,8 +2879,20 @@ sosNativeShareButton.addEventListener('click', sharePreparedSosMessage);
 sosModal.addEventListener('click', (event) => {
   if (event.target === sosModal) closeSosModal();
 });
+contactInviteCloseButton.addEventListener('click', closeContactInviteModal);
+contactInviteSmsButton.addEventListener('click', sendContactInviteSms);
+contactInviteWhatsappButton.addEventListener('click', sendContactInviteWhatsapp);
+contactInviteCopyButton.addEventListener('click', copyContactInviteMessage);
+contactInviteModal.addEventListener('click', (event) => {
+  if (event.target === contactInviteModal) closeContactInviteModal();
+});
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && !sosModal.hidden) closeSosModal();
+  if (event.key !== 'Escape') return;
+  if (!contactInviteModal.hidden) {
+    closeContactInviteModal();
+    return;
+  }
+  if (!sosModal.hidden) closeSosModal();
 });
 authSignupTab.addEventListener('click', () => setAuthMode('signup'));
 authLoginTab.addEventListener('click', () => setAuthMode('login'));
