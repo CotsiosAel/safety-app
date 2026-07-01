@@ -273,6 +273,7 @@ const authForm = document.querySelector('#auth-form');
 const authEmail = document.querySelector('#auth-email');
 const authPassword = document.querySelector('#auth-password');
 const authRepeatPassword = document.querySelector('#auth-repeat-password');
+const authModeTabs = document.querySelector('#auth-mode-tabs');
 const authLoginTab = document.querySelector('#auth-login-tab');
 const authSignupTab = document.querySelector('#auth-signup-tab');
 const authSubmitButton = document.querySelector('#auth-submit-button');
@@ -2696,6 +2697,7 @@ function getFriendlyAuthErrorMessage(error) {
 }
 
 function setAuthMode(nextMode) {
+  if (authMode === 'signup' && nextMode === 'login') authRepeatPassword.value = '';
   authMode = nextMode;
   renderAuth();
 }
@@ -2740,27 +2742,30 @@ function renderAuth() {
   const signedIn = Boolean(currentUser);
   const isSignup = authMode === 'signup';
   const userEmail = currentUser?.email || '';
+  const hideSignupFields = signedIn || !isSignup;
+
+  if (hideSignupFields) authRepeatPassword.value = '';
 
   authLogoutButton.hidden = !signedIn;
   authFields.hidden = signedIn;
   authPasswordField.hidden = signedIn;
-  authRepeatPasswordField.hidden = signedIn || !isSignup;
-  authSignupNote.hidden = signedIn || !isSignup;
+  authRepeatPasswordField.hidden = hideSignupFields;
+  authSignupNote.hidden = hideSignupFields;
   authSubmitButton.hidden = signedIn;
   authForgotPasswordButton.hidden = signedIn;
+  authModeTabs.hidden = signedIn;
   authLoginTab.hidden = signedIn;
   authSignupTab.hidden = signedIn;
   authSignedIn.hidden = !signedIn;
   authUserEmail.textContent = userEmail;
   authEmail.disabled = signedIn;
   authPassword.disabled = signedIn;
-  authRepeatPassword.disabled = signedIn || !isSignup;
+  authRepeatPassword.disabled = hideSignupFields;
   authEmail.required = !signedIn;
   authPassword.required = !signedIn;
   authRepeatPassword.required = !signedIn && isSignup;
   authSubmitButton.textContent = isSignup ? 'Δημιουργία λογαριασμού' : 'Σύνδεση';
   authPassword.autocomplete = isSignup ? 'new-password' : 'current-password';
-  if (!isSignup) authRepeatPassword.value = '';
   authLoginTab.classList.toggle('active', !isSignup);
   authSignupTab.classList.toggle('active', isSignup);
   authLoginTab.setAttribute('aria-selected', String(!isSignup));
