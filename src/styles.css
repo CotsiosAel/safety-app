@@ -326,16 +326,26 @@ body.modal-open { overflow: hidden; }
   inset: 0;
   z-index: 50;
   display: grid;
-  place-items: center;
-  padding: 22px;
+  align-items: start;
+  justify-items: center;
+  padding: 16px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: rgba(15, 23, 42, 0.54);
   backdrop-filter: blur(12px);
 }
 .modal-backdrop[hidden] { display: none; }
 .modal-card {
   position: relative;
-  width: min(100%, 480px);
+  width: min(100%, 520px);
+  max-height: calc(100dvh - 32px);
+  margin: auto 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: clamp(28px, 5vw, 42px);
+  padding-bottom: calc(clamp(28px, 5vw, 42px) + env(safe-area-inset-bottom, 0px) + 20px);
   text-align: center;
   background:
     radial-gradient(circle at 50% 0%, rgba(239, 35, 60, 0.12), transparent 16rem),
@@ -372,7 +382,11 @@ body.modal-open { overflow: hidden; }
 }
 .modal-card h2 { margin: 0; color: var(--ink); letter-spacing: -0.04em; font-size: clamp(1.9rem, 6vw, 2.6rem); }
 .modal-card p:not(.eyebrow) { color: var(--muted); line-height: 1.65; }
-.modal-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+.modal-card,
+.modal-card * {
+  max-width: 100%;
+}
+.modal-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
 .danger-button {
   border: 0;
   border-radius: 15px;
@@ -388,10 +402,11 @@ body.modal-open { overflow: hidden; }
   .form-grid { grid-template-columns: 1fr; }
   .form-card, .profile-form, .auth-card { border-radius: 24px; }
   .inline-button, .modal-actions .ghost-button, .danger-button, .danger-outline-button { width: 100%; }
+  .modal-backdrop {
+    padding: 16px;
+  }
   .modal-card {
-    max-height: calc(100dvh - 24px);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    max-height: calc(100dvh - 32px);
     padding-bottom: calc(clamp(28px, 5vw, 42px) + env(safe-area-inset-bottom, 0px) + 56px);
   }
   .modal-close {
@@ -418,6 +433,8 @@ body.modal-open { overflow: hidden; }
   border-radius: 18px;
   text-align: left;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   font-size: 0.92rem;
   line-height: 1.55;
 }
