@@ -70,7 +70,7 @@
                 <div>
                   <p class="eyebrow">SafeMe readiness</p>
                   <h3 id="setup-checklist-title">Πρώτα βήματα ασφάλειας</h3>
-                  <p>Ολοκλήρωσε αυτά τα βήματα για να είναι έτοιμο το SafeMe σε περίπτωση ανάγκης.</p>
+                  <p>Για να χρησιμοποιήσεις SOS χρειάζονται: προφίλ, έμπιστη επαφή, άδεια τοποθεσίας και μία δοκιμή.</p>
                 </div>
                 <span class="setup-checklist-progress" id="setup-checklist-progress" aria-live="polite">0/4</span>
               </div>
@@ -108,10 +108,10 @@
                 <div><dt>Latest location time</dt><dd id="active-sos-latest-location-time">—</dd></div>
                 <div><dt>Last Supabase sync time</dt><dd id="active-sos-last-live-update">—</dd></div>
                 <div><dt>Live update status</dt><dd id="active-sos-live-update-state">—</dd></div>
-                <div><dt>Tracking link status</dt><dd id="active-sos-tracking-status">—</dd></div>
+                <div><dt>Tracking link</dt><dd id="active-sos-tracking-status">—</dd></div>
                 <div><dt>Τοποθεσία</dt><dd id="active-sos-location">Χωρίς τοποθεσία</dd></div>
               </dl>
-              <p class="active-sos-live-note" id="active-sos-live-note">Η αυτόματη ενημέρωση δουλεύει όσο η εφαρμογή μένει ανοιχτή. Σε κλειδωμένη οθόνη ή κλειστό browser μπορεί να σταματήσει.</p>
+              <p class="active-sos-live-note" id="active-sos-live-note">Η αυτόματη ενημέρωση δουλεύει όσο η εφαρμογή μένει ανοιχτή. Αν GPS, χάρτης ή sync αποτύχουν, κράτα ανοιχτό αυτό το screen και χρησιμοποίησε copy/share ή κλήση.</p>
               <section class="active-sos-debug" aria-labelledby="active-sos-debug-title">
                 <h4 id="active-sos-debug-title">Διαγνωστικά live τοποθεσίας</h4>
                 <dl class="active-sos-debug-details">
@@ -145,7 +145,7 @@
                 </div>
                 <span class="safe-walk-status-pill" id="safe-walk-status-pill">έτοιμο</span>
               </div>
-              <p class="safe-walk-intro">Ξεκίνα μια ασφαλή διαδρομή. Αν δεν επιβεβαιώσεις ότι έφτασες/είσαι καλά πριν λήξει ο χρόνος, το SafeMe θα ενεργοποιήσει SOS.</p>
+              <p class="safe-walk-intro">Ξεκίνα μια ασφαλή διαδρομή. Για γρήγορη δοκιμή διάλεξε «1 λεπτό test». Αν δεν επιβεβαιώσεις ότι έφτασες/είσαι καλά πριν λήξει ο χρόνος, το SafeMe θα ενεργοποιήσει SOS.</p>
 
               <label class="safe-walk-destination-label" for="safe-walk-destination">
                 <span>Πού πας;</span>
@@ -153,6 +153,7 @@
               </label>
 
               <div class="safe-walk-presets" aria-label="Εκτιμώμενη διάρκεια">
+                <button class="safe-walk-preset safe-walk-test-preset" type="button" data-minutes="1">1 λεπτό test</button>
                 <button class="safe-walk-preset active" type="button" data-minutes="10">10 λεπτά</button>
                 <button class="safe-walk-preset" type="button" data-minutes="20">20 λεπτά</button>
                 <button class="safe-walk-preset" type="button" data-minutes="30">30 λεπτά</button>
@@ -174,7 +175,7 @@
                   <div><dt>Destination</dt><dd id="safe-walk-active-destination">—</dd></div>
                   <div><dt>Started time</dt><dd id="safe-walk-started-time">—</dd></div>
                   <div><dt>Expected arrival time</dt><dd id="safe-walk-expected-time">—</dd></div>
-                  <div><dt>Status</dt><dd id="safe-walk-status-text">active</dd></div>
+                  <div><dt>Κατάσταση</dt><dd id="safe-walk-status-text">active</dd></div>
                   <div><dt>Latest location time</dt><dd id="safe-walk-location-time">—</dd></div>
                 </dl>
                 <div class="safe-walk-active-actions">
