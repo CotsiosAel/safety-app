@@ -120,6 +120,49 @@
               </div>
             </section>
 
+
+
+            <section class="checkin-card" id="checkin-section" aria-labelledby="checkin-title">
+              <div class="checkin-header">
+                <div>
+                  <p class="eyebrow">SafeMe check-in timer</p>
+                  <h3 id="checkin-title">Check-in ασφαλείας</h3>
+                </div>
+                <span class="checkin-status-pill" id="checkin-status-pill">έτοιμο</span>
+              </div>
+              <p class="checkin-intro">Βάλε χρονόμετρο. Αν δεν πατήσεις ότι είσαι καλά πριν λήξει, το SafeMe θα ενεργοποιήσει SOS όσο η εφαρμογή είναι ανοιχτή.</p>
+
+              <div class="checkin-presets" aria-label="Γρήγορη επιλογή χρόνου">
+                <button class="checkin-preset active" type="button" data-minutes="5">5 λεπτά</button>
+                <button class="checkin-preset" type="button" data-minutes="10">10 λεπτά</button>
+                <button class="checkin-preset" type="button" data-minutes="20">20 λεπτά</button>
+                <button class="checkin-preset" type="button" data-minutes="30">30 λεπτά</button>
+                <button class="checkin-preset" type="button" data-minutes="60">60 λεπτά</button>
+              </div>
+
+              <div class="checkin-controls">
+                <label class="checkin-custom-label" for="checkin-custom-minutes">
+                  <span>Προσαρμοσμένος χρόνος</span>
+                  <input id="checkin-custom-minutes" type="number" min="1" max="240" inputmode="numeric" placeholder="π.χ. 15" />
+                </label>
+                <button class="primary-button checkin-start-button" id="checkin-start-button" type="button">Έναρξη check-in</button>
+              </div>
+
+              <section class="checkin-active-panel" id="checkin-active-panel" aria-live="polite" hidden>
+                <div class="checkin-countdown" id="checkin-countdown">--:--</div>
+                <dl class="checkin-details">
+                  <div><dt>Started time</dt><dd id="checkin-started-time">—</dd></div>
+                  <div><dt>Expiry time</dt><dd id="checkin-expiry-time">—</dd></div>
+                  <div><dt>Status</dt><dd id="checkin-status-text">active</dd></div>
+                </dl>
+                <div class="checkin-active-actions">
+                  <button class="checkin-safe-button" id="checkin-safe-button" type="button">Είμαι καλά</button>
+                  <button class="danger-outline-button" id="checkin-cancel-button" type="button">Ακύρωση check-in</button>
+                </div>
+              </section>
+              <p class="checkin-message" id="checkin-message" aria-live="polite"></p>
+            </section>
+
             <section class="emergency-call-section" aria-labelledby="emergency-call-title">
               <h3 id="emergency-call-title">Άμεση κλήση έκτακτης ανάγκης</h3>
               <div class="emergency-call-buttons">

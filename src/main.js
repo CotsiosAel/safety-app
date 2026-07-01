@@ -32,6 +32,8 @@ const storageKeys = {
   profile: 'safety-app-user-profile',
   location: 'safety-app-last-location',
   sosTestMode: 'safety-app-sos-test-mode',
+  checkIn: 'safety-app-active-check-in',
+  locationPermissionRequested: 'safety-app-location-permission-requested',
 };
 
 
@@ -263,6 +265,18 @@ const updateActiveSosLocationButton = document.querySelector('#update-active-sos
 const endActiveSosButton = document.querySelector('#end-active-sos');
 const copyActiveSosTrackingButton = document.querySelector('#copy-active-sos-tracking');
 const disableActiveSosTrackingButton = document.querySelector('#disable-active-sos-tracking');
+const checkInPresetButtons = document.querySelectorAll('.checkin-preset');
+const checkInCustomMinutes = document.querySelector('#checkin-custom-minutes');
+const checkInStartButton = document.querySelector('#checkin-start-button');
+const checkInActivePanel = document.querySelector('#checkin-active-panel');
+const checkInCountdown = document.querySelector('#checkin-countdown');
+const checkInStartedTime = document.querySelector('#checkin-started-time');
+const checkInExpiryTime = document.querySelector('#checkin-expiry-time');
+const checkInStatusText = document.querySelector('#checkin-status-text');
+const checkInStatusPill = document.querySelector('#checkin-status-pill');
+const checkInSafeButton = document.querySelector('#checkin-safe-button');
+const checkInCancelButton = document.querySelector('#checkin-cancel-button');
+const checkInMessage = document.querySelector('#checkin-message');
 
 function loadJson(key, fallback) {
   try {
@@ -281,6 +295,11 @@ let contacts = ensureSinglePrimaryContact(sanitizeContacts(loadJson(storageKeys.
 let profile = sanitizeProfile(loadJson(storageKeys.profile, defaultProfile));
 let currentLocation = loadJson(storageKeys.location, null);
 let isSosTestMode = loadJson(storageKeys.sosTestMode, false) === true;
+let hasRequestedLocationPermission = loadJson(storageKeys.locationPermissionRequested, false) === true;
+let activeCheckIn = loadJson(storageKeys.checkIn, null);
+let selectedCheckInMinutes = 5;
+let checkInTimer = null;
+let checkInExpiryInProgress = false;
 let preparedSosMessage = '';
 let preparedSosContact = null;
 let preparedSosTrackingUrl = '';
@@ -545,6 +564,8 @@ function requestCurrentPosition() {
 }
 
 async function refreshLocation() {
+  hasRequestedLocationPermission = true;
+  saveJson(storageKeys.locationPermissionRequested, true);
   setLocationButtonsLoading(true);
   showLocationMessage('Ψάχνω την τρέχουσα θέση σου...');
 
@@ -1134,10 +1155,19 @@ async function disableActiveSosTrackingLink() {
 }
 
 async function endActiveSosSession() {
-  if (!currentUser || !activeSosSession) return;
+  if (!activeSosSession) return;
 
   const confirmed = window.confirm('Θέλεις σίγουρα να τερματίσεις το ενεργό SOS;');
   if (!confirmed) return;
+
+  if (!currentUser) {
+    activeSosSession = null;
+    renderActiveSosSession();
+    sosButton.classList.remove('activated');
+    sosButton.setAttribute('aria-pressed', 'false');
+    sosStatus.textContent = 'Το ενεργό SOS τερματίστηκε σε αυτή τη συσκευή.';
+    return;
+  }
 
   setActiveSosButtonsLoading(true);
 
@@ -1164,6 +1194,244 @@ async function endActiveSosSession() {
   } finally {
     setActiveSosButtonsLoading(false);
   }
+}
+
+
+function formatCheckInDateTime(value) {
+  if (!value) return '—';
+
+  return new Intl.DateTimeFormat('el-GR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
+
+function formatCheckInDuration(milliseconds) {
+  const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const minuteSecond = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+  return hours > 0 ? `${hours}:${minuteSecond}` : minuteSecond;
+}
+
+function saveActiveCheckIn() {
+  if (activeCheckIn?.status === 'active') {
+    saveJson(storageKeys.checkIn, activeCheckIn);
+    return;
+  }
+
+  localStorage.removeItem(storageKeys.checkIn);
+}
+
+function setCheckInMessage(message, isError = false) {
+  checkInMessage.textContent = message;
+  checkInMessage.classList.toggle('error', isError);
+}
+
+function renderCheckIn() {
+  const isActive = activeCheckIn?.status === 'active';
+  checkInActivePanel.hidden = !isActive;
+  checkInStartButton.disabled = isActive || checkInExpiryInProgress;
+  checkInCustomMinutes.disabled = isActive || checkInExpiryInProgress;
+  checkInPresetButtons.forEach((button) => {
+    button.disabled = isActive || checkInExpiryInProgress;
+    button.classList.toggle('active', Number(button.dataset.minutes) === selectedCheckInMinutes && !checkInCustomMinutes.value);
+  });
+
+  if (!isActive) {
+    checkInStatusPill.textContent = checkInExpiryInProgress ? 'ενεργοποίηση SOS' : 'έτοιμο';
+    return;
+  }
+
+  const remainingMs = new Date(activeCheckIn.expiresAt).getTime() - Date.now();
+  checkInCountdown.textContent = formatCheckInDuration(remainingMs);
+  checkInStartedTime.textContent = formatCheckInDateTime(activeCheckIn.startedAt);
+  checkInExpiryTime.textContent = formatCheckInDateTime(activeCheckIn.expiresAt);
+  checkInStatusText.textContent = 'active';
+  checkInStatusPill.textContent = 'active';
+}
+
+function stopCheckInTimer() {
+  window.clearInterval(checkInTimer);
+  checkInTimer = null;
+}
+
+function scheduleCheckInTimer() {
+  stopCheckInTimer();
+  if (activeCheckIn?.status !== 'active') {
+    renderCheckIn();
+    return;
+  }
+
+  const tick = () => {
+    if (!activeCheckIn || activeCheckIn.status !== 'active') {
+      stopCheckInTimer();
+      renderCheckIn();
+      return;
+    }
+
+    if (Date.now() >= new Date(activeCheckIn.expiresAt).getTime()) {
+      stopCheckInTimer();
+      expireCheckInWhileOpen();
+      return;
+    }
+
+    renderCheckIn();
+  };
+
+  tick();
+  checkInTimer = window.setInterval(tick, 1000);
+}
+
+function getCheckInValidationMessage() {
+  if (!hasRequiredProfileDetails()) return 'Συμπλήρωσε πρώτα το προφίλ σου με όνομα και τηλέφωνο.';
+  if (contacts.length === 0) return 'Πρόσθεσε τουλάχιστον μία έμπιστη επαφή πριν ξεκινήσεις check-in.';
+  if (!currentLocation && !hasRequestedLocationPermission) return 'Πάτησε πρώτα «Ανανέωση» στην τοποθεσία ώστε ο browser να ζητήσει άδεια location.';
+  return '';
+}
+
+function getSelectedCheckInMinutes() {
+  const customValue = Number(checkInCustomMinutes.value);
+  if (Number.isFinite(customValue) && customValue >= 1) return Math.min(240, Math.floor(customValue));
+  return selectedCheckInMinutes;
+}
+
+function startCheckIn() {
+  const validationMessage = getCheckInValidationMessage();
+  if (validationMessage) {
+    setCheckInMessage(validationMessage, true);
+    return;
+  }
+
+  const minutes = getSelectedCheckInMinutes();
+  const startedAt = new Date();
+  const expiresAt = new Date(startedAt.getTime() + minutes * 60 * 1000);
+  activeCheckIn = {
+    status: 'active',
+    minutes,
+    startedAt: startedAt.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+  };
+  saveActiveCheckIn();
+  setCheckInMessage('Το check-in ξεκίνησε. Πάτησε «Είμαι καλά» πριν λήξει.');
+  scheduleCheckInTimer();
+}
+
+function completeCheckInSafely() {
+  activeCheckIn = null;
+  saveActiveCheckIn();
+  stopCheckInTimer();
+  renderCheckIn();
+  setCheckInMessage('Το check-in ολοκληρώθηκε. Είσαι ασφαλής.');
+}
+
+function cancelCheckIn() {
+  activeCheckIn = null;
+  saveActiveCheckIn();
+  stopCheckInTimer();
+  renderCheckIn();
+  setCheckInMessage('Το check-in ακυρώθηκε.');
+}
+
+function restoreCheckInOnLoad() {
+  if (activeCheckIn?.status !== 'active') {
+    activeCheckIn = null;
+    saveActiveCheckIn();
+    renderCheckIn();
+    return;
+  }
+
+  if (Date.now() >= new Date(activeCheckIn.expiresAt).getTime()) {
+    activeCheckIn = null;
+    saveActiveCheckIn();
+    renderCheckIn();
+    setCheckInMessage('Το check-in έληξε όσο η εφαρμογή δεν ήταν ενεργή. Πάτησε SOS αν χρειάζεσαι βοήθεια.', true);
+    return;
+  }
+
+  setCheckInMessage('Το ενεργό check-in αποκαταστάθηκε σε αυτή τη συσκευή.');
+  scheduleCheckInTimer();
+}
+
+async function expireCheckInWhileOpen() {
+  if (checkInExpiryInProgress) return;
+  checkInExpiryInProgress = true;
+  activeCheckIn = null;
+  saveActiveCheckIn();
+  renderCheckIn();
+  setCheckInMessage('Το check-in έληξε και ενεργοποιήθηκε SOS.');
+  sosStatus.textContent = 'Το check-in έληξε και ενεργοποιήθηκε SOS.';
+
+  try {
+    if (!currentLocation) {
+      hasRequestedLocationPermission = true;
+      saveJson(storageKeys.locationPermissionRequested, true);
+      const position = await requestCurrentPosition();
+      updateCurrentLocationFromPosition(position);
+    }
+  } catch (error) {
+    showLocationMessage(getGeolocationErrorMessage(error));
+  }
+
+  const contact = getPrimaryContact();
+  let historyMessage = 'Το check-in έληξε και ενεργοποιήθηκε SOS.';
+
+  try {
+    if (currentUser) {
+      if (activeSosSession?.status === 'active') {
+        if (currentLocation) await syncActiveSosLocationToSupabase(currentLocation, { successMessage: '', source: 'check-in' });
+      } else {
+        await createActiveSosSession(null, currentLocation);
+      }
+    } else {
+      const now = new Date().toISOString();
+      activeSosSession = {
+        id: `local-checkin-${Date.now()}`,
+        userId: null,
+        sosEventId: null,
+        status: 'active',
+        startedAt: now,
+        endedAt: null,
+        latestLatitude: currentLocation?.latitude ?? null,
+        latestLongitude: currentLocation?.longitude ?? null,
+        latestLocationAt: currentLocation ? now : null,
+        shareToken: null,
+        updatedAt: now,
+      };
+      renderActiveSosSession('Το check-in έληξε και ενεργοποιήθηκε SOS. Συνδέσου για live sync/tracking link.');
+    }
+  } catch (error) {
+    historyMessage = `${historyMessage} Δεν ενημερώθηκε το active_sos_sessions: ${error.message}`;
+  }
+
+  const message = buildSosMessage(currentLocation, activeSosSession?.shareToken);
+  sosButton.classList.add('activated');
+  sosButton.setAttribute('aria-pressed', 'true');
+
+  if (currentUser) {
+    try {
+      const savedEvent = await saveSosEventToSupabase(message, currentLocation);
+      if (savedEvent) {
+        sosHistoryEvents = [savedEvent, ...sosHistoryEvents].slice(0, 5);
+        sosHistoryStatus = '';
+        renderSosHistory();
+        await attachSosEventToActiveSession(savedEvent.id);
+      }
+    } catch (error) {
+      historyMessage = `${historyMessage} Το SOS δεν αποθηκεύτηκε στο ιστορικό.`;
+    }
+  }
+
+  resetSosModal();
+  sosModal.hidden = false;
+  document.body.classList.add('modal-open');
+  showSosActionPanel(message, contact, `${historyMessage} Δεν στάλθηκε αυτόματα SMS ή WhatsApp — διάλεξε παρακάτω χειροκίνητη αποστολή.`);
+  showPage('home');
+  activeSosSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  checkInExpiryInProgress = false;
+  renderCheckIn();
 }
 
 function formatSosEventDate(value) {
@@ -1938,6 +2206,9 @@ function clearSafeMeData() {
   profile = null;
   currentLocation = null;
   isSosTestMode = false;
+  hasRequestedLocationPermission = false;
+  activeCheckIn = null;
+  stopCheckInTimer();
   syncSosTestModeToggle();
 
   renderContacts();
@@ -1947,6 +2218,7 @@ function clearSafeMeData() {
   renderSosHistory();
   renderActiveSosSession();
   syncActiveSosLocationAutoUpdate();
+  renderCheckIn();
   profileStatus.textContent = 'Τα αποθηκευμένα στοιχεία διαγράφηκαν από αυτή τη συσκευή.';
 }
 
@@ -1988,6 +2260,17 @@ updateActiveSosLocationButton.addEventListener('click', updateActiveSosLocation)
 copyActiveSosTrackingButton.addEventListener('click', copyActiveSosTrackingLink);
 disableActiveSosTrackingButton.addEventListener('click', disableActiveSosTrackingLink);
 endActiveSosButton.addEventListener('click', endActiveSosSession);
+checkInPresetButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    selectedCheckInMinutes = Number(button.dataset.minutes);
+    checkInCustomMinutes.value = '';
+    renderCheckIn();
+  });
+});
+checkInCustomMinutes.addEventListener('input', renderCheckIn);
+checkInStartButton.addEventListener('click', startCheckIn);
+checkInSafeButton.addEventListener('click', completeCheckInSafely);
+checkInCancelButton.addEventListener('click', cancelCheckIn);
 
 syncSosTestModeToggle();
 renderContacts();
@@ -1995,6 +2278,7 @@ renderProfile();
 renderLocation();
 renderSosHistory();
 renderActiveSosSession();
+restoreCheckInOnLoad();
 refreshLocationPermissionStatus();
 initializeAuth();
 }
