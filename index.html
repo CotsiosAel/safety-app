@@ -91,8 +91,20 @@
               </dl>
               <p class="active-sos-live-status" id="active-sos-live-status">Live ενημέρωση ενεργή</p>
               <p class="active-sos-live-note" id="active-sos-live-note">Η αυτόματη ενημέρωση δουλεύει όσο η εφαρμογή μένει ανοιχτή. Σε κλειδωμένη οθόνη ή κλειστό browser μπορεί να σταματήσει.</p>
+              <section class="active-sos-debug" aria-labelledby="active-sos-debug-title">
+                <h4 id="active-sos-debug-title">Διαγνωστικά live τοποθεσίας</h4>
+                <dl class="active-sos-debug-details">
+                  <div><dt>Άδεια browser location</dt><dd id="active-sos-permission-status">—</dd></div>
+                  <div><dt>Τελευταίο browser GPS</dt><dd id="active-sos-last-gps-update">—</dd></div>
+                  <div><dt>Τελευταίο Supabase sync</dt><dd id="active-sos-debug-last-sync">—</dd></div>
+                  <div><dt>Αποτέλεσμα Supabase sync</dt><dd id="active-sos-sync-result">—</dd></div>
+                  <div><dt>Τελευταίο σφάλμα</dt><dd id="active-sos-last-error">—</dd></div>
+                </dl>
+              </section>
               <p class="active-sos-feedback" id="active-sos-feedback" aria-live="polite"></p>
               <div class="active-sos-actions">
+                <button class="ghost-button" id="test-active-sos-live-sync" type="button">Δοκιμή live sync τώρα</button>
+                <button class="ghost-button" id="refresh-active-sos-gps" type="button">Ανανέωση GPS τώρα</button>
                 <button class="ghost-button" id="update-active-sos-location" type="button">Ενημέρωση τοποθεσίας SOS</button>
                 <button class="ghost-button" id="copy-active-sos-tracking" type="button">Αντιγραφή tracking link</button>
                 <button class="danger-outline-button" id="disable-active-sos-tracking" type="button">Απενεργοποίηση tracking link</button>
