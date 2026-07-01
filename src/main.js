@@ -877,7 +877,7 @@ function buildSosMessage(location = currentLocation, shareToken = activeSosSessi
     ? getLocationUrl(location)
     : 'Δεν μπόρεσα να πάρω τοποθεσία από τη συσκευή μου.';
   const trackingUrl = getSosTrackingUrl(shareToken);
-  const trackingText = trackingUrl || 'Δεν είναι διαθέσιμο.';
+  const trackingText = trackingUrl || 'Δεν είναι διαθέσιμο χωρίς σύνδεση στο SafeMe.';
   const medicalText = profile?.medicalNotes || 'Δεν έχουν προστεθεί.';
 
   return [
@@ -988,7 +988,7 @@ function createLocalActiveSosSession(location = currentLocation) {
     updatedAt: now,
   };
 
-  renderActiveSosSession('Το SOS ενεργοποιήθηκε σε αυτή τη συσκευή. Συνδέσου για live tracking link και Supabase sync.');
+  renderActiveSosSession('Το SOS λειτουργεί τοπικά σε αυτή τη συσκευή. Συνδέσου για live tracking link.');
   syncActiveSosLocationAutoUpdate();
   return activeSosSession;
 }
@@ -1110,7 +1110,7 @@ function renderActiveSosSession(message = '') {
   if (activeSosTrackingStatus) {
     activeSosTrackingStatus.textContent = activeSosSession.shareToken
       ? 'Ενεργό tracking link'
-      : 'Απενεργοποιημένο tracking link';
+      : 'Live tracking: απαιτεί σύνδεση';
   }
 
   if (hasSosLocation(activeSosSession)) {
@@ -1121,8 +1121,11 @@ function renderActiveSosSession(message = '') {
     activeSosLocation.textContent = 'Χωρίς τοποθεσία';
   }
 
-  copyActiveSosTrackingButton.hidden = !activeSosSession.shareToken;
+  copyActiveSosTrackingButton.hidden = false;
   copyActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
+  copyActiveSosTrackingButton.textContent = activeSosSession.shareToken
+    ? 'Αντιγραφή tracking link'
+    : 'Συνδέσου για live tracking';
   disableActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
   activeSosFeedback.textContent = message;
   renderSafetyStatusCard();
@@ -1825,7 +1828,7 @@ async function expireCheckInWhileOpen() {
         shareToken: null,
         updatedAt: now,
       };
-      renderActiveSosSession('Το check-in έληξε και ενεργοποιήθηκε SOS. Συνδέσου για live sync/tracking link.');
+      renderActiveSosSession('Το check-in έληξε και ενεργοποιήθηκε SOS τοπικά. Συνδέσου για live tracking link.');
     }
   } catch (error) {
     historyMessage = `${historyMessage} Δεν ενημερώθηκε το active_sos_sessions: ${error.message}`;
@@ -1953,8 +1956,12 @@ function showSosActionPanel(message, contact, historyMessage = '') {
   preparedSosMessage = message;
   preparedSosContact = contact;
   preparedSosTrackingUrl = getSosTrackingUrl(activeSosSession?.shareToken);
-  sosCopyTrackingButton.hidden = !preparedSosTrackingUrl;
+  const shouldPromptLoginForTracking = !currentUser && !preparedSosTrackingUrl;
+  sosCopyTrackingButton.hidden = !preparedSosTrackingUrl && !shouldPromptLoginForTracking;
   sosCopyTrackingButton.disabled = !preparedSosTrackingUrl;
+  sosCopyTrackingButton.textContent = preparedSosTrackingUrl
+    ? 'Αντιγραφή tracking link'
+    : 'Συνδέσου για live tracking';
   sosConfirmStep.hidden = true;
   sosActionPanel.hidden = false;
   sosMessagePreview.textContent = message;
@@ -1962,7 +1969,10 @@ function showSosActionPanel(message, contact, historyMessage = '') {
   const contactMessage = contact
     ? `Κύρια επαφή: ${contact.name} (${formatPhone(contact.phone)})`
     : 'Δεν βρέθηκε κύρια επαφή.';
-  sosActionFeedback.textContent = historyMessage ? `${historyMessage} ${contactMessage}` : contactMessage;
+  const localTrackingNote = !currentUser
+    ? 'Το SOS λειτουργεί τοπικά σε αυτή τη συσκευή. Συνδέσου για live tracking link.'
+    : '';
+  sosActionFeedback.textContent = [historyMessage, localTrackingNote, contactMessage].filter(Boolean).join(' ');
   sosStatus.textContent = 'Το μήνυμα SOS είναι έτοιμο. Διάλεξε τρόπο αποστολής.';
   sosActionTitle.focus?.();
 }
@@ -1976,6 +1986,7 @@ function resetSosModal() {
   preparedSosTrackingUrl = '';
   sosCopyTrackingButton.hidden = true;
   sosCopyTrackingButton.disabled = true;
+  sosCopyTrackingButton.textContent = 'Αντιγραφή tracking link';
 }
 
 function sendPreparedSosSms() {
@@ -2114,7 +2125,7 @@ async function confirmSos() {
     }
   } else {
     createLocalActiveSosSession(currentLocation);
-    historyMessage = 'Το SOS ενεργοποιήθηκε σε αυτή τη συσκευή. Συνδέσου για live tracking link και Supabase sync.';
+    historyMessage = 'Το SOS ενεργοποιήθηκε σε αυτή τη συσκευή. Συνδέσου για live tracking link.';
   }
 
   const message = buildSosMessage(currentLocation, activeSosSession?.shareToken);
