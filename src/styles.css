@@ -343,7 +343,7 @@ body.modal-open { overflow: hidden; }
   gap: 16px;
 }
 
-.form-grid label { display: grid; gap: 8px; color: #334155; font-weight: 900; }
+.form-grid label { display: grid; align-content: start; gap: 8px; color: #334155; font-weight: 900; }
 .field-helper,
 .auth-signup-note {
   margin: 0;
@@ -1083,6 +1083,16 @@ body.tracking-mode .modal-backdrop {
   background: #fff;
   box-shadow: 0 10px 22px rgba(37, 99, 235, 0.12);
 }
+#auth-fields {
+  align-items: start;
+}
+#auth-password-field,
+#auth-repeat-password-field {
+  align-self: start;
+}
+#auth-repeat-password-field {
+  grid-column: 2;
+}
 .password-input-wrap {
   display: flex;
   gap: 8px;
@@ -1104,6 +1114,7 @@ body.tracking-mode .modal-backdrop {
 
 @media (max-width: 640px) {
   .status-pill, .auth-indicator { justify-content: center; width: 100%; }
+  #auth-repeat-password-field { grid-column: auto; }
   .auth-mode-tabs { grid-template-columns: 1fr; }
   .password-input-wrap { align-items: stretch; flex-direction: column; }
   .password-toggle { width: 100%; }
