@@ -232,6 +232,9 @@ const activeSosSection = document.querySelector('#active-sos-section');
 const activeSosStarted = document.querySelector('#active-sos-started');
 const activeSosStatus = document.querySelector('#active-sos-status');
 const activeSosLocation = document.querySelector('#active-sos-location');
+const activeSosLatestLocationTime = document.querySelector('#active-sos-latest-location-time');
+const activeSosLiveUpdateState = document.querySelector('#active-sos-live-update-state');
+const activeSosTrackingStatus = document.querySelector('#active-sos-tracking-status');
 const activeSosLastLiveUpdate = document.querySelector('#active-sos-last-live-update');
 const activeSosFeedback = document.querySelector('#active-sos-feedback');
 const activeSosLiveStatus = document.querySelector('#active-sos-live-status');
@@ -757,6 +760,9 @@ function renderActiveSosSession(message = '') {
     activeSosFeedback.textContent = '';
     if (activeSosLiveStatus) activeSosLiveStatus.hidden = true;
     if (activeSosLastLiveUpdate) activeSosLastLiveUpdate.textContent = '—';
+    if (activeSosLatestLocationTime) activeSosLatestLocationTime.textContent = '—';
+    if (activeSosLiveUpdateState) activeSosLiveUpdateState.textContent = '—';
+    if (activeSosTrackingStatus) activeSosTrackingStatus.textContent = '—';
     activeSosLastAutoUpdateAt = null;
     renderActiveSosDiagnostics();
     return;
@@ -767,11 +773,26 @@ function renderActiveSosSession(message = '') {
   if (activeSosLiveStatus) activeSosLiveStatus.hidden = false;
   activeSosStarted.textContent = formatSosEventDate(activeSosSession.startedAt);
   activeSosStatus.textContent = activeSosSession.status;
+  if (activeSosLatestLocationTime) {
+    activeSosLatestLocationTime.textContent = activeSosSession.latestLocationAt
+      ? formatSosEventDate(activeSosSession.latestLocationAt)
+      : 'Δεν υπάρχει ακόμα';
+  }
   if (activeSosLastLiveUpdate) {
-    const lastBackendSyncAt = activeSosLastAutoUpdateAt || activeSosSession.latestLocationAt;
+    const lastBackendSyncAt = activeSosDiagnostics.lastSupabaseSyncAt || activeSosLastAutoUpdateAt || activeSosSession.latestLocationAt;
     activeSosLastLiveUpdate.textContent = lastBackendSyncAt
-      ? formatSosEventTime(lastBackendSyncAt)
+      ? formatSosEventDate(lastBackendSyncAt)
       : '—';
+  }
+  if (activeSosLiveUpdateState) {
+    activeSosLiveUpdateState.textContent = shouldAutoUpdateActiveSosLocation()
+      ? 'Ενεργή αυτόματη ενημέρωση'
+      : 'Ανενεργή αυτόματη ενημέρωση';
+  }
+  if (activeSosTrackingStatus) {
+    activeSosTrackingStatus.textContent = activeSosSession.shareToken
+      ? 'Ενεργό tracking link'
+      : 'Απενεργοποιημένο tracking link';
   }
 
   if (hasSosLocation(activeSosSession)) {
