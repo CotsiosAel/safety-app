@@ -232,6 +232,7 @@ const activeSosStarted = document.querySelector('#active-sos-started');
 const activeSosStatus = document.querySelector('#active-sos-status');
 const activeSosLocation = document.querySelector('#active-sos-location');
 const activeSosFeedback = document.querySelector('#active-sos-feedback');
+const activeSosLiveStatus = document.querySelector('#active-sos-live-status');
 const updateActiveSosLocationButton = document.querySelector('#update-active-sos-location');
 const endActiveSosButton = document.querySelector('#end-active-sos');
 const copyActiveSosTrackingButton = document.querySelector('#copy-active-sos-tracking');
@@ -262,6 +263,8 @@ let isRemoteSyncing = false;
 let sosHistoryEvents = [];
 let sosHistoryStatus = '';
 let activeSosSession = null;
+let activeSosLocationUpdateTimer = null;
+let isAutoUpdatingActiveSosLocation = false;
 
 
 function isLegacyDemoContact(contact) {
@@ -653,6 +656,7 @@ async function attachSosEventToActiveSession(sosEventId) {
 
   activeSosSession = mapActiveSosSessionFromSupabase(data);
   renderActiveSosSession();
+  syncActiveSosLocationAutoUpdate();
 }
 
 function getActiveSosLocationUrl(session) {
@@ -665,10 +669,12 @@ function renderActiveSosSession(message = '') {
   if (!activeSosSession || activeSosSession.status !== 'active') {
     activeSosSection.hidden = true;
     activeSosFeedback.textContent = '';
+    if (activeSosLiveStatus) activeSosLiveStatus.hidden = true;
     return;
   }
 
   activeSosSection.hidden = false;
+  if (activeSosLiveStatus) activeSosLiveStatus.hidden = false;
   activeSosStarted.textContent = formatSosEventDate(activeSosSession.startedAt);
   activeSosStatus.textContent = activeSosSession.status;
 
@@ -686,6 +692,51 @@ function renderActiveSosSession(message = '') {
   activeSosFeedback.textContent = message;
 }
 
+function shouldAutoUpdateActiveSosLocation() {
+  return Boolean(
+    currentUser
+      && activeSosSession
+      && activeSosSession.status === 'active'
+      && document.visibilityState === 'visible'
+  );
+}
+
+function stopActiveSosLocationAutoUpdate() {
+  window.clearInterval(activeSosLocationUpdateTimer);
+  activeSosLocationUpdateTimer = null;
+}
+
+function syncActiveSosLocationAutoUpdate() {
+  if (!shouldAutoUpdateActiveSosLocation()) {
+    stopActiveSosLocationAutoUpdate();
+    return;
+  }
+
+  if (activeSosLocationUpdateTimer) return;
+
+  activeSosLocationUpdateTimer = window.setInterval(() => {
+    autoUpdateActiveSosLocation();
+  }, 25000);
+}
+
+async function autoUpdateActiveSosLocation() {
+  if (!shouldAutoUpdateActiveSosLocation() || isAutoUpdatingActiveSosLocation) return;
+
+  isAutoUpdatingActiveSosLocation = true;
+
+  try {
+    await updateActiveSosLocation({
+      successMessage: '',
+      failureMessage: 'Η αυτόματη ενημέρωση τοποθεσίας απέτυχε. Μπορείς να πατήσεις χειροκίνητα ενημέρωση.',
+      showLoadingMessage: false,
+      updateButtonState: false,
+    });
+  } finally {
+    isAutoUpdatingActiveSosLocation = false;
+    syncActiveSosLocationAutoUpdate();
+  }
+}
+
 async function createActiveSosSession(sosEventId, location = currentLocation) {
   if (!currentUser) return null;
 
@@ -699,6 +750,7 @@ async function createActiveSosSession(sosEventId, location = currentLocation) {
 
   activeSosSession = mapActiveSosSessionFromSupabase(data);
   renderActiveSosSession('Το ενεργό SOS ξεκίνησε.');
+  syncActiveSosLocationAutoUpdate();
   return activeSosSession;
 }
 
@@ -706,6 +758,7 @@ async function loadActiveSosSession() {
   if (!currentUser) {
     activeSosSession = null;
     renderActiveSosSession();
+    syncActiveSosLocationAutoUpdate();
     return;
   }
 
@@ -722,6 +775,7 @@ async function loadActiveSosSession() {
 
   activeSosSession = mapActiveSosSessionFromSupabase(data);
   renderActiveSosSession();
+  syncActiveSosLocationAutoUpdate();
 }
 
 function setActiveSosButtonsLoading(isLoading) {
@@ -731,11 +785,18 @@ function setActiveSosButtonsLoading(isLoading) {
   disableActiveSosTrackingButton.disabled = isLoading || !activeSosSession?.shareToken;
 }
 
-async function updateActiveSosLocation() {
+async function updateActiveSosLocation(options = {}) {
   if (!currentUser || !activeSosSession) return;
 
-  setActiveSosButtonsLoading(true);
-  renderActiveSosSession('Ενημερώνω την τοποθεσία SOS...');
+  const {
+    successMessage = 'Η τοποθεσία SOS ενημερώθηκε.',
+    failureMessage = null,
+    showLoadingMessage = true,
+    updateButtonState = true,
+  } = options;
+
+  if (updateButtonState) setActiveSosButtonsLoading(true);
+  if (showLoadingMessage) renderActiveSosSession('Ενημερώνω την τοποθεσία SOS...');
 
   try {
     const position = await requestCurrentPosition();
@@ -765,11 +826,12 @@ async function updateActiveSosLocation() {
     if (error) throw error;
 
     activeSosSession = mapActiveSosSessionFromSupabase(data);
-    renderActiveSosSession('Η τοποθεσία SOS ενημερώθηκε.');
+    renderActiveSosSession(successMessage);
   } catch (error) {
-    renderActiveSosSession(error?.code ? getGeolocationErrorMessage(error) : `Δεν ενημερώθηκε το SOS: ${error.message}`);
+    renderActiveSosSession(failureMessage || (error?.code ? getGeolocationErrorMessage(error) : `Δεν ενημερώθηκε το SOS: ${error.message}`));
   } finally {
-    setActiveSosButtonsLoading(false);
+    if (updateButtonState) setActiveSosButtonsLoading(false);
+    syncActiveSosLocationAutoUpdate();
   }
 }
 
@@ -836,6 +898,7 @@ async function endActiveSosSession() {
 
     activeSosSession = mapActiveSosSessionFromSupabase(data);
     renderActiveSosSession();
+    syncActiveSosLocationAutoUpdate();
     sosButton.classList.remove('activated');
     sosButton.setAttribute('aria-pressed', 'false');
     sosStatus.textContent = 'Το ενεργό SOS τερματίστηκε.';
@@ -1392,10 +1455,12 @@ async function loadSupabaseData() {
     renderContacts();
     renderSosHistory();
     renderActiveSosSession();
+    syncActiveSosLocationAutoUpdate();
     showAuthMessage(authStatusMessages.signedIn);
   } catch (error) {
     activeSosSession = null;
     renderActiveSosSession();
+    syncActiveSosLocationAutoUpdate();
     sosHistoryStatus = `Δεν φορτώθηκε το ιστορικό SOS: ${error.message}`;
     renderSosHistory();
     showAuthMessage(`Δεν έγινε συγχρονισμός Supabase: ${error.message}`, true);
@@ -1449,6 +1514,7 @@ async function logout() {
     activeSosSession = null;
     renderSosHistory();
     renderActiveSosSession();
+    syncActiveSosLocationAutoUpdate();
     renderAuth();
   } catch (error) {
     showAuthMessage(error.message || 'Η αποσύνδεση απέτυχε.', true);
@@ -1473,6 +1539,7 @@ async function initializeAuth() {
       activeSosSession = null;
       renderSosHistory();
       renderActiveSosSession();
+      syncActiveSosLocationAutoUpdate();
       showAuthMessage(authStatusMessages.signedOut);
     } else {
       loadSupabaseData();
@@ -1499,6 +1566,7 @@ function clearSafeMeData() {
   activeSosSession = null;
   renderSosHistory();
   renderActiveSosSession();
+  syncActiveSosLocationAutoUpdate();
   profileStatus.textContent = 'Τα αποθηκευμένα στοιχεία διαγράφηκαν από αυτή τη συσκευή.';
 }
 
@@ -1520,6 +1588,7 @@ sosModal.addEventListener('click', (event) => {
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !sosModal.hidden) closeSosModal();
 });
+document.addEventListener('visibilitychange', syncActiveSosLocationAutoUpdate);
 
 authSignupButton.addEventListener('click', () => { authMode = 'signup'; });
 authLoginButton.addEventListener('click', () => { authMode = 'login'; });

@@ -597,6 +597,18 @@ body.modal-open { overflow: hidden; }
   color: #1d4ed8;
   text-decoration: none;
 }
+.active-sos-live-status {
+  width: fit-content;
+  margin: 0;
+  padding: 6px 10px;
+  color: #047857;
+  font-size: 0.86rem;
+  font-weight: 900;
+  background: rgba(16, 185, 129, 0.13);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-radius: 999px;
+}
+.active-sos-live-status[hidden] { display: none; }
 .active-sos-feedback {
   min-height: 1.5em;
   margin: 0;
