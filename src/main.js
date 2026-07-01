@@ -96,7 +96,9 @@ function renderPublicTrackingPage(state) {
 
   const session = state.session;
   const hasLocation = publicTrackingHasLocation(session);
-  const mapsUrl = hasLocation ? `https://maps.google.com/?q=${session.latestLatitude},${session.latestLongitude}` : '';
+  const coordinates = hasLocation ? `${session.latestLatitude},${session.latestLongitude}` : '';
+  const mapsUrl = hasLocation ? `https://maps.google.com/?q=${coordinates}` : '';
+  const embedMapUrl = hasLocation ? `https://maps.google.com/maps?q=${coordinates}&z=16&output=embed` : '';
   const endedMessage = session.status === 'ended' ? '<p class="public-tracking-ended">Το SOS έχει τερματιστεί.</p>' : '';
 
   page.innerHTML = `
@@ -111,7 +113,16 @@ function renderPublicTrackingPage(state) {
         ${session.latestLocationAt ? `<div><dt>Latest location time</dt><dd>${escapeHtml(formatPublicTrackingDate(session.latestLocationAt))}</dd></div>` : ''}
       </dl>
       ${hasLocation
-        ? `<a class="public-tracking-map" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener">Άνοιγμα τελευταίας τοποθεσίας στο Google Maps</a>`
+        ? `<div class="public-tracking-map-embed">
+            <iframe
+              title="Τελευταία τοποθεσία SOS στο Google Maps"
+              src="${escapeHtml(embedMapUrl)}"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allowfullscreen>
+            </iframe>
+          </div>
+          <a class="public-tracking-map" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener">Άνοιγμα στο Google Maps</a>`
         : '<p class="public-tracking-muted">Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα.</p>'}
       <button class="primary-button inline-button" id="public-tracking-refresh" type="button">Ανανέωση τοποθεσίας</button>
     </section>
