@@ -752,6 +752,28 @@ function createShareToken() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
+function createLocalActiveSosSession(location = currentLocation) {
+  const now = new Date().toISOString();
+
+  activeSosSession = {
+    id: `local-sos-${Date.now()}`,
+    userId: null,
+    sosEventId: null,
+    status: 'active',
+    startedAt: now,
+    endedAt: null,
+    latestLatitude: location?.latitude ?? null,
+    latestLongitude: location?.longitude ?? null,
+    latestLocationAt: location ? now : null,
+    shareToken: null,
+    updatedAt: now,
+  };
+
+  renderActiveSosSession('Το SOS ενεργοποιήθηκε σε αυτή τη συσκευή. Συνδέσου για live tracking link και Supabase sync.');
+  syncActiveSosLocationAutoUpdate();
+  return activeSosSession;
+}
+
 function mapActiveSosSessionToSupabase(sosEventId, location = currentLocation) {
   const now = new Date().toISOString();
   const hasLocation = Boolean(location);
@@ -1725,6 +1747,9 @@ async function confirmSos() {
     } catch (error) {
       historyMessage = 'Δεν δημιουργήθηκε ενεργό SOS.';
     }
+  } else {
+    createLocalActiveSosSession(currentLocation);
+    historyMessage = 'Το SOS ενεργοποιήθηκε σε αυτή τη συσκευή. Συνδέσου για live tracking link και Supabase sync.';
   }
 
   const message = buildSosMessage(currentLocation, activeSosSession?.shareToken);
