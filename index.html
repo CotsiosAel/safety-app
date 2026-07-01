@@ -260,6 +260,7 @@
             <p class="eyebrow">Trusted circle</p>
             <h2>Έμπιστες επαφές</h2>
             <p>Κάλεσε άμεσα ή ενημέρωσε τα άτομα που έχεις επιλέξει για καταστάσεις ανάγκης.</p>
+            <p class="contacts-note">Καλό είναι οι έμπιστες επαφές να γνωρίζουν από πριν τι είναι το SafeMe.</p>
           </div>
 
           <div class="card-list" id="contacts-list" aria-live="polite"></div>
@@ -395,6 +396,23 @@
           </form>
         </section>
       </main>
+    </div>
+
+    <div class="modal-backdrop" id="contact-invite-modal" role="dialog" aria-modal="true" aria-labelledby="contact-invite-title" hidden>
+      <div class="modal-card contact-invite-card">
+        <button class="modal-close" id="contact-invite-close" type="button" aria-label="Κλείσιμο">×</button>
+        <span class="modal-icon">💬</span>
+        <p class="eyebrow">Trusted contact invite</p>
+        <h2 id="contact-invite-title">Ενημέρωση έμπιστης επαφής</h2>
+        <p id="contact-invite-description">Μπορείς να στείλεις ένα έτοιμο μήνυμα με SMS ή WhatsApp, ώστε η επαφή σου να γνωρίζει από πριν τι να κάνει αν λάβει SOS από εσένα. Δεν στέλνεται τίποτα αυτόματα — διάλεξε χειροκίνητα τον τρόπο αποστολής.</p>
+        <div class="sos-message-preview contact-invite-preview" id="contact-invite-preview" aria-live="polite"></div>
+        <p class="sos-action-feedback" id="contact-invite-feedback" aria-live="polite"></p>
+        <div class="sos-action-buttons contact-invite-actions">
+          <button class="danger-button" id="contact-invite-sms" type="button">Αποστολή με SMS</button>
+          <button class="secondary-button" id="contact-invite-whatsapp" type="button">Αποστολή με WhatsApp</button>
+          <button class="ghost-button" id="contact-invite-copy" type="button">Αντιγραφή μηνύματος</button>
+        </div>
+      </div>
     </div>
 
     <div class="modal-backdrop" id="sos-modal" role="dialog" aria-modal="true" aria-labelledby="sos-modal-title" hidden>
