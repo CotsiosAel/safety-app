@@ -49,8 +49,8 @@
             <h1 id="page-title">Αρχική σελίδα</h1>
           </div>
           <div class="topbar-actions">
-            <span class="status-pill"><span></span> Online</span>
-            <span class="auth-indicator signed-out" id="auth-indicator" aria-live="polite">Χωρίς σύνδεση</span>
+            <button class="status-pill" id="online-status-pill" type="button" title="Η εφαρμογή είναι online" aria-label="Η εφαρμογή είναι online"><span aria-hidden="true"></span> Online</button>
+            <button class="auth-indicator signed-out" id="auth-indicator" type="button" aria-live="polite" aria-label="Χωρίς σύνδεση. Άνοιγμα σύνδεσης στο Προφίλ">Χωρίς σύνδεση</button>
             <button class="ghost-button" id="share-location-button" type="button">Μοιράσου θέση</button>
           </div>
         </header>
@@ -173,7 +173,7 @@
             </section>
           </article>
 
-          <article class="info-card dark-card">
+          <article class="info-card dark-card" id="current-location-card" tabindex="-1">
             <span class="card-icon">📍</span>
             <h3>Τρέχουσα τοποθεσία</h3>
             <p id="location-text">Πάτησε ανανέωση για να βρεθεί η θέση σου.</p>
@@ -251,13 +251,13 @@
             <div class="sos-history-list" id="sos-history-list" aria-live="polite"></div>
           </section>
 
-          <form class="auth-card" id="auth-form">
+          <form class="auth-card" id="auth-form" tabindex="-1">
             <div class="section-heading compact-heading">
               <p class="eyebrow">Ασφαλής λογαριασμός</p>
               <h2>Σύνδεση στο SafeMe</h2>
               <p>Συνδέσου για συγχρονισμό προφίλ και έμπιστων επαφών. Χωρίς σύνδεση, το SafeMe συνεχίζει με localStorage.</p>
             </div>
-            <p class="auth-signed-in" id="auth-signed-in" hidden>Συνδεδεμένος ως: <strong id="auth-user-email"></strong></p>
+            <p class="auth-signed-in" id="auth-signed-in" tabindex="-1" hidden>Συνδεδεμένος ως: <strong id="auth-user-email"></strong></p>
             <div class="auth-mode-tabs" role="tablist" aria-label="Επιλογή σύνδεσης ή δημιουργίας λογαριασμού">
               <button class="auth-mode-tab active" id="auth-login-tab" type="button" role="tab" aria-selected="true">Σύνδεση</button>
               <button class="auth-mode-tab" id="auth-signup-tab" type="button" role="tab" aria-selected="false">Δημιουργία λογαριασμού</button>

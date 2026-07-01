@@ -102,6 +102,8 @@ button { -webkit-tap-highlight-color: transparent; }
 .topbar h1 { font-size: clamp(1.9rem, 4vw, 3rem); }
 .topbar-actions { gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
 .status-pill {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
   padding: 10px 14px;
   border-radius: 999px;
@@ -109,6 +111,14 @@ button { -webkit-tap-highlight-color: transparent; }
   background: #e7fff7;
   font-weight: 800;
   border: 1px solid rgba(16, 185, 129, 0.18);
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+.status-pill:hover,
+.status-pill:focus-visible {
+  border-color: rgba(16, 185, 129, 0.34);
+  box-shadow: 0 10px 24px rgba(16, 185, 129, 0.16);
+  transform: translateY(-1px);
 }
 .status-pill span { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 6px rgba(16,185,129,.13); }
 
@@ -859,6 +869,14 @@ body.tracking-mode .modal-backdrop {
   border: 1px solid rgba(148, 163, 184, 0.28);
   background: rgba(255, 255, 255, 0.78);
   color: #475569;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+.auth-indicator:hover,
+.auth-indicator:focus-visible {
+  border-color: rgba(37, 99, 235, 0.30);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
+  transform: translateY(-1px);
 }
 .auth-indicator::before {
   content: "";
@@ -876,6 +894,13 @@ body.tracking-mode .modal-backdrop {
 .auth-indicator.signed-in::before {
   background: var(--green);
   box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.13);
+}
+
+.auth-card:focus-visible,
+.auth-signed-in:focus-visible,
+#current-location-card:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 4px;
 }
 
 .auth-card {
@@ -941,7 +966,7 @@ body.tracking-mode .modal-backdrop {
 .auth-mode-tab:disabled { opacity: .6; cursor: not-allowed; }
 
 @media (max-width: 640px) {
-  .auth-indicator { justify-content: center; width: 100%; }
+  .status-pill, .auth-indicator { justify-content: center; width: 100%; }
   .auth-mode-tabs { grid-template-columns: 1fr; }
   .password-input-wrap { align-items: stretch; flex-direction: column; }
   .password-toggle { width: 100%; }

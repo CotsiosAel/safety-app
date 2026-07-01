@@ -237,6 +237,8 @@ const authPasswordField = document.querySelector('#auth-password-field');
 const authSignedIn = document.querySelector('#auth-signed-in');
 const authUserEmail = document.querySelector('#auth-user-email');
 const authIndicator = document.querySelector('#auth-indicator');
+const onlineStatusPill = document.querySelector('#online-status-pill');
+const currentLocationCard = document.querySelector('#current-location-card');
 const authLogoutButton = document.querySelector('#auth-logout-button');
 const authStatus = document.querySelector('#auth-status');
 const storageMode = document.querySelector('#storage-mode');
@@ -436,6 +438,28 @@ function showPage(nextPage) {
 
   pages.forEach((page) => page.classList.toggle('active', page.id === nextPage));
   pageTitle.textContent = pageTitles[nextPage];
+}
+
+
+function focusElementAfterScroll(element) {
+  if (!element) return;
+
+  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  window.setTimeout(() => element.focus({ preventScroll: true }), 220);
+}
+
+function openProfileAuthCard() {
+  showPage('profile');
+
+  const signedIn = Boolean(currentUser);
+  const focusTarget = signedIn ? authSignedIn : authEmail;
+  focusElementAfterScroll(focusTarget || authForm);
+}
+
+function handleOnlineStatusClick() {
+  showPage('home');
+  showLocationMessage('Η εφαρμογή είναι online. Για συγχρονισμό λογαριασμού, συνδέσου από το Προφίλ.');
+  focusElementAfterScroll(currentLocationCard || locationText);
 }
 
 function getLocationUrl(location) {
@@ -2039,6 +2063,9 @@ function renderAuth() {
   authLoginTab.setAttribute('aria-selected', String(!isSignup));
   authSignupTab.setAttribute('aria-selected', String(isSignup));
   authIndicator.textContent = signedIn ? 'Συνδεδεμένος' : 'Χωρίς σύνδεση';
+  authIndicator.setAttribute('aria-label', signedIn
+    ? 'Συνδεδεμένος. Άνοιγμα λογαριασμού στο Προφίλ'
+    : 'Χωρίς σύνδεση. Άνοιγμα σύνδεσης στο Προφίλ');
   authIndicator.classList.toggle('signed-in', signedIn);
   authIndicator.classList.toggle('signed-out', !signedIn);
   storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικά, χωρίς backend';
@@ -2309,6 +2336,8 @@ authForgotPasswordButton.addEventListener('click', sendPasswordResetEmail);
 authPasswordToggle.addEventListener('click', togglePasswordVisibility);
 authForm.addEventListener('submit', handleAuthSubmit);
 authLogoutButton.addEventListener('click', logout);
+authIndicator.addEventListener('click', openProfileAuthCard);
+onlineStatusPill.addEventListener('click', handleOnlineStatusClick);
 contactsForm.addEventListener('submit', addContact);
 contactsList.addEventListener('click', handleContactsListClick);
 clearContactsButton.addEventListener('click', clearTrustedContacts);
