@@ -265,6 +265,7 @@ let sosHistoryEvents = [];
 let sosHistoryStatus = '';
 let activeSosSession = null;
 let activeSosLocationUpdateTimer = null;
+let activeSosLocationWatcherId = null;
 let isAutoUpdatingActiveSosLocation = false;
 let activeSosLastAutoUpdateAt = null;
 
@@ -419,6 +420,19 @@ function getGeolocationErrorMessage(error) {
   return 'Η τοποθεσία δεν είναι διαθέσιμη σε αυτή τη συσκευή.';
 }
 
+function updateCurrentLocationFromPosition(position) {
+  const now = new Date().toISOString();
+  currentLocation = {
+    latitude: position.coords.latitude,
+    longitude: position.coords.longitude,
+    accuracy: position.coords.accuracy,
+    updatedAt: now,
+  };
+  saveJson(storageKeys.location, currentLocation);
+  renderLocation();
+  return currentLocation;
+}
+
 function requestCurrentPosition() {
   return new Promise((resolve, reject) => {
     if (!('geolocation' in navigator)) {
@@ -440,15 +454,7 @@ async function refreshLocation() {
 
   try {
     const position = await requestCurrentPosition();
-    currentLocation = {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-      accuracy: position.coords.accuracy,
-      updatedAt: new Date().toISOString(),
-    };
-
-    saveJson(storageKeys.location, currentLocation);
-    renderLocation();
+    updateCurrentLocationFromPosition(position);
   } catch (error) {
     showLocationMessage(getGeolocationErrorMessage(error));
   } finally {
@@ -682,8 +688,9 @@ function renderActiveSosSession(message = '') {
   activeSosStarted.textContent = formatSosEventDate(activeSosSession.startedAt);
   activeSosStatus.textContent = activeSosSession.status;
   if (activeSosLastLiveUpdate) {
-    activeSosLastLiveUpdate.textContent = activeSosLastAutoUpdateAt
-      ? formatSosEventTime(activeSosLastAutoUpdateAt)
+    const lastBackendSyncAt = activeSosLastAutoUpdateAt || activeSosSession.latestLocationAt;
+    activeSosLastLiveUpdate.textContent = lastBackendSyncAt
+      ? formatSosEventTime(lastBackendSyncAt)
       : '—';
   }
 
@@ -709,9 +716,41 @@ function shouldAutoUpdateActiveSosLocation() {
   );
 }
 
+function stopActiveSosLocationWatcher() {
+  if (activeSosLocationWatcherId === null) return;
+
+  navigator.geolocation.clearWatch(activeSosLocationWatcherId);
+  activeSosLocationWatcherId = null;
+}
+
 function stopActiveSosLocationAutoUpdate() {
   window.clearInterval(activeSosLocationUpdateTimer);
   activeSosLocationUpdateTimer = null;
+  stopActiveSosLocationWatcher();
+}
+
+function startActiveSosLocationWatcher() {
+  if (activeSosLocationWatcherId !== null || !shouldAutoUpdateActiveSosLocation()) return;
+
+  if (!('geolocation' in navigator)) {
+    renderActiveSosSession('Η συσκευή δεν υποστηρίζει live τοποθεσία.');
+    return;
+  }
+
+  activeSosLocationWatcherId = navigator.geolocation.watchPosition(
+    (position) => {
+      updateCurrentLocationFromPosition(position);
+    },
+    (error) => {
+      if (!activeSosSession || activeSosSession.status !== 'active') return;
+      renderActiveSosSession(`${getGeolocationErrorMessage(error)} Η εφαρμογή θα συνεχίσει να προσπαθεί όσο μένει ανοιχτή.`);
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 30000,
+      timeout: 20000,
+    },
+  );
 }
 
 function syncActiveSosLocationAutoUpdate() {
@@ -719,6 +758,8 @@ function syncActiveSosLocationAutoUpdate() {
     stopActiveSosLocationAutoUpdate();
     return;
   }
+
+  startActiveSosLocationWatcher();
 
   if (activeSosLocationUpdateTimer) return;
 
@@ -794,6 +835,31 @@ function setActiveSosButtonsLoading(isLoading) {
   disableActiveSosTrackingButton.disabled = isLoading || !activeSosSession?.shareToken;
 }
 
+async function syncActiveSosLocationToSupabase(location, { successMessage = '' } = {}) {
+  if (!currentUser || !activeSosSession || !location) return false;
+
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('active_sos_sessions')
+    .update({
+      latest_latitude: location.latitude,
+      latest_longitude: location.longitude,
+      latest_location_at: now,
+      updated_at: now,
+    })
+    .eq('id', activeSosSession.id)
+    .eq('user_id', currentUser.id)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  activeSosSession = mapActiveSosSessionFromSupabase(data);
+  activeSosLastAutoUpdateAt = now;
+  renderActiveSosSession(successMessage);
+  return true;
+}
+
 async function updateActiveSosLocation(options = {}) {
   if (!currentUser || !activeSosSession) return;
 
@@ -809,35 +875,17 @@ async function updateActiveSosLocation(options = {}) {
   if (showLoadingMessage) renderActiveSosSession('Ενημερώνω την τοποθεσία SOS...');
 
   try {
-    const position = await requestCurrentPosition();
-    const now = new Date().toISOString();
-    currentLocation = {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-      accuracy: position.coords.accuracy,
-      updatedAt: now,
-    };
-    saveJson(storageKeys.location, currentLocation);
-    renderLocation();
+    if (!isAutomaticUpdate) {
+      const position = await requestCurrentPosition();
+      updateCurrentLocationFromPosition(position);
+    }
 
-    const { data, error } = await supabase
-      .from('active_sos_sessions')
-      .update({
-        latest_latitude: currentLocation.latitude,
-        latest_longitude: currentLocation.longitude,
-        latest_location_at: now,
-        updated_at: now,
-      })
-      .eq('id', activeSosSession.id)
-      .eq('user_id', currentUser.id)
-      .select('*')
-      .single();
+    if (!currentLocation) {
+      renderActiveSosSession('Δεν υπάρχει διαθέσιμη τοποθεσία για live ενημέρωση ακόμα.');
+      return;
+    }
 
-    if (error) throw error;
-
-    activeSosSession = mapActiveSosSessionFromSupabase(data);
-    if (isAutomaticUpdate) activeSosLastAutoUpdateAt = now;
-    renderActiveSosSession(successMessage);
+    await syncActiveSosLocationToSupabase(currentLocation, { successMessage });
   } catch (error) {
     renderActiveSosSession(failureMessage || (error?.code ? getGeolocationErrorMessage(error) : `Δεν ενημερώθηκε το SOS: ${error.message}`));
   } finally {
@@ -1608,11 +1656,6 @@ sosModal.addEventListener('click', (event) => {
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !sosModal.hidden) closeSosModal();
 });
-document.addEventListener('visibilitychange', () => {
-  syncActiveSosLocationAutoUpdate();
-  if (document.visibilityState === 'visible') autoUpdateActiveSosLocation();
-});
-
 authSignupButton.addEventListener('click', () => { authMode = 'signup'; });
 authLoginButton.addEventListener('click', () => { authMode = 'login'; });
 authForm.addEventListener('submit', handleAuthSubmit);
