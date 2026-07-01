@@ -209,6 +209,8 @@ const authStatusMessages = {
   signupSuccess: 'Ο λογαριασμός δημιουργήθηκε. Έλεγξε το email σου για επιβεβαίωση πριν συνδεθείς.',
   logoutSuccess: 'Αποσυνδέθηκες επιτυχώς.',
   passwordResetSent: 'Σου στείλαμε email για επαναφορά κωδικού, αν υπάρχει λογαριασμός με αυτό το email.',
+  passwordResetReady: 'Άνοιξε η φόρμα για να ορίσεις νέο κωδικό.',
+  passwordResetSuccess: 'Ο κωδικός άλλαξε. Μπορείς να συνδεθείς με τον νέο κωδικό.',
   networkError: 'Δεν ήταν δυνατή η επικοινωνία με την υπηρεσία σύνδεσης. Έλεγξε τη σύνδεσή σου και δοκίμασε ξανά.',
 };
 
@@ -263,6 +265,11 @@ const onlineStatusPill = document.querySelector('#online-status-pill');
 const currentLocationCard = document.querySelector('#current-location-card');
 const authLogoutButton = document.querySelector('#auth-logout-button');
 const authStatus = document.querySelector('#auth-status');
+const passwordResetForm = document.querySelector('#password-reset-form');
+const passwordResetNew = document.querySelector('#password-reset-new');
+const passwordResetRepeat = document.querySelector('#password-reset-repeat');
+const passwordResetSubmit = document.querySelector('#password-reset-submit');
+const passwordResetStatus = document.querySelector('#password-reset-status');
 const storageMode = document.querySelector('#storage-mode');
 const locationText = document.querySelector('#location-text');
 const refreshLocationButton = document.querySelector('#refresh-location-button');
@@ -359,6 +366,7 @@ let preparedSosContact = null;
 let preparedSosTrackingUrl = '';
 let currentUser = null;
 let authMode = 'login';
+let isPasswordRecoveryMode = false;
 let hasPendingLogoutMessage = false;
 let isRemoteSyncing = false;
 let sosHistoryEvents = [];
@@ -500,7 +508,7 @@ function openProfileAuthCard() {
   showPage('profile');
 
   const signedIn = Boolean(currentUser);
-  const focusTarget = signedIn ? authSignedIn : authEmail;
+  const focusTarget = isPasswordRecoveryMode ? passwordResetForm : (signedIn ? authSignedIn : authEmail);
   focusElementAfterScroll(focusTarget || authForm);
 }
 
@@ -2356,6 +2364,12 @@ async function saveProfile(event) {
 }
 
 
+function setPasswordResetLoading(isLoading) {
+  passwordResetSubmit.disabled = isLoading;
+  passwordResetNew.disabled = isLoading;
+  passwordResetRepeat.disabled = isLoading;
+}
+
 function setAuthLoading(isLoading) {
   authSubmitButton.disabled = isLoading || Boolean(currentUser);
   authForgotPasswordButton.disabled = isLoading || Boolean(currentUser);
@@ -2396,6 +2410,42 @@ function setAuthMode(nextMode) {
   renderAuth();
 }
 
+function hasPasswordRecoveryUrlParams() {
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const queryParams = new URLSearchParams(window.location.search);
+  const urlType = hashParams.get('type') || queryParams.get('type');
+
+  return urlType === 'recovery'
+    || hashParams.has('access_token')
+    || hashParams.has('refresh_token')
+    || queryParams.has('code');
+}
+
+function removeRecoveryTokensFromUrl() {
+  if (!hasPasswordRecoveryUrlParams()) return;
+
+  const cleanUrl = `${window.location.origin}${window.location.pathname}`;
+  window.history.replaceState({}, document.title, cleanUrl);
+}
+
+function activatePasswordRecoveryMode() {
+  isPasswordRecoveryMode = true;
+  showPage('profile');
+  renderAuth();
+  showAuthMessage(authStatusMessages.passwordResetReady);
+  passwordResetStatus.textContent = '';
+  passwordResetStatus.classList.remove('error');
+  removeRecoveryTokensFromUrl();
+  focusElementAfterScroll(passwordResetNew || passwordResetForm);
+}
+
+function clearPasswordRecoveryMode() {
+  isPasswordRecoveryMode = false;
+  passwordResetForm.reset();
+  passwordResetStatus.classList.remove('error');
+  renderAuth();
+}
+
 function renderAuth() {
   const signedIn = Boolean(currentUser);
   const isSignup = authMode === 'signup';
@@ -2432,6 +2482,9 @@ function renderAuth() {
   authIndicator.classList.toggle('signed-in', signedIn);
   authIndicator.classList.toggle('signed-out', !signedIn);
   storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικά, χωρίς backend';
+  passwordResetForm.hidden = !isPasswordRecoveryMode;
+  passwordResetNew.required = isPasswordRecoveryMode;
+  passwordResetRepeat.required = isPasswordRecoveryMode;
 
   if (!authStatus.textContent) {
     authStatus.textContent = signedIn ? authStatusMessages.signedIn : authStatusMessages.signedOut;
@@ -2473,6 +2526,46 @@ async function sendPasswordResetEmail() {
     showAuthMessage(getFriendlyAuthErrorMessage(error), true);
   } finally {
     setAuthLoading(false);
+  }
+}
+
+function showPasswordResetMessage(message, isError = false) {
+  passwordResetStatus.textContent = message;
+  passwordResetStatus.classList.toggle('error', isError);
+}
+
+async function handlePasswordResetSubmit(event) {
+  event.preventDefault();
+
+  const newPassword = passwordResetNew.value;
+  const repeatPassword = passwordResetRepeat.value;
+
+  if (newPassword.length < 6) {
+    showPasswordResetMessage('Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.', true);
+    passwordResetNew.focus();
+    return;
+  }
+
+  if (repeatPassword !== newPassword) {
+    showPasswordResetMessage('Οι κωδικοί δεν ταιριάζουν.', true);
+    passwordResetRepeat.focus();
+    return;
+  }
+
+  setPasswordResetLoading(true);
+
+  try {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+
+    showAuthMessage(authStatusMessages.passwordResetSuccess);
+    showPasswordResetMessage(authStatusMessages.passwordResetSuccess);
+    clearPasswordRecoveryMode();
+    showPage('profile');
+  } catch (error) {
+    showPasswordResetMessage(getFriendlyAuthErrorMessage(error), true);
+  } finally {
+    setPasswordResetLoading(false);
   }
 }
 
@@ -2642,15 +2735,18 @@ async function logout() {
 }
 
 async function initializeAuth() {
+  const shouldOpenRecoveryForm = hasPasswordRecoveryUrlParams();
   const { data } = await supabase.auth.getSession();
   currentUser = data.session?.user || null;
   if (currentUser) authEmail.value = currentUser.email || '';
   renderAuth();
+  if (shouldOpenRecoveryForm) activatePasswordRecoveryMode();
   await loadSupabaseData();
 
-  supabase.auth.onAuthStateChange((_event, session) => {
+  supabase.auth.onAuthStateChange((event, session) => {
     currentUser = session?.user || null;
     if (currentUser) authEmail.value = currentUser.email || '';
+    if (event === 'PASSWORD_RECOVERY') activatePasswordRecoveryMode();
     if (!currentUser) {
       sosHistoryEvents = [];
       sosHistoryStatus = '';
@@ -2729,6 +2825,7 @@ authLoginTab.addEventListener('click', () => setAuthMode('login'));
 authForgotPasswordButton.addEventListener('click', sendPasswordResetEmail);
 authPasswordToggle.addEventListener('click', togglePasswordVisibility);
 authForm.addEventListener('submit', handleAuthSubmit);
+passwordResetForm.addEventListener('submit', handlePasswordResetSubmit);
 authLogoutButton.addEventListener('click', logout);
 authIndicator.addEventListener('click', openProfileAuthCard);
 onlineStatusPill.addEventListener('click', handleOnlineStatusClick);
