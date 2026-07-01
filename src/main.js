@@ -34,6 +34,7 @@ const storageKeys = {
   sosTestMode: 'safety-app-sos-test-mode',
   checkIn: 'safety-app-active-check-in',
   locationPermissionRequested: 'safety-app-location-permission-requested',
+  testSosCompleted: 'safety-app-test-sos-completed',
 };
 
 
@@ -286,6 +287,10 @@ const safetyStatusCard = document.querySelector('#safety-status-card');
 const safetyStatusIcon = document.querySelector('#safety-status-icon');
 const safetyStatusTitle = document.querySelector('#safety-status-title');
 const safetyStatusDescription = document.querySelector('#safety-status-description');
+const setupChecklist = document.querySelector('#setup-checklist');
+const setupChecklistItems = document.querySelector('#setup-checklist-items');
+const setupChecklistProgress = document.querySelector('#setup-checklist-progress');
+const setupChecklistSummary = document.querySelector('#setup-checklist-summary');
 
 function loadJson(key, fallback) {
   try {
@@ -304,6 +309,7 @@ let contacts = ensureSinglePrimaryContact(sanitizeContacts(loadJson(storageKeys.
 let profile = sanitizeProfile(loadJson(storageKeys.profile, defaultProfile));
 let currentLocation = loadJson(storageKeys.location, null);
 let isSosTestMode = loadJson(storageKeys.sosTestMode, false) === true;
+let hasCompletedTestSos = loadJson(storageKeys.testSosCompleted, false) === true;
 let hasRequestedLocationPermission = loadJson(storageKeys.locationPermissionRequested, false) === true;
 let activeCheckIn = loadJson(storageKeys.checkIn, null);
 let selectedCheckInMinutes = 5;
@@ -459,6 +465,111 @@ function openProfileAuthCard() {
   focusElementAfterScroll(focusTarget || authForm);
 }
 
+function focusProfileForm() {
+  showPage('profile');
+  focusElementAfterScroll(profileForm?.elements?.name || profileForm);
+}
+
+function focusContactForm() {
+  showPage('contacts');
+  focusElementAfterScroll(contactsForm?.elements?.name || contactsForm);
+}
+
+function focusSosButton() {
+  showPage('home');
+  focusElementAfterScroll(sosButton);
+}
+
+function markTestSosCompleted() {
+  if (!isSosTestMode || hasCompletedTestSos) return;
+
+  hasCompletedTestSos = true;
+  saveJson(storageKeys.testSosCompleted, true);
+  renderSetupChecklist();
+}
+
+function getSetupChecklistItems() {
+  return [
+    {
+      id: 'profile',
+      label: 'Συμπλήρωσε προφίλ',
+      completed: hasRequiredProfileDetails(),
+      buttonLabel: 'Συμπλήρωση',
+      action: 'profile',
+    },
+    {
+      id: 'contacts',
+      label: 'Πρόσθεσε έμπιστη επαφή',
+      completed: contacts.length > 0,
+      buttonLabel: 'Προσθήκη',
+      action: 'contacts',
+    },
+    {
+      id: 'location',
+      label: 'Επίτρεψε τοποθεσία',
+      completed: Boolean(currentLocation) || hasRequestedLocationPermission,
+      buttonLabel: 'Άδεια τοποθεσίας',
+      action: 'location',
+    },
+    {
+      id: 'test-sos',
+      label: 'Κάνε δοκιμαστικό SOS',
+      completed: hasCompletedTestSos,
+      buttonLabel: 'Δοκιμή SOS',
+      action: 'test-sos',
+    },
+  ];
+}
+
+function renderSetupChecklist() {
+  if (!setupChecklist || !setupChecklistItems) return;
+
+  const items = getSetupChecklistItems();
+  const completedCount = items.filter((item) => item.completed).length;
+  const allCompleted = completedCount === items.length;
+
+  setupChecklist.classList.toggle('complete', allCompleted);
+  setupChecklistProgress.textContent = `${completedCount}/${items.length}`;
+  setupChecklistSummary.textContent = allCompleted
+    ? 'Το SafeMe είναι έτοιμο για χρήση.'
+    : 'Λείπουν ακόμα βήματα για πλήρη ετοιμότητα.';
+  setupChecklistItems.innerHTML = items.map((item) => `
+    <li class="setup-checklist-item ${item.completed ? 'completed' : 'pending'}">
+      <span class="setup-checklist-state" aria-hidden="true">${item.completed ? '✓' : '○'}</span>
+      <span class="setup-checklist-label">${escapeHtml(item.label)}</span>
+      <button class="setup-checklist-action" type="button" data-setup-action="${item.action}">${escapeHtml(item.buttonLabel)}</button>
+    </li>
+  `).join('');
+}
+
+function handleSetupChecklistAction(event) {
+  const button = event.target.closest('[data-setup-action]');
+  if (!button) return;
+
+  const action = button.dataset.setupAction;
+  if (action === 'profile') {
+    focusProfileForm();
+    return;
+  }
+
+  if (action === 'contacts') {
+    focusContactForm();
+    return;
+  }
+
+  if (action === 'location') {
+    refreshLocation();
+    return;
+  }
+
+  if (action === 'test-sos') {
+    isSosTestMode = true;
+    saveJson(storageKeys.sosTestMode, true);
+    syncSosTestModeToggle();
+    focusSosButton();
+  }
+}
+
 function handleOnlineStatusClick() {
   showPage('home');
   showLocationMessage('Η εφαρμογή είναι online. Για συγχρονισμό λογαριασμού, συνδέσου από το Προφίλ.');
@@ -576,6 +687,7 @@ function updateCurrentLocationFromPosition(position) {
     lastErrorMessage: '',
   });
   renderLocation();
+  renderSetupChecklist();
   return currentLocation;
 }
 
@@ -607,6 +719,7 @@ async function refreshLocation() {
     showLocationMessage(getGeolocationErrorMessage(error));
   } finally {
     setLocationButtonsLoading(false);
+    renderSetupChecklist();
   }
 }
 
@@ -1803,6 +1916,7 @@ async function confirmSos() {
   }
 
   showSosActionPanel(message, contact, historyMessage);
+  markTestSosCompleted();
 }
 
 
@@ -1875,6 +1989,7 @@ async function deleteContact(index) {
   ensurePrimaryContact();
   await persistContacts();
   renderContacts();
+  renderSetupChecklist();
 }
 
 async function editContact(index) {
@@ -1914,6 +2029,7 @@ async function setPrimaryContact(index) {
 
   await persistContacts();
   renderContacts();
+  renderSetupChecklist();
 }
 
 async function clearTrustedContacts() {
@@ -1924,6 +2040,7 @@ async function clearTrustedContacts() {
   contacts = [];
   await persistContacts();
   renderContacts();
+  renderSetupChecklist();
 }
 
 function handleContactsListClick(event) {
@@ -1959,6 +2076,7 @@ async function addContact(event) {
   contacts = [...contacts, newContact];
   await persistContacts();
   renderContacts();
+  renderSetupChecklist();
   contactsForm.reset();
 }
 
@@ -1998,6 +2116,7 @@ async function saveProfile(event) {
   }
 
   renderProfile();
+  renderSetupChecklist();
 }
 
 
@@ -2205,6 +2324,7 @@ async function loadSupabaseData() {
     showAuthMessage(`Δεν έγινε συγχρονισμός Supabase: ${error.message}`, true);
   } finally {
     isRemoteSyncing = false;
+    renderSetupChecklist();
   }
 }
 
@@ -2276,6 +2396,7 @@ async function logout() {
     renderActiveSosSession();
     syncActiveSosLocationAutoUpdate();
     renderAuth();
+    renderSetupChecklist();
   } catch (error) {
     hasPendingLogoutMessage = false;
     showAuthMessage(getFriendlyAuthErrorMessage(error), true);
@@ -2301,6 +2422,7 @@ async function initializeAuth() {
       renderSosHistory();
       renderActiveSosSession();
       syncActiveSosLocationAutoUpdate();
+      renderSetupChecklist();
       if (hasPendingLogoutMessage) {
         showAuthMessage(authStatusMessages.logoutSuccess);
         hasPendingLogoutMessage = false;
@@ -2311,6 +2433,7 @@ async function initializeAuth() {
       loadSupabaseData();
     }
     renderAuth();
+    renderSetupChecklist();
   });
 }
 
@@ -2325,6 +2448,7 @@ function clearSafeMeData() {
   currentLocation = null;
   isSosTestMode = false;
   hasRequestedLocationPermission = false;
+  hasCompletedTestSos = false;
   activeCheckIn = null;
   stopCheckInTimer();
   syncSosTestModeToggle();
@@ -2337,6 +2461,7 @@ function clearSafeMeData() {
   renderActiveSosSession();
   syncActiveSosLocationAutoUpdate();
   renderCheckIn();
+  renderSetupChecklist();
   profileStatus.textContent = 'Τα αποθηκευμένα στοιχεία διαγράφηκαν από αυτή τη συσκευή.';
 }
 
@@ -2373,6 +2498,7 @@ clearContactsButton.addEventListener('click', clearTrustedContacts);
 profileForm.addEventListener('submit', saveProfile);
 clearDataButton.addEventListener('click', clearSafeMeData);
 refreshLocationButton.addEventListener('click', refreshLocation);
+setupChecklistItems?.addEventListener('click', handleSetupChecklistAction);
 shareLocationButton.addEventListener('click', shareLocation);
 testActiveSosLiveSyncButton.addEventListener('click', testActiveSosLiveSyncNow);
 refreshActiveSosGpsButton.addEventListener('click', refreshActiveSosGpsNow);
@@ -2396,6 +2522,7 @@ syncSosTestModeToggle();
 renderContacts();
 renderProfile();
 renderLocation();
+renderSetupChecklist();
 renderSosHistory();
 renderActiveSosSession();
 restoreCheckInOnLoad();
