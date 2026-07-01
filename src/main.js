@@ -5,7 +5,7 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const SOS_TRACKING_BASE_URL = 'https://cotsiosael.github.io/safety-app/';
-const APP_VERSION = '2026-07-01-1';
+const APP_VERSION = '2026-07-01-2';
 const APP_VERSION_URL = './version.json';
 const trackingParams = new URLSearchParams(window.location.search);
 const hasTrackingTokenParam = trackingParams.has('track');
@@ -265,6 +265,9 @@ const settingsRefreshAppButton = document.querySelector('#settings-refresh-app')
 const appUpdateBanner = document.querySelector('#app-update-banner');
 const appUpdateMessage = document.querySelector('#app-update-message');
 const appUpdateRefreshButton = document.querySelector('#app-update-refresh');
+const pullRefreshIndicator = document.querySelector('#pull-refresh-indicator');
+const pullRefreshMessage = document.querySelector('#pull-refresh-message');
+const pullRefreshManualButton = document.querySelector('#pull-refresh-manual');
 const settingsClearDataButton = document.querySelector('#settings-clear-data');
 const settingsStatus = document.querySelector('#settings-status');
 const healthChecklist = document.querySelector('#health-checklist');
@@ -383,9 +386,15 @@ function showAppUpdateBanner(message = 'Update available / Νέα έκδοση �
   appUpdateBanner.hidden = false;
 }
 
-function refreshAppSafely() {
+function refreshAppSafely({ requireConfirmationForActiveSos = true } = {}) {
+  if (isActiveSosInProgress() && requireConfirmationForActiveSos) {
+    const shouldRefresh = window.confirm('SOS is active. Refresh manually only if needed.');
+    if (!shouldRefresh) return false;
+  }
+
   if (waitingServiceWorker) waitingServiceWorker.postMessage({ type: 'SKIP_WAITING' });
   window.location.reload();
+  return true;
 }
 
 async function checkForAppUpdate({ force = false } = {}) {
@@ -461,6 +470,93 @@ function setupAppFreshnessChecks() {
     if (currentUser) loadSupabaseData();
     if (hasRequestedLocationPermission) refreshLocation();
   });
+}
+
+
+function setPullRefreshState(state, message, { offset = 0, showManual = false } = {}) {
+  if (!pullRefreshIndicator || !pullRefreshMessage) return;
+  pullRefreshIndicator.dataset.state = state;
+  pullRefreshMessage.textContent = message;
+  pullRefreshIndicator.style.transform = `translate(-50%, ${Math.round(offset)}px)`;
+  pullRefreshIndicator.setAttribute('aria-hidden', state === 'idle' ? 'true' : 'false');
+  if (pullRefreshManualButton) pullRefreshManualButton.hidden = !showManual;
+}
+
+function resetPullRefreshIndicator(delay = 900) {
+  window.setTimeout(() => setPullRefreshState('idle', 'Pull to refresh'), delay);
+}
+
+async function refreshAppDataForPull() {
+  await checkForAppUpdate({ force: true });
+  if (currentUser) await loadSupabaseData();
+  if (hasRequestedLocationPermission) await refreshLocation();
+}
+
+function setupPullToRefresh() {
+  if (!pullRefreshIndicator || !window.matchMedia('(pointer: coarse)').matches) return;
+
+  const threshold = 78;
+  const maxPull = 128;
+  let startY = 0;
+  let pullDistance = 0;
+  let isPulling = false;
+  let isRefreshing = false;
+
+  const isAtPageTop = () => (window.scrollY || document.documentElement.scrollTop || 0) <= 0;
+
+  window.addEventListener('touchstart', (event) => {
+    if (isRefreshing || event.touches.length !== 1 || !isAtPageTop()) return;
+    startY = event.touches[0].clientY;
+    pullDistance = 0;
+    isPulling = true;
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (event) => {
+    if (!isPulling || event.touches.length !== 1) return;
+    const deltaY = event.touches[0].clientY - startY;
+    if (deltaY <= 0 || !isAtPageTop()) {
+      isPulling = false;
+      setPullRefreshState('idle', 'Pull to refresh');
+      return;
+    }
+
+    pullDistance = Math.min(maxPull, deltaY * 0.45);
+    const ready = pullDistance >= threshold;
+    setPullRefreshState(ready ? 'ready' : 'pulling', ready ? 'Release to refresh' : 'Pull to refresh', { offset: pullDistance });
+  }, { passive: true });
+
+  window.addEventListener('touchend', async () => {
+    if (!isPulling) return;
+    isPulling = false;
+
+    if (pullDistance < threshold) {
+      setPullRefreshState('idle', 'Pull to refresh');
+      return;
+    }
+
+    if (isActiveSosInProgress()) {
+      setPullRefreshState('blocked', 'SOS is active. Refresh manually only if needed.', { offset: 18, showManual: true });
+      resetPullRefreshIndicator(4200);
+      return;
+    }
+
+    isRefreshing = true;
+    setPullRefreshState('refreshing', 'Refreshing', { offset: 18 });
+    try {
+      await refreshAppDataForPull();
+      setPullRefreshState('done', hasAppUpdateAvailable ? 'Update ready — tap Refresh app' : 'App refreshed / Up to date', { offset: 18 });
+    } catch {
+      setPullRefreshState('done', 'Could not refresh. Check connection.', { offset: 18 });
+    } finally {
+      isRefreshing = false;
+      resetPullRefreshIndicator(1600);
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchcancel', () => {
+    isPulling = false;
+    if (!isRefreshing) setPullRefreshState('idle', 'Pull to refresh');
+  }, { passive: true });
 }
 
 function getActiveSosEmergencyMessage() {
@@ -3402,8 +3498,9 @@ clearDataButton.addEventListener('click', clearSafeMeData);
 settingsOpenProfileButton.addEventListener('click', openSettingsProfile);
 settingsOpenContactsButton.addEventListener('click', openSettingsContacts);
 settingsRefreshLocationButton.addEventListener('click', refreshLocationFromSettings);
-settingsRefreshAppButton.addEventListener('click', refreshAppSafely);
-appUpdateRefreshButton?.addEventListener('click', refreshAppSafely);
+settingsRefreshAppButton.addEventListener('click', () => refreshAppSafely());
+appUpdateRefreshButton?.addEventListener('click', () => refreshAppSafely());
+pullRefreshManualButton?.addEventListener('click', () => refreshAppSafely());
 settingsClearDataButton.addEventListener('click', clearSafeMeData);
 healthOpenProfileButton.addEventListener('click', () => handleHealthAction('profile'));
 healthOpenContactsButton.addEventListener('click', () => handleHealthAction('contacts'));
@@ -3481,6 +3578,7 @@ restoreSafeWalkOnLoad();
 restoreCheckInOnLoad();
 refreshLocationPermissionStatus();
 setupAppFreshnessChecks();
+setupPullToRefresh();
 initializeAuth();
 }
 
