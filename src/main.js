@@ -650,26 +650,25 @@ function getSosTrackingUrl(shareToken) {
 }
 
 function buildSosMessage(location = currentLocation, shareToken = activeSosSession?.shareToken) {
-  const locationLine = location
-    ? `Η τοποθεσία μου: ${getLocationUrl(location)}`
+  const locationText = location
+    ? getLocationUrl(location)
     : 'Δεν μπόρεσα να πάρω τοποθεσία από τη συσκευή μου.';
-  const nameLine = profile?.name ? `Όνομα: ${profile.name}` : '';
-  const phoneLine = profile?.phone ? `Τηλέφωνο: ${profile.phone}` : '';
-  const medicalLine = profile?.medicalNotes ? `Ιατρικές σημειώσεις: ${profile.medicalNotes}` : '';
   const trackingUrl = getSosTrackingUrl(shareToken);
-  const trackingIntro = trackingUrl ? 'Άνοιξε εδώ για να δεις την τελευταία μου τοποθεσία:' : '';
+  const trackingText = trackingUrl || 'Δεν είναι διαθέσιμο.';
+  const medicalText = profile?.medicalNotes || 'Δεν έχουν προστεθεί.';
 
   return [
     getSosMessageIntro(),
-    nameLine,
-    phoneLine,
-    locationLine,
-    trackingIntro,
-    trackingUrl,
-    medicalLine,
-  ]
-    .filter(Boolean)
-    .join('\n');
+    '',
+    `👤 Όνομα: ${profile?.name || 'Δεν έχει συμπληρωθεί.'}`,
+    `☎️ Τηλέφωνο: ${profile?.phone || 'Δεν έχει συμπληρωθεί.'}`,
+    '',
+    `📍 Άμεση τοποθεσία Google Maps: ${locationText}`,
+    '',
+    `🔴 Live tracking SafeMe: ${trackingText}`,
+    '',
+    `🧾 Ιατρικές σημειώσεις: ${medicalText}`,
+  ].join('\n');
 }
 
 function getSmsLink(contact, message) {
@@ -1608,7 +1607,6 @@ async function sharePreparedSosMessage() {
     await navigator.share({
       title: 'SafeMe SOS',
       text: preparedSosMessage,
-      url: currentLocation ? getLocationUrl(currentLocation) : undefined,
     });
     sosActionFeedback.textContent = 'Άνοιξε η κοινή χρήση SOS.';
     sosStatus.textContent = 'Άνοιξε η κοινή χρήση SOS.';
