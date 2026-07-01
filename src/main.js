@@ -13,6 +13,7 @@ const pageTitles = {
   home: 'Αρχική σελίδα',
   contacts: 'Έμπιστες επαφές',
   profile: 'Προφίλ χρήστη',
+  settings: 'Ρυθμίσεις & ασφάλεια',
 };
 
 const defaultContacts = [];
@@ -252,6 +253,11 @@ const profileNotes = document.querySelector('#profile-notes');
 const profileAvatar = document.querySelector('#profile-avatar');
 const profileStatus = document.querySelector('#profile-status');
 const clearDataButton = document.querySelector('#clear-data-button');
+const settingsOpenProfileButton = document.querySelector('#settings-open-profile');
+const settingsOpenContactsButton = document.querySelector('#settings-open-contacts');
+const settingsRefreshLocationButton = document.querySelector('#settings-refresh-location');
+const settingsClearDataButton = document.querySelector('#settings-clear-data');
+const settingsStatus = document.querySelector('#settings-status');
 const authForm = document.querySelector('#auth-form');
 const authEmail = document.querySelector('#auth-email');
 const authPassword = document.querySelector('#auth-password');
@@ -528,6 +534,14 @@ function focusProfileForm() {
 function focusContactForm() {
   showPage('contacts');
   focusElementAfterScroll(contactsForm?.elements?.name || contactsForm);
+}
+
+function openSettingsProfile() {
+  focusProfileForm();
+}
+
+function openSettingsContacts() {
+  focusContactForm();
 }
 
 function focusSosButton() {
@@ -816,6 +830,26 @@ async function refreshLocation() {
     setLocationButtonsLoading(false);
     renderSetupChecklist();
   }
+}
+
+async function refreshLocationFromSettings() {
+  if (settingsStatus) {
+    settingsStatus.textContent = 'Γίνεται έλεγχος τοποθεσίας...';
+    settingsStatus.classList.remove('error');
+  }
+
+  await refreshLocation();
+
+  if (!settingsStatus) return;
+
+  if (currentLocation) {
+    settingsStatus.textContent = 'Η τοποθεσία ενημερώθηκε επιτυχώς.';
+    settingsStatus.classList.remove('error');
+    return;
+  }
+
+  settingsStatus.textContent = 'Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα. Έλεγξε τα δικαιώματα του browser.';
+  settingsStatus.classList.add('error');
 }
 
 async function copyTextToClipboard(text) {
@@ -2861,6 +2895,10 @@ function clearSafeMeData() {
   renderCheckIn();
   renderSetupChecklist();
   profileStatus.textContent = 'Τα αποθηκευμένα στοιχεία διαγράφηκαν από αυτή τη συσκευή.';
+  if (settingsStatus) {
+    settingsStatus.textContent = 'Τα τοπικά δεδομένα διαγράφηκαν από αυτή τη συσκευή.';
+    settingsStatus.classList.remove('error');
+  }
 }
 
 navButtons.forEach((button) => {
@@ -2908,6 +2946,10 @@ contactsList.addEventListener('click', handleContactsListClick);
 clearContactsButton.addEventListener('click', clearTrustedContacts);
 profileForm.addEventListener('submit', saveProfile);
 clearDataButton.addEventListener('click', clearSafeMeData);
+settingsOpenProfileButton.addEventListener('click', openSettingsProfile);
+settingsOpenContactsButton.addEventListener('click', openSettingsContacts);
+settingsRefreshLocationButton.addEventListener('click', refreshLocationFromSettings);
+settingsClearDataButton.addEventListener('click', clearSafeMeData);
 refreshLocationButton.addEventListener('click', refreshLocation);
 setupChecklist?.addEventListener('click', handleSetupChecklistAction);
 shareLocationButton.addEventListener('click', shareLocation);

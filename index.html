@@ -34,6 +34,7 @@
           <button class="nav-item active" type="button" data-page="home" aria-current="page"><span class="nav-icon">⌂</span><span>Αρχική</span></button>
           <button class="nav-item" type="button" data-page="contacts"><span class="nav-icon">👥</span><span>Επαφές</span></button>
           <button class="nav-item" type="button" data-page="profile"><span class="nav-icon">◎</span><span>Προφίλ</span></button>
+          <button class="nav-item" type="button" data-page="settings"><span class="nav-icon">⚙</span><span>Ρυθμίσεις</span></button>
         </nav>
 
         <div class="sidebar-card">
@@ -394,6 +395,59 @@
             <button class="danger-outline-button inline-button" id="clear-data-button" type="button">Καθαρισμός δεδομένων</button>
             <p class="save-status" id="profile-status" aria-live="polite"></p>
           </form>
+        </section>
+
+        <section class="page settings-page" id="settings" aria-label="Ρυθμίσεις και ασφάλεια">
+          <div class="settings-hero">
+            <div>
+              <p class="eyebrow">SafeMe settings</p>
+              <h2>Ρυθμίσεις & ασφάλεια</h2>
+              <p>Κατανόησε τι κάνει το SafeMe, πού σταματούν οι δυνατότητές του και πώς χειρίζεται τα δεδομένα σου.</p>
+            </div>
+            <div class="settings-emergency-actions" aria-label="Γρήγορες κλήσεις έκτακτης ανάγκης">
+              <a class="emergency-call-button" href="tel:112">Κλήση 112</a>
+              <a class="emergency-call-button" href="tel:199">Κλήση 199</a>
+            </div>
+          </div>
+
+          <div class="settings-grid">
+            <article class="settings-card">
+              <span class="card-icon">🛡️</span>
+              <h3>Πώς λειτουργεί το SafeMe</h3>
+              <p>Το SafeMe σε βοηθά να ετοιμάσεις μήνυμα SOS, να μοιραστείς τοποθεσία και να ενημερώσεις έμπιστες επαφές.</p>
+            </article>
+
+            <article class="settings-card settings-card-wide settings-limits-card">
+              <span class="card-icon">⚠️</span>
+              <h3>Σημαντικοί περιορισμοί</h3>
+              <ul class="settings-list">
+                <li>Το SafeMe δεν αντικαθιστά τις υπηρεσίες έκτακτης ανάγκης.</li>
+                <li>Σε άμεσο κίνδυνο κάλεσε 112 ή 199.</li>
+                <li>Το live tracking χρειάζεται σύνδεση στο SafeMe.</li>
+                <li>Η live ενημέρωση τοποθεσίας λειτουργεί όσο η εφαρμογή/browser παραμένει ενεργή.</li>
+                <li>Το SafeMe δεν στέλνει αυτόματα SMS ή WhatsApp. Ο χρήστης επιλέγει χειροκίνητα αποστολή.</li>
+              </ul>
+            </article>
+
+            <article class="settings-card settings-card-wide">
+              <span class="card-icon">🔒</span>
+              <h3>Δεδομένα & απόρρητο</h3>
+              <p>Το προφίλ και οι επαφές μπορούν να αποθηκεύονται τοπικά στη συσκευή σου. Όταν είσαι συνδεδεμένος/η, τα δεδομένα μπορούν να συγχρονίζονται με Supabase για ασφαλές αντίγραφο και λειτουργίες live tracking.</p>
+              <p>Τα δημόσια tracking links δεν εκθέτουν ιατρικές σημειώσεις, επαφές, αριθμούς τηλεφώνου ή user_id.</p>
+            </article>
+
+            <article class="settings-card settings-card-wide">
+              <span class="card-icon">✨</span>
+              <h3>Γρήγορες ενέργειες</h3>
+              <div class="settings-actions">
+                <button class="ghost-button" id="settings-open-profile" type="button">Άνοιγμα προφίλ</button>
+                <button class="ghost-button" id="settings-open-contacts" type="button">Άνοιγμα επαφών</button>
+                <button class="ghost-button" id="settings-refresh-location" type="button">Έλεγχος τοποθεσίας</button>
+                <button class="danger-outline-button" id="settings-clear-data" type="button">Καθαρισμός τοπικών δεδομένων</button>
+              </div>
+              <p class="save-status" id="settings-status" aria-live="polite"></p>
+            </article>
+          </div>
         </section>
       </main>
     </div>
