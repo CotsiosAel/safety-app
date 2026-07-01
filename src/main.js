@@ -35,6 +35,14 @@ const storageKeys = {
 };
 
 
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, (character) => {
+    const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return entities[character];
+  });
+}
+
+
 function formatPublicTrackingDate(value) {
   if (!value) return '—';
 
@@ -171,6 +179,7 @@ function initializePublicTrackingMode() {
   fetchPublicTrackingSession();
 }
 
+function initializeSafeMeApp() {
 const authStatusMessages = {
   signedOut: 'Δεν έχεις συνδεθεί. Τα στοιχεία αποθηκεύονται τοπικά.',
   signedIn: 'Συνδεδεμένος/η στο Supabase. Τα στοιχεία συγχρονίζονται.',
@@ -225,6 +234,7 @@ const activeSosLocation = document.querySelector('#active-sos-location');
 const activeSosFeedback = document.querySelector('#active-sos-feedback');
 const updateActiveSosLocationButton = document.querySelector('#update-active-sos-location');
 const endActiveSosButton = document.querySelector('#end-active-sos');
+const copyActiveSosTrackingButton = document.querySelector('#copy-active-sos-tracking');
 const disableActiveSosTrackingButton = document.querySelector('#disable-active-sos-tracking');
 
 function loadJson(key, fallback) {
@@ -352,12 +362,6 @@ function normalizePhone(phone) {
   return phone.replace(/[^\d+]/g, '');
 }
 
-function escapeHtml(value) {
-  return value.replace(/[&<>'"]/g, (character) => {
-    const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-    return entities[character];
-  });
-}
 
 function showPage(nextPage) {
   navButtons.forEach((item) => {
@@ -676,6 +680,8 @@ function renderActiveSosSession(message = '') {
     activeSosLocation.textContent = 'Χωρίς τοποθεσία';
   }
 
+  copyActiveSosTrackingButton.hidden = !activeSosSession.shareToken;
+  copyActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
   disableActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
   activeSosFeedback.textContent = message;
 }
@@ -721,6 +727,7 @@ async function loadActiveSosSession() {
 function setActiveSosButtonsLoading(isLoading) {
   updateActiveSosLocationButton.disabled = isLoading;
   endActiveSosButton.disabled = isLoading;
+  copyActiveSosTrackingButton.disabled = isLoading || !activeSosSession?.shareToken;
   disableActiveSosTrackingButton.disabled = isLoading || !activeSosSession?.shareToken;
 }
 
@@ -763,6 +770,19 @@ async function updateActiveSosLocation() {
     renderActiveSosSession(error?.code ? getGeolocationErrorMessage(error) : `Δεν ενημερώθηκε το SOS: ${error.message}`);
   } finally {
     setActiveSosButtonsLoading(false);
+  }
+}
+
+async function copyActiveSosTrackingLink() {
+  if (!activeSosSession?.shareToken) return;
+
+  const trackingUrl = getSosTrackingUrl(activeSosSession.shareToken);
+
+  try {
+    await copyTextToClipboard(trackingUrl);
+    renderActiveSosSession('Το tracking link αντιγράφηκε.');
+  } catch {
+    renderActiveSosSession('Δεν μπόρεσα να αντιγράψω το tracking link. Δοκίμασε ξανά.');
   }
 }
 
@@ -1513,10 +1533,9 @@ clearDataButton.addEventListener('click', clearSafeMeData);
 refreshLocationButton.addEventListener('click', refreshLocation);
 shareLocationButton.addEventListener('click', shareLocation);
 updateActiveSosLocationButton.addEventListener('click', updateActiveSosLocation);
+copyActiveSosTrackingButton.addEventListener('click', copyActiveSosTrackingLink);
 disableActiveSosTrackingButton.addEventListener('click', disableActiveSosTrackingLink);
 endActiveSosButton.addEventListener('click', endActiveSosSession);
-
-if (hasTrackingTokenParam) initializePublicTrackingMode();
 
 syncSosTestModeToggle();
 renderContacts();
@@ -1525,3 +1544,10 @@ renderLocation();
 renderSosHistory();
 renderActiveSosSession();
 initializeAuth();
+}
+
+if (hasTrackingTokenParam) {
+  initializePublicTrackingMode();
+} else {
+  initializeSafeMeApp();
+}
