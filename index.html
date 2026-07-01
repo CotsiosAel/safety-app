@@ -354,6 +354,26 @@
             <p class="save-status" id="auth-status" aria-live="polite"></p>
           </form>
 
+          <form class="auth-card password-reset-card" id="password-reset-form" tabindex="-1" hidden>
+            <div class="section-heading compact-heading">
+              <p class="eyebrow">Επαναφορά κωδικού</p>
+              <h2>Ορισμός νέου κωδικού</h2>
+              <p>Γράψε τον νέο κωδικό σου για να συνεχίσεις.</p>
+            </div>
+            <div class="form-grid">
+              <label class="password-field">
+                <span>Νέος κωδικός</span>
+                <input id="password-reset-new" name="new-password" type="password" autocomplete="new-password" minlength="6" />
+              </label>
+              <label class="password-field">
+                <span>Επανάληψη νέου κωδικού</span>
+                <input id="password-reset-repeat" name="repeat-new-password" type="password" autocomplete="new-password" minlength="6" />
+              </label>
+            </div>
+            <button class="primary-button inline-button" id="password-reset-submit" type="submit">Αλλαγή κωδικού</button>
+            <p class="save-status" id="password-reset-status" aria-live="polite"></p>
+          </form>
+
           <form class="profile-form" id="profile-form">
             <div class="form-grid">
               <label>
