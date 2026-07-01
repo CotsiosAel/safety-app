@@ -35,6 +35,7 @@ const storageKeys = {
   checkIn: 'safety-app-active-check-in',
   locationPermissionRequested: 'safety-app-location-permission-requested',
   testSosCompleted: 'safety-app-test-sos-completed',
+  setupChecklistCollapsed: 'safety-app-setup-checklist-collapsed',
 };
 
 
@@ -311,6 +312,7 @@ let currentLocation = loadJson(storageKeys.location, null);
 let isSosTestMode = loadJson(storageKeys.sosTestMode, false) === true;
 let hasCompletedTestSos = loadJson(storageKeys.testSosCompleted, false) === true;
 let hasRequestedLocationPermission = loadJson(storageKeys.locationPermissionRequested, false) === true;
+let isSetupChecklistCollapsed = loadJson(storageKeys.setupChecklistCollapsed, true) === true;
 let activeCheckIn = loadJson(storageKeys.checkIn, null);
 let selectedCheckInMinutes = 5;
 let checkInTimer = null;
@@ -522,27 +524,66 @@ function getSetupChecklistItems() {
 }
 
 function renderSetupChecklist() {
-  if (!setupChecklist || !setupChecklistItems) return;
+  if (!setupChecklist) return;
 
   const items = getSetupChecklistItems();
   const completedCount = items.filter((item) => item.completed).length;
   const allCompleted = completedCount === items.length;
+  const shouldShowCompact = allCompleted && isSetupChecklistCollapsed;
 
   setupChecklist.classList.toggle('complete', allCompleted);
-  setupChecklistProgress.textContent = `${completedCount}/${items.length}`;
-  setupChecklistSummary.textContent = allCompleted
-    ? 'Το SafeMe είναι έτοιμο για χρήση.'
-    : 'Λείπουν ακόμα βήματα για πλήρη ετοιμότητα.';
-  setupChecklistItems.innerHTML = items.map((item) => `
-    <li class="setup-checklist-item ${item.completed ? 'completed' : 'pending'}">
-      <span class="setup-checklist-state" aria-hidden="true">${item.completed ? '✓' : '○'}</span>
-      <span class="setup-checklist-label">${escapeHtml(item.label)}</span>
-      <button class="setup-checklist-action" type="button" data-setup-action="${item.action}">${escapeHtml(item.buttonLabel)}</button>
-    </li>
-  `).join('');
+  setupChecklist.classList.toggle('compact', shouldShowCompact);
+
+  if (shouldShowCompact) {
+    setupChecklist.innerHTML = `
+      <div class="setup-checklist-compact-content">
+        <div>
+          <p class="eyebrow">SafeMe readiness</p>
+          <h3 id="setup-checklist-title">Το SafeMe είναι έτοιμο</h3>
+          <p>Έχεις ολοκληρώσει τα βασικά βήματα ασφάλειας.</p>
+        </div>
+        <span class="setup-checklist-progress" aria-live="polite">4/4</span>
+      </div>
+      <button class="setup-checklist-toggle" type="button" data-setup-toggle="expand">Προβολή βημάτων</button>
+    `;
+    return;
+  }
+
+  setupChecklist.innerHTML = `
+    <div class="setup-checklist-header">
+      <div>
+        <p class="eyebrow">SafeMe readiness</p>
+        <h3 id="setup-checklist-title">Πρώτα βήματα ασφάλειας</h3>
+        <p>Ολοκλήρωσε αυτά τα βήματα για να είναι έτοιμο το SafeMe σε περίπτωση ανάγκης.</p>
+      </div>
+      <div class="setup-checklist-header-actions">
+        <span class="setup-checklist-progress" aria-live="polite">${completedCount}/${items.length}</span>
+        ${allCompleted ? '<button class="setup-checklist-hide" type="button" data-setup-toggle="collapse">Απόκρυψη</button>' : ''}
+      </div>
+    </div>
+    <ul class="setup-checklist-items" aria-live="polite">
+      ${items.map((item) => `
+        <li class="setup-checklist-item ${item.completed ? 'completed' : 'pending'}">
+          <span class="setup-checklist-state" aria-hidden="true">${item.completed ? '✓' : '○'}</span>
+          <span class="setup-checklist-label">${escapeHtml(item.label)}</span>
+          <button class="setup-checklist-action" type="button" data-setup-action="${item.action}">${escapeHtml(item.buttonLabel)}</button>
+        </li>
+      `).join('')}
+    </ul>
+    <p class="setup-checklist-summary">${allCompleted ? 'Το SafeMe είναι έτοιμο για χρήση.' : 'Λείπουν ακόμα βήματα για πλήρη ετοιμότητα.'}</p>
+  `;
 }
 
 function handleSetupChecklistAction(event) {
+  const toggleButton = event.target.closest('[data-setup-toggle]');
+
+  if (toggleButton) {
+    isSetupChecklistCollapsed = toggleButton.dataset.setupToggle === 'collapse';
+    saveJson(storageKeys.setupChecklistCollapsed, isSetupChecklistCollapsed);
+    renderSetupChecklist();
+    return;
+  }
+
   const button = event.target.closest('[data-setup-action]');
   if (!button) return;
 
@@ -2449,6 +2490,7 @@ function clearSafeMeData() {
   isSosTestMode = false;
   hasRequestedLocationPermission = false;
   hasCompletedTestSos = false;
+  isSetupChecklistCollapsed = true;
   activeCheckIn = null;
   stopCheckInTimer();
   syncSosTestModeToggle();
@@ -2498,7 +2540,7 @@ clearContactsButton.addEventListener('click', clearTrustedContacts);
 profileForm.addEventListener('submit', saveProfile);
 clearDataButton.addEventListener('click', clearSafeMeData);
 refreshLocationButton.addEventListener('click', refreshLocation);
-setupChecklistItems?.addEventListener('click', handleSetupChecklistAction);
+setupChecklist?.addEventListener('click', handleSetupChecklistAction);
 shareLocationButton.addEventListener('click', shareLocation);
 testActiveSosLiveSyncButton.addEventListener('click', testActiveSosLiveSyncNow);
 refreshActiveSosGpsButton.addEventListener('click', refreshActiveSosGpsNow);
