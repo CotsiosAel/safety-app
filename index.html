@@ -17,9 +17,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/styles.css?v=2026-07-01-1" />
   </head>
   <body>
+    <div class="app-update-banner" id="app-update-banner" role="status" aria-live="polite" hidden>
+      <span id="app-update-message">Update available / Νέα έκδοση διαθέσιμη.</span>
+      <button class="ghost-button" id="app-update-refresh" type="button">Refresh app</button>
+    </div>
     <div class="app-shell">
       <aside class="sidebar" aria-label="Βασικό μενού πλοήγησης">
         <a class="brand" href="./" aria-label="SafeMe αρχική">
@@ -123,6 +127,22 @@
                 </dl>
               </section>
               <p class="active-sos-feedback" id="active-sos-feedback" aria-live="polite"></p>
+              <section class="sos-contact-notify" id="sos-contact-notify" aria-labelledby="sos-contact-notify-title">
+                <div class="sos-contact-notify-header">
+                  <div>
+                    <p class="eyebrow">Emergency contacts</p>
+                    <h4 id="sos-contact-notify-title">Notify emergency contacts</h4>
+                    <p>Στείλε χειροκίνητα το SOS μήνυμα σε όσες επαφές μπορείς. Το SafeMe δεν στέλνει αυτόματα SMS.</p>
+                  </div>
+                  <button class="danger-button compact-danger-button" id="notify-all-sos-contacts" type="button">Notify all contacts</button>
+                </div>
+                <p class="sos-contact-warning" id="sos-contact-warning" aria-live="polite"></p>
+                <div class="sos-contact-list" id="sos-contact-list" aria-live="polite"></div>
+                <section class="sos-notification-history" aria-labelledby="sos-notification-history-title">
+                  <h5 id="sos-notification-history-title">Notification history</h5>
+                  <div id="sos-notification-history-list" class="sos-notification-history-list"></div>
+                </section>
+              </section>
               <div class="active-sos-actions">
                 <button class="ghost-button" id="copy-active-sos-tracking" type="button">Αντιγραφή tracking link</button>
                 <button class="ghost-button" id="update-active-sos-location" type="button">Ενημέρωση τοποθεσίας τώρα</button>
@@ -286,7 +306,11 @@
               </label>
               <label>
                 <span>Τηλέφωνο</span>
-                <input name="phone" type="tel" placeholder="π.χ. +306941234567" required />
+                <input name="phone" type="tel" placeholder="π.χ. +306941234567" />
+              </label>
+              <label>
+                <span>Email (προαιρετικό)</span>
+                <input name="email" type="email" placeholder="π.χ. name@example.com" />
               </label>
             </div>
             <button class="primary-button inline-button" type="submit">Αποθήκευση επαφής</button>
@@ -474,6 +498,7 @@
                 <button class="ghost-button" id="settings-open-profile" type="button">Άνοιγμα προφίλ</button>
                 <button class="ghost-button" id="settings-open-contacts" type="button">Άνοιγμα επαφών</button>
                 <button class="ghost-button" id="settings-refresh-location" type="button">Έλεγχος τοποθεσίας</button>
+                <button class="ghost-button" id="settings-refresh-app" type="button">Refresh app</button>
                 <button class="danger-outline-button" id="settings-clear-data" type="button">Καθαρισμός τοπικών δεδομένων</button>
               </div>
               <p class="save-status" id="settings-status" aria-live="polite"></p>
@@ -539,6 +564,6 @@
         </div>
       </div>
     </div>
-    <script type="module" src="./src/main.js"></script>
+    <script type="module" src="./src/main.js?v=2026-07-01-1"></script>
   </body>
 </html>
