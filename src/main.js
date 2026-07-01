@@ -234,8 +234,16 @@ const activeSosStatus = document.querySelector('#active-sos-status');
 const activeSosLocation = document.querySelector('#active-sos-location');
 const activeSosLastLiveUpdate = document.querySelector('#active-sos-last-live-update');
 const activeSosFeedback = document.querySelector('#active-sos-feedback');
+const activeSosLastGpsUpdate = document.querySelector('#active-sos-last-gps-update');
+const activeSosPermissionStatus = document.querySelector('#active-sos-permission-status');
+const activeSosDebugGpsUpdate = document.querySelector('#active-sos-debug-gps-update');
+const activeSosDebugSyncTime = document.querySelector('#active-sos-debug-sync-time');
+const activeSosDebugSyncResult = document.querySelector('#active-sos-debug-sync-result');
+const activeSosDebugError = document.querySelector('#active-sos-debug-error');
 const activeSosLiveStatus = document.querySelector('#active-sos-live-status');
 const updateActiveSosLocationButton = document.querySelector('#update-active-sos-location');
+const testActiveSosLiveSyncButton = document.querySelector('#test-active-sos-live-sync');
+const refreshActiveSosGpsButton = document.querySelector('#refresh-active-sos-gps');
 const endActiveSosButton = document.querySelector('#end-active-sos');
 const copyActiveSosTrackingButton = document.querySelector('#copy-active-sos-tracking');
 const disableActiveSosTrackingButton = document.querySelector('#disable-active-sos-tracking');
@@ -270,6 +278,14 @@ let activeSosLocationUpdateTimer = null;
 let activeSosLocationWatcherId = null;
 let isAutoUpdatingActiveSosLocation = false;
 let activeSosLastAutoUpdateAt = null;
+let activeSosDebugState = {
+  permissionStatus: 'Άγνωστη',
+  lastGpsUpdateAt: currentLocation?.updatedAt || null,
+  lastSupabaseSyncAt: null,
+  lastSupabaseSyncResult: '—',
+  lastErrorMessage: '',
+};
+let activeSosPermissionStatusObject = null;
 
 
 function isLegacyDemoContact(contact) {
@@ -416,10 +432,68 @@ function renderLocation() {
 }
 
 function getGeolocationErrorMessage(error) {
-  if (error?.code === 1) return 'Δεν δόθηκε άδεια τοποθεσίας. Ενεργοποίησε Location permission για τον browser.';
+  if (error?.code === 1) return 'Η πρόσβαση στην τοποθεσία είναι μπλοκαρισμένη. Πάτα το λουκετάκι δίπλα από το URL και επίτρεψε Location.';
+  if (error?.name === 'NotAllowedError') return 'Η πρόσβαση στην τοποθεσία είναι μπλοκαρισμένη. Πάτα το λουκετάκι δίπλα από το URL και επίτρεψε Location.';
+  if (error?.message === 'Geolocation is not supported') return 'Η συσκευή δεν υποστηρίζει live τοποθεσία.';
+  if (error?.message === 'Current location is missing') return 'Δεν υπάρχει διαθέσιμη τοποθεσία για live ενημέρωση ακόμα.';
+  if (error?.message === 'Active SOS session is missing') return 'Δεν υπάρχει ενεργό SOS για συγχρονισμό.';
   if (error?.code === 2) return 'Δεν μπόρεσα να βρω τη θέση. Δοκίμασε ξανά σε λίγα δευτερόλεπτα.';
   if (error?.code === 3) return 'Άργησε πολύ ο εντοπισμός. Δοκίμασε ξανά.';
   return 'Η τοποθεσία δεν είναι διαθέσιμη σε αυτή τη συσκευή.';
+}
+
+function formatDebugDateTime(value) {
+  if (!value) return '—';
+
+  return new Intl.DateTimeFormat('el-GR', {
+    dateStyle: 'short',
+    timeStyle: 'medium',
+  }).format(new Date(value));
+}
+
+function getPermissionStatusLabel(status) {
+  const labels = {
+    granted: 'Επιτρέπεται',
+    prompt: 'Θα ζητηθεί άδεια',
+    denied: 'Μπλοκαρισμένη',
+    unsupported: 'Δεν υποστηρίζεται από τον browser',
+    unknown: 'Άγνωστη',
+  };
+
+  return labels[status] || status || labels.unknown;
+}
+
+function renderActiveSosDebugPanel() {
+  if (activeSosPermissionStatus) {
+    activeSosPermissionStatus.textContent = getPermissionStatusLabel(activeSosDebugState.permissionStatus);
+  }
+  if (activeSosLastGpsUpdate) activeSosLastGpsUpdate.textContent = formatDebugDateTime(activeSosDebugState.lastGpsUpdateAt);
+  if (activeSosDebugGpsUpdate) activeSosDebugGpsUpdate.textContent = formatDebugDateTime(activeSosDebugState.lastGpsUpdateAt);
+  if (activeSosDebugSyncTime) activeSosDebugSyncTime.textContent = formatDebugDateTime(activeSosDebugState.lastSupabaseSyncAt);
+  if (activeSosDebugSyncResult) activeSosDebugSyncResult.textContent = activeSosDebugState.lastSupabaseSyncResult || '—';
+  if (activeSosDebugError) activeSosDebugError.textContent = activeSosDebugState.lastErrorMessage || '—';
+}
+
+function updateActiveSosDebugState(nextState) {
+  activeSosDebugState = { ...activeSosDebugState, ...nextState };
+  renderActiveSosDebugPanel();
+}
+
+async function refreshLocationPermissionStatus() {
+  if (!navigator.permissions?.query) {
+    updateActiveSosDebugState({ permissionStatus: 'unsupported' });
+    return;
+  }
+
+  try {
+    activeSosPermissionStatusObject = await navigator.permissions.query({ name: 'geolocation' });
+    updateActiveSosDebugState({ permissionStatus: activeSosPermissionStatusObject.state });
+    activeSosPermissionStatusObject.onchange = () => {
+      updateActiveSosDebugState({ permissionStatus: activeSosPermissionStatusObject.state });
+    };
+  } catch {
+    updateActiveSosDebugState({ permissionStatus: 'unknown' });
+  }
 }
 
 function updateCurrentLocationFromPosition(position) {
@@ -431,6 +505,10 @@ function updateCurrentLocationFromPosition(position) {
     updatedAt: now,
   };
   saveJson(storageKeys.location, currentLocation);
+  updateActiveSosDebugState({
+    lastGpsUpdateAt: now,
+    lastErrorMessage: '',
+  });
   renderLocation();
   return currentLocation;
 }
@@ -682,6 +760,7 @@ function renderActiveSosSession(message = '') {
     if (activeSosLiveStatus) activeSosLiveStatus.hidden = true;
     if (activeSosLastLiveUpdate) activeSosLastLiveUpdate.textContent = '—';
     activeSosLastAutoUpdateAt = null;
+    renderActiveSosDebugPanel();
     return;
   }
 
@@ -708,6 +787,7 @@ function renderActiveSosSession(message = '') {
   copyActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
   disableActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
   activeSosFeedback.textContent = message;
+  renderActiveSosDebugPanel();
 }
 
 function shouldAutoUpdateActiveSosLocation() {
@@ -745,6 +825,10 @@ function startActiveSosLocationWatcher() {
     },
     (error) => {
       if (!activeSosSession || activeSosSession.status !== 'active') return;
+      updateActiveSosDebugState({
+        lastErrorMessage: error?.message || getGeolocationErrorMessage(error),
+        permissionStatus: error?.code === 1 ? 'denied' : activeSosDebugState.permissionStatus,
+      });
       renderActiveSosSession(`${getGeolocationErrorMessage(error)} Η εφαρμογή θα συνεχίσει να προσπαθεί όσο μένει ανοιχτή.`);
     },
     {
@@ -832,13 +916,16 @@ async function loadActiveSosSession() {
 
 function setActiveSosButtonsLoading(isLoading) {
   updateActiveSosLocationButton.disabled = isLoading;
+  testActiveSosLiveSyncButton.disabled = isLoading;
+  refreshActiveSosGpsButton.disabled = isLoading;
   endActiveSosButton.disabled = isLoading;
   copyActiveSosTrackingButton.disabled = isLoading || !activeSosSession?.shareToken;
   disableActiveSosTrackingButton.disabled = isLoading || !activeSosSession?.shareToken;
 }
 
-async function syncActiveSosLocationToSupabase(location, { successMessage = '' } = {}) {
-  if (!currentUser || !activeSosSession || !location) return false;
+async function syncActiveSosLocationToSupabase(location, { successMessage = '', source = 'manual' } = {}) {
+  if (!currentUser || !activeSosSession) throw new Error('Active SOS session is missing');
+  if (!location) throw new Error('Current location is missing');
 
   const now = new Date().toISOString();
   const { data, error } = await supabase
@@ -854,10 +941,22 @@ async function syncActiveSosLocationToSupabase(location, { successMessage = '' }
     .select('*')
     .single();
 
-  if (error) throw error;
+  if (error) {
+    updateActiveSosDebugState({
+      lastSupabaseSyncAt: now,
+      lastSupabaseSyncResult: `error (${source})`,
+      lastErrorMessage: error.message,
+    });
+    throw error;
+  }
 
   activeSosSession = mapActiveSosSessionFromSupabase(data);
   activeSosLastAutoUpdateAt = now;
+  updateActiveSosDebugState({
+    lastSupabaseSyncAt: now,
+    lastSupabaseSyncResult: `success (${source})`,
+    lastErrorMessage: '',
+  });
   renderActiveSosSession(successMessage);
   return true;
 }
@@ -871,6 +970,7 @@ async function updateActiveSosLocation(options = {}) {
     isAutomaticUpdate = false,
     showLoadingMessage = true,
     updateButtonState = true,
+    source = isAutomaticUpdate ? 'auto' : 'manual',
   } = options;
 
   if (updateButtonState) setActiveSosButtonsLoading(true);
@@ -887,12 +987,68 @@ async function updateActiveSosLocation(options = {}) {
       return;
     }
 
-    await syncActiveSosLocationToSupabase(currentLocation, { successMessage });
+    await syncActiveSosLocationToSupabase(currentLocation, { successMessage, source });
   } catch (error) {
-    renderActiveSosSession(failureMessage || (error?.code ? getGeolocationErrorMessage(error) : `Δεν ενημερώθηκε το SOS: ${error.message}`));
+    const errorMessage = error?.code ? getGeolocationErrorMessage(error) : `Δεν ενημερώθηκε το SOS: ${error.message}`;
+    updateActiveSosDebugState({
+      lastErrorMessage: error?.message || errorMessage,
+      permissionStatus: error?.code === 1 ? 'denied' : activeSosDebugState.permissionStatus,
+    });
+    renderActiveSosSession(error?.code ? (failureMessage || errorMessage) : errorMessage);
   } finally {
     if (updateButtonState) setActiveSosButtonsLoading(false);
     syncActiveSosLocationAutoUpdate();
+  }
+}
+
+async function testActiveSosLiveSyncNow() {
+  if (!currentUser || !activeSosSession) return;
+
+  setActiveSosButtonsLoading(true);
+  renderActiveSosSession('Δοκιμάζω live sync στο Supabase...');
+
+  try {
+    if (!currentLocation) {
+      const position = await requestCurrentPosition();
+      updateCurrentLocationFromPosition(position);
+    }
+
+    await syncActiveSosLocationToSupabase(currentLocation, {
+      successMessage: 'Επιτυχία: το live sync ενημέρωσε το Supabase τώρα.',
+      source: 'test',
+    });
+  } catch (error) {
+    const message = error?.code ? getGeolocationErrorMessage(error) : `Σφάλμα live sync: ${error.message}`;
+    updateActiveSosDebugState({
+      lastErrorMessage: error?.message || message,
+      permissionStatus: error?.code === 1 ? 'denied' : activeSosDebugState.permissionStatus,
+    });
+    renderActiveSosSession(message);
+  } finally {
+    setActiveSosButtonsLoading(false);
+    syncActiveSosLocationAutoUpdate();
+  }
+}
+
+async function refreshActiveSosGpsNow() {
+  if (!activeSosSession) return;
+
+  setActiveSosButtonsLoading(true);
+  renderActiveSosSession('Ζητάω νέα GPS θέση από τον browser...');
+
+  try {
+    const position = await requestCurrentPosition();
+    const location = updateCurrentLocationFromPosition(position);
+    renderActiveSosSession(`Ο browser επέστρεψε συντεταγμένες: ${formatLocation(location)}.`);
+  } catch (error) {
+    const message = getGeolocationErrorMessage(error);
+    updateActiveSosDebugState({
+      lastErrorMessage: error?.message || message,
+      permissionStatus: error?.code === 1 ? 'denied' : activeSosDebugState.permissionStatus,
+    });
+    renderActiveSosSession(message);
+  } finally {
+    setActiveSosButtonsLoading(false);
   }
 }
 
@@ -1690,6 +1846,8 @@ clearDataButton.addEventListener('click', clearSafeMeData);
 refreshLocationButton.addEventListener('click', refreshLocation);
 shareLocationButton.addEventListener('click', shareLocation);
 updateActiveSosLocationButton.addEventListener('click', updateActiveSosLocation);
+testActiveSosLiveSyncButton.addEventListener('click', testActiveSosLiveSyncNow);
+refreshActiveSosGpsButton.addEventListener('click', refreshActiveSosGpsNow);
 copyActiveSosTrackingButton.addEventListener('click', copyActiveSosTrackingLink);
 disableActiveSosTrackingButton.addEventListener('click', disableActiveSosTrackingLink);
 endActiveSosButton.addEventListener('click', endActiveSosSession);
@@ -1700,6 +1858,7 @@ renderProfile();
 renderLocation();
 renderSosHistory();
 renderActiveSosSession();
+refreshLocationPermissionStatus();
 initializeAuth();
 }
 

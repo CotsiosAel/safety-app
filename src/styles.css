@@ -639,6 +639,42 @@ body.modal-open { overflow: hidden; }
   color: #be123c;
   font-weight: 900;
 }
+.active-sos-debug-panel {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: rgba(15, 23, 42, 0.05);
+  border: 1px dashed rgba(15, 23, 42, 0.18);
+  border-radius: 18px;
+}
+.active-sos-debug-panel h4 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+}
+.active-sos-debug-details {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+.active-sos-debug-details div {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 10px;
+}
+.active-sos-debug-details dt {
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+.active-sos-debug-details dd {
+  margin: 0;
+  color: #111827;
+  font-size: 0.86rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
 .active-sos-actions {
   display: flex;
   gap: 10px;
@@ -650,6 +686,7 @@ body.modal-open { overflow: hidden; }
 @media (max-width: 640px) {
   .active-sos-card { text-align: center; border-radius: 24px; }
   .active-sos-details div { grid-template-columns: 1fr; gap: 4px; }
+  .active-sos-debug-details div { grid-template-columns: 1fr; gap: 4px; }
   .active-sos-actions { flex-direction: column; }
 }
 
