@@ -277,6 +277,10 @@ const checkInStatusPill = document.querySelector('#checkin-status-pill');
 const checkInSafeButton = document.querySelector('#checkin-safe-button');
 const checkInCancelButton = document.querySelector('#checkin-cancel-button');
 const checkInMessage = document.querySelector('#checkin-message');
+const safetyStatusCard = document.querySelector('#safety-status-card');
+const safetyStatusIcon = document.querySelector('#safety-status-icon');
+const safetyStatusTitle = document.querySelector('#safety-status-title');
+const safetyStatusDescription = document.querySelector('#safety-status-description');
 
 function loadJson(key, fallback) {
   try {
@@ -787,6 +791,37 @@ function getActiveSosLocationUrl(session) {
   return `https://maps.google.com/?q=${session.latestLatitude},${session.latestLongitude}`;
 }
 
+function renderSafetyStatusCard() {
+  if (!safetyStatusCard || !safetyStatusTitle || !safetyStatusDescription) return;
+
+  const hasActiveSos = activeSosSession?.status === 'active';
+  const hasActiveCheckIn = activeCheckIn?.status === 'active';
+  const status = hasActiveSos ? 'sos' : hasActiveCheckIn ? 'checkin' : 'normal';
+  const copy = {
+    normal: {
+      icon: '💗',
+      title: 'Κατάσταση',
+      description: 'Ασφαλής και διαθέσιμη για check-in',
+    },
+    checkin: {
+      icon: '⏱️',
+      title: 'Check-in ενεργό',
+      description: 'Το SafeMe παρακολουθεί το χρονόμετρο ασφαλείας.',
+    },
+    sos: {
+      icon: '🚨',
+      title: 'SOS ενεργό',
+      description: 'Η κατάσταση ανάγκης είναι σε εξέλιξη.',
+    },
+  }[status];
+
+  safetyStatusCard.classList.remove('status-normal', 'status-checkin', 'status-sos');
+  safetyStatusCard.classList.add(`status-${status}`);
+  if (safetyStatusIcon) safetyStatusIcon.textContent = copy.icon;
+  safetyStatusTitle.textContent = copy.title;
+  safetyStatusDescription.textContent = copy.description;
+}
+
 function renderActiveSosSession(message = '') {
   if (!activeSosSection) return;
 
@@ -800,6 +835,7 @@ function renderActiveSosSession(message = '') {
     if (activeSosTrackingStatus) activeSosTrackingStatus.textContent = '—';
     activeSosLastAutoUpdateAt = null;
     renderActiveSosDiagnostics();
+    renderSafetyStatusCard();
     return;
   }
 
@@ -842,6 +878,7 @@ function renderActiveSosSession(message = '') {
   copyActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
   disableActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
   activeSosFeedback.textContent = message;
+  renderSafetyStatusCard();
 }
 
 function shouldAutoUpdateActiveSosLocation() {
@@ -1241,6 +1278,7 @@ function renderCheckIn() {
 
   if (!isActive) {
     checkInStatusPill.textContent = checkInExpiryInProgress ? 'ενεργοποίηση SOS' : 'έτοιμο';
+    renderSafetyStatusCard();
     return;
   }
 
@@ -1250,6 +1288,7 @@ function renderCheckIn() {
   checkInExpiryTime.textContent = formatCheckInDateTime(activeCheckIn.expiresAt);
   checkInStatusText.textContent = 'active';
   checkInStatusPill.textContent = 'active';
+  renderSafetyStatusCard();
 }
 
 function stopCheckInTimer() {
