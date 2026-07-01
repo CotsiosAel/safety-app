@@ -43,6 +43,7 @@ const storageKeys = {
   setupChecklistCollapsed: 'safety-app-setup-checklist-collapsed',
   safeWalkOutcome: 'safety-app-last-safe-walk-outcome',
   notificationHistory: 'safety-app-sos-notification-history',
+  endedSosSession: 'safety-app-ended-sos-session',
 };
 
 
@@ -693,10 +694,81 @@ let activeSosDiagnostics = {
 };
 let locationPermissionStatus = null;
 let sosNotificationHistory = loadJson(storageKeys.notificationHistory, []);
+let lastEndedSosSession = loadJson(storageKeys.endedSosSession, null);
 let waitingServiceWorker = null;
 let hasAppUpdateAvailable = false;
 let lastVersionCheckAt = 0;
 
+
+
+const legacyActiveSosStorageKeys = [
+  'activeEmergency',
+  'sosActive',
+  'currentSession',
+  'activeSosSession',
+  'activeSOSSession',
+  'safety-app-active-emergency',
+  'safety-app-sos-active',
+  'safety-app-current-session',
+  'safety-app-active-sos-session',
+];
+
+function clearLegacyActiveSosStorage() {
+  legacyActiveSosStorageKeys.forEach((key) => {
+    try { localStorage.removeItem(key); } catch {}
+    try { sessionStorage.removeItem(key); } catch {}
+  });
+}
+
+function getSosSessionIdentity(session) {
+  if (!session) return null;
+
+  return {
+    id: session.id || null,
+    shareToken: session.shareToken || null,
+    sosEventId: session.sosEventId || null,
+  };
+}
+
+function isSameSosSession(session, endedSession) {
+  if (!session || !endedSession) return false;
+  return Boolean(
+    (session.id && endedSession.id && session.id === endedSession.id)
+      || (session.shareToken && endedSession.shareToken && session.shareToken === endedSession.shareToken)
+      || (session.sosEventId && endedSession.sosEventId && session.sosEventId === endedSession.sosEventId)
+  );
+}
+
+function markSosSessionEnded(session, status = 'ended') {
+  lastEndedSosSession = {
+    ...getSosSessionIdentity(session),
+    status,
+    endedAt: new Date().toISOString(),
+    userId: session?.userId || currentUser?.id || null,
+  };
+  saveJson(storageKeys.endedSosSession, lastEndedSosSession);
+  clearLegacyActiveSosStorage();
+}
+
+function clearActiveSosRuntimeState({ message = 'Το προηγούμενο SOS έχει τερματιστεί. Η εφαρμογή είναι σε κανονική κατάσταση.', endedSession = activeSosSession, status = 'ended' } = {}) {
+  if (endedSession) markSosSessionEnded(endedSession, status);
+  stopActiveSosLocationAutoUpdate();
+  activeSosSession = null;
+  isActiveSosSessionRestored = false;
+  isAutoUpdatingActiveSosLocation = false;
+  activeSosLastAutoUpdateAt = null;
+  clearLegacyActiveSosStorage();
+  renderActiveSosSession();
+  sosButton?.classList.remove('activated');
+  sosButton?.setAttribute('aria-pressed', 'false');
+  if (sosStatus && message) sosStatus.textContent = message;
+  renderSafetyStatusCard();
+  renderSosContactNotifications();
+}
+
+function shouldRestoreActiveSosSession(session) {
+  return Boolean(session?.status === 'active' && !isSameSosSession(session, lastEndedSosSession));
+}
 
 function isLegacyDemoContact(contact) {
   return legacyDemoContactPhones.has(contact.phone);
@@ -1568,7 +1640,13 @@ async function attachSosEventToActiveSession(sosEventId) {
 
   if (error) throw error;
 
-  activeSosSession = mapActiveSosSessionFromSupabase(data);
+  const restoredSession = mapActiveSosSessionFromSupabase(data);
+  if (!shouldRestoreActiveSosSession(restoredSession)) {
+    clearActiveSosRuntimeState({ message: '', endedSession: restoredSession || activeSosSession });
+    return;
+  }
+
+  activeSosSession = restoredSession;
   renderActiveSosSession();
   syncActiveSosLocationAutoUpdate();
 }
@@ -1816,7 +1894,13 @@ async function loadActiveSosSession() {
 
   if (error) throw error;
 
-  activeSosSession = mapActiveSosSessionFromSupabase(data);
+  const restoredSession = mapActiveSosSessionFromSupabase(data);
+  if (!shouldRestoreActiveSosSession(restoredSession)) {
+    clearActiveSosRuntimeState({ message: '', endedSession: restoredSession || activeSosSession });
+    return;
+  }
+
+  activeSosSession = restoredSession;
   renderActiveSosSession();
   syncActiveSosLocationAutoUpdate();
 }
@@ -2011,13 +2095,17 @@ async function endActiveSosSession() {
   const confirmed = window.confirm('Θέλεις σίγουρα να τερματίσεις το ενεργό SOS;');
   if (!confirmed) return;
 
+  const endingSession = activeSosSession;
+  renderActiveSosSession('Τερματίζω το SOS...');
+  markSosSessionEnded(endingSession, 'ending');
+  stopActiveSosLocationAutoUpdate();
+
   if (!currentUser) {
-    activeSosSession = null;
-    isActiveSosSessionRestored = false;
-    renderActiveSosSession();
-    sosButton.classList.remove('activated');
-    sosButton.setAttribute('aria-pressed', 'false');
-    sosStatus.textContent = 'Το ενεργό SOS τερματίστηκε σε αυτή τη συσκευή.';
+    clearActiveSosRuntimeState({
+      message: 'Το SOS τερματίστηκε σε αυτή τη συσκευή. Δεν θα αποκατασταθεί μετά από refresh.',
+      endedSession: endingSession,
+      status: 'ended',
+    });
     return;
   }
 
@@ -2028,22 +2116,24 @@ async function endActiveSosSession() {
     const { data, error } = await supabase
       .from('active_sos_sessions')
       .update({ status: 'ended', ended_at: now, updated_at: now })
-      .eq('id', activeSosSession.id)
+      .eq('id', endingSession.id)
       .eq('user_id', currentUser.id)
       .select('*')
       .single();
 
     if (error) throw error;
 
-    activeSosSession = mapActiveSosSessionFromSupabase(data);
-    isActiveSosSessionRestored = false;
-    renderActiveSosSession();
-    syncActiveSosLocationAutoUpdate();
-    sosButton.classList.remove('activated');
-    sosButton.setAttribute('aria-pressed', 'false');
-    sosStatus.textContent = 'Το ενεργό SOS τερματίστηκε.';
+    clearActiveSosRuntimeState({
+      message: 'Το SOS τερματίστηκε. Το public tracking link δείχνει πλέον τερματισμένο/inactive.',
+      endedSession: mapActiveSosSessionFromSupabase(data) || endingSession,
+      status: 'ended',
+    });
   } catch (error) {
-    renderActiveSosSession(`Δεν τερματίστηκε το SOS: ${error.message}`);
+    clearActiveSosRuntimeState({
+      message: `Το SOS έκλεισε τοπικά και δεν θα αποκατασταθεί μετά από refresh. Δεν ενημερώθηκε το public tracking link: ${error.message}`,
+      endedSession: endingSession,
+      status: 'ended',
+    });
   } finally {
     setActiveSosButtonsLoading(false);
   }
@@ -3259,7 +3349,8 @@ async function loadSupabaseData() {
     profile = mapProfileFromSupabase(remoteProfile) || savedLocalProfile;
     contacts = ensureSinglePrimaryContact(sanitizeContacts((remoteContacts || []).map(mapContactFromSupabase)));
     sosHistoryEvents = (remoteSosEvents || []).map(mapSosEventFromSupabase);
-    activeSosSession = mapActiveSosSessionFromSupabase(remoteActiveSos);
+    const restoredActiveSosSession = mapActiveSosSessionFromSupabase(remoteActiveSos);
+    activeSosSession = shouldRestoreActiveSosSession(restoredActiveSosSession) ? restoredActiveSosSession : null;
     isActiveSosSessionRestored = activeSosSession?.status === 'active';
     sosHistoryStatus = '';
 
@@ -3275,8 +3366,8 @@ async function loadSupabaseData() {
     renderContacts();
     renderSosHistory();
     renderActiveSosSession(isActiveSosSessionRestored
-      ? 'Υπάρχει ήδη ενεργό SOS από προηγούμενη χρήση. Αν ήταν δοκιμή, πάτησε Τερματισμός SOS.'
-      : '');
+      ? 'Υπάρχει έγκυρο ενεργό SOS από προηγούμενη χρήση. Αν ήταν δοκιμή, πάτησε Τερματισμός SOS.'
+      : (restoredActiveSosSession ? 'Το προηγούμενο SOS είχε τερματιστεί και δεν αποκαταστάθηκε.' : ''));
     syncActiveSosLocationAutoUpdate();
     if (isActiveSosSessionRestored) {
       sosButton.classList.add('activated');
@@ -3393,11 +3484,8 @@ async function initializeAuth() {
     if (!currentUser) {
       sosHistoryEvents = [];
       sosHistoryStatus = '';
-      activeSosSession = null;
-      isActiveSosSessionRestored = false;
+      clearActiveSosRuntimeState({ message: '', endedSession: activeSosSession, status: 'ended' });
       renderSosHistory();
-      renderActiveSosSession();
-      syncActiveSosLocationAutoUpdate();
       renderSetupChecklist();
       if (hasPendingLogoutMessage) {
         showAuthMessage(authStatusMessages.logoutSuccess);
@@ -3435,11 +3523,8 @@ function clearSafeMeData() {
   renderContacts();
   renderProfile();
   renderLocation();
-  activeSosSession = null;
-  isActiveSosSessionRestored = false;
+  clearActiveSosRuntimeState({ message: '', endedSession: activeSosSession, status: 'ended' });
   renderSosHistory();
-  renderActiveSosSession();
-  syncActiveSosLocationAutoUpdate();
   renderSafeWalk();
   renderCheckIn();
   renderSetupChecklist();
@@ -3566,6 +3651,7 @@ sosContactList?.addEventListener('click', async (event) => {
   }
 });
 
+clearLegacyActiveSosStorage();
 syncSosTestModeToggle();
 renderContacts();
 renderProfile();
