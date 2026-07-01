@@ -231,6 +231,7 @@ const activeSosSection = document.querySelector('#active-sos-section');
 const activeSosStarted = document.querySelector('#active-sos-started');
 const activeSosStatus = document.querySelector('#active-sos-status');
 const activeSosLocation = document.querySelector('#active-sos-location');
+const activeSosLastLiveUpdate = document.querySelector('#active-sos-last-live-update');
 const activeSosFeedback = document.querySelector('#active-sos-feedback');
 const activeSosLiveStatus = document.querySelector('#active-sos-live-status');
 const updateActiveSosLocationButton = document.querySelector('#update-active-sos-location');
@@ -265,6 +266,7 @@ let sosHistoryStatus = '';
 let activeSosSession = null;
 let activeSosLocationUpdateTimer = null;
 let isAutoUpdatingActiveSosLocation = false;
+let activeSosLastAutoUpdateAt = null;
 
 
 function isLegacyDemoContact(contact) {
@@ -670,6 +672,8 @@ function renderActiveSosSession(message = '') {
     activeSosSection.hidden = true;
     activeSosFeedback.textContent = '';
     if (activeSosLiveStatus) activeSosLiveStatus.hidden = true;
+    if (activeSosLastLiveUpdate) activeSosLastLiveUpdate.textContent = '—';
+    activeSosLastAutoUpdateAt = null;
     return;
   }
 
@@ -677,6 +681,11 @@ function renderActiveSosSession(message = '') {
   if (activeSosLiveStatus) activeSosLiveStatus.hidden = false;
   activeSosStarted.textContent = formatSosEventDate(activeSosSession.startedAt);
   activeSosStatus.textContent = activeSosSession.status;
+  if (activeSosLastLiveUpdate) {
+    activeSosLastLiveUpdate.textContent = activeSosLastAutoUpdateAt
+      ? formatSosEventTime(activeSosLastAutoUpdateAt)
+      : '—';
+  }
 
   if (hasSosLocation(activeSosSession)) {
     const url = getActiveSosLocationUrl(activeSosSession);
@@ -697,7 +706,6 @@ function shouldAutoUpdateActiveSosLocation() {
     currentUser
       && activeSosSession
       && activeSosSession.status === 'active'
-      && document.visibilityState === 'visible'
   );
 }
 
@@ -730,6 +738,7 @@ async function autoUpdateActiveSosLocation() {
       failureMessage: 'Η αυτόματη ενημέρωση τοποθεσίας απέτυχε. Μπορείς να πατήσεις χειροκίνητα ενημέρωση.',
       showLoadingMessage: false,
       updateButtonState: false,
+      isAutomaticUpdate: true,
     });
   } finally {
     isAutoUpdatingActiveSosLocation = false;
@@ -791,6 +800,7 @@ async function updateActiveSosLocation(options = {}) {
   const {
     successMessage = 'Η τοποθεσία SOS ενημερώθηκε.',
     failureMessage = null,
+    isAutomaticUpdate = false,
     showLoadingMessage = true,
     updateButtonState = true,
   } = options;
@@ -826,6 +836,7 @@ async function updateActiveSosLocation(options = {}) {
     if (error) throw error;
 
     activeSosSession = mapActiveSosSessionFromSupabase(data);
+    if (isAutomaticUpdate) activeSosLastAutoUpdateAt = now;
     renderActiveSosSession(successMessage);
   } catch (error) {
     renderActiveSosSession(failureMessage || (error?.code ? getGeolocationErrorMessage(error) : `Δεν ενημερώθηκε το SOS: ${error.message}`));
@@ -915,6 +926,15 @@ function formatSosEventDate(value) {
   return new Intl.DateTimeFormat('el-GR', {
     dateStyle: 'medium',
     timeStyle: 'short',
+  }).format(new Date(value));
+}
+
+function formatSosEventTime(value) {
+  if (!value) return '—';
+
+  return new Intl.DateTimeFormat('el-GR', {
+    hour: '2-digit',
+    minute: '2-digit',
   }).format(new Date(value));
 }
 
@@ -1588,7 +1608,10 @@ sosModal.addEventListener('click', (event) => {
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !sosModal.hidden) closeSosModal();
 });
-document.addEventListener('visibilitychange', syncActiveSosLocationAutoUpdate);
+document.addEventListener('visibilitychange', () => {
+  syncActiveSosLocationAutoUpdate();
+  if (document.visibilityState === 'visible') autoUpdateActiveSosLocation();
+});
 
 authSignupButton.addEventListener('click', () => { authMode = 'signup'; });
 authLoginButton.addEventListener('click', () => { authMode = 'login'; });
