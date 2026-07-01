@@ -5,7 +5,9 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const SOS_TRACKING_BASE_URL = 'https://cotsiosael.github.io/safety-app/';
-const trackingToken = new URLSearchParams(window.location.search).get('track');
+const trackingParams = new URLSearchParams(window.location.search);
+const hasTrackingTokenParam = trackingParams.has('track');
+const trackingToken = (trackingParams.get('track') || '').trim();
 
 const pageTitles = {
   home: 'Αρχική σελίδα',
@@ -120,7 +122,10 @@ function renderPublicTrackingPage(state) {
 let publicTrackingRefreshTimer = null;
 
 async function fetchPublicTrackingSession() {
-  if (!trackingToken) return;
+  if (!trackingToken) {
+    renderPublicTrackingPage({ error: 'Το tracking link δεν είναι πλέον διαθέσιμο.' });
+    return;
+  }
 
   renderPublicTrackingPage({ loading: true });
 
@@ -132,7 +137,7 @@ async function fetchPublicTrackingSession() {
     if (error) throw error;
 
     const session = normalizePublicSosSession(Array.isArray(data) ? data[0] : data);
-    if (!session) throw new Error('Δεν βρέθηκε ενεργό SOS για αυτόν τον σύνδεσμο.');
+    if (!session) throw new Error('Το tracking link δεν είναι πλέον διαθέσιμο.');
 
     renderPublicTrackingPage({ session });
 
@@ -143,7 +148,7 @@ async function fetchPublicTrackingSession() {
   } catch (error) {
     window.clearInterval(publicTrackingRefreshTimer);
     publicTrackingRefreshTimer = null;
-    renderPublicTrackingPage({ error: error.message || 'Δεν φορτώθηκε το SOS tracking.' });
+    renderPublicTrackingPage({ error: 'Το tracking link δεν είναι πλέον διαθέσιμο.' });
   }
 }
 
@@ -207,6 +212,7 @@ const activeSosLocation = document.querySelector('#active-sos-location');
 const activeSosFeedback = document.querySelector('#active-sos-feedback');
 const updateActiveSosLocationButton = document.querySelector('#update-active-sos-location');
 const endActiveSosButton = document.querySelector('#end-active-sos');
+const disableActiveSosTrackingButton = document.querySelector('#disable-active-sos-tracking');
 
 function loadJson(key, fallback) {
   try {
@@ -586,6 +592,18 @@ function mapActiveSosSessionFromSupabase(session) {
   };
 }
 
+function createShareToken() {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+
+  const randomValues = new Uint8Array(24);
+  if (window.crypto?.getRandomValues) {
+    window.crypto.getRandomValues(randomValues);
+    return Array.from(randomValues, (value) => value.toString(16).padStart(2, '0')).join('');
+  }
+
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
 function mapActiveSosSessionToSupabase(sosEventId, location = currentLocation) {
   const now = new Date().toISOString();
   const hasLocation = Boolean(location);
@@ -598,6 +616,7 @@ function mapActiveSosSessionToSupabase(sosEventId, location = currentLocation) {
     latest_latitude: hasLocation ? location.latitude : null,
     latest_longitude: hasLocation ? location.longitude : null,
     latest_location_at: hasLocation ? now : null,
+    share_token: createShareToken(),
     updated_at: now,
   };
 }
@@ -644,6 +663,7 @@ function renderActiveSosSession(message = '') {
     activeSosLocation.textContent = 'Χωρίς τοποθεσία';
   }
 
+  disableActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
   activeSosFeedback.textContent = message;
 }
 
@@ -688,6 +708,7 @@ async function loadActiveSosSession() {
 function setActiveSosButtonsLoading(isLoading) {
   updateActiveSosLocationButton.disabled = isLoading;
   endActiveSosButton.disabled = isLoading;
+  disableActiveSosTrackingButton.disabled = isLoading || !activeSosSession?.shareToken;
 }
 
 async function updateActiveSosLocation() {
@@ -727,6 +748,34 @@ async function updateActiveSosLocation() {
     renderActiveSosSession('Η τοποθεσία SOS ενημερώθηκε.');
   } catch (error) {
     renderActiveSosSession(error?.code ? getGeolocationErrorMessage(error) : `Δεν ενημερώθηκε το SOS: ${error.message}`);
+  } finally {
+    setActiveSosButtonsLoading(false);
+  }
+}
+
+async function disableActiveSosTrackingLink() {
+  if (!currentUser || !activeSosSession?.shareToken) return;
+
+  const confirmed = window.confirm('Θέλεις σίγουρα να απενεργοποιήσεις το tracking link; Η επαφή δεν θα μπορεί πλέον να βλέπει την τοποθεσία.');
+  if (!confirmed) return;
+
+  setActiveSosButtonsLoading(true);
+
+  try {
+    const { data, error } = await supabase
+      .from('active_sos_sessions')
+      .update({ share_token: null, updated_at: new Date().toISOString() })
+      .eq('id', activeSosSession.id)
+      .eq('user_id', currentUser.id)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    activeSosSession = mapActiveSosSessionFromSupabase(data);
+    renderActiveSosSession('Το tracking link απενεργοποιήθηκε.');
+  } catch (error) {
+    renderActiveSosSession(`Δεν απενεργοποιήθηκε το tracking link: ${error.message}`);
   } finally {
     setActiveSosButtonsLoading(false);
   }
@@ -1451,9 +1500,10 @@ clearDataButton.addEventListener('click', clearSafeMeData);
 refreshLocationButton.addEventListener('click', refreshLocation);
 shareLocationButton.addEventListener('click', shareLocation);
 updateActiveSosLocationButton.addEventListener('click', updateActiveSosLocation);
+disableActiveSosTrackingButton.addEventListener('click', disableActiveSosTrackingLink);
 endActiveSosButton.addEventListener('click', endActiveSosSession);
 
-if (trackingToken) initializePublicTrackingMode();
+if (hasTrackingTokenParam) initializePublicTrackingMode();
 
 syncSosTestModeToggle();
 renderContacts();
