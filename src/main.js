@@ -187,7 +187,7 @@ const PASSWORD_RESET_REDIRECT_URL = 'https://cotsiosael.github.io/safety-app/';
 const authStatusMessages = {
   signedOut: 'Χωρίς σύνδεση. Τα στοιχεία αποθηκεύονται με ασφάλεια μόνο σε αυτή τη συσκευή.',
   signedIn: 'Συνδέθηκες επιτυχώς. Τα στοιχεία σου συγχρονίζονται με ασφάλεια.',
-  signupSuccess: 'Ο λογαριασμός δημιουργήθηκε. Έλεγξε το email σου για επιβεβαίωση, αν ζητηθεί.',
+  signupSuccess: 'Ο λογαριασμός δημιουργήθηκε. Έλεγξε το email σου για επιβεβαίωση πριν συνδεθείς.',
   logoutSuccess: 'Αποσυνδέθηκες επιτυχώς.',
   passwordResetSent: 'Σου στείλαμε email για επαναφορά κωδικού, αν υπάρχει λογαριασμός με αυτό το email.',
   networkError: 'Δεν ήταν δυνατή η επικοινωνία με την υπηρεσία σύνδεσης. Έλεγξε τη σύνδεσή σου και δοκίμασε ξανά.',
@@ -227,6 +227,7 @@ const clearDataButton = document.querySelector('#clear-data-button');
 const authForm = document.querySelector('#auth-form');
 const authEmail = document.querySelector('#auth-email');
 const authPassword = document.querySelector('#auth-password');
+const authRepeatPassword = document.querySelector('#auth-repeat-password');
 const authLoginTab = document.querySelector('#auth-login-tab');
 const authSignupTab = document.querySelector('#auth-signup-tab');
 const authSubmitButton = document.querySelector('#auth-submit-button');
@@ -234,6 +235,8 @@ const authForgotPasswordButton = document.querySelector('#auth-forgot-password')
 const authPasswordToggle = document.querySelector('#auth-password-toggle');
 const authFields = document.querySelector('#auth-fields');
 const authPasswordField = document.querySelector('#auth-password-field');
+const authRepeatPasswordField = document.querySelector('#auth-repeat-password-field');
+const authSignupNote = document.querySelector('#auth-signup-note');
 const authSignedIn = document.querySelector('#auth-signed-in');
 const authUserEmail = document.querySelector('#auth-user-email');
 const authIndicator = document.querySelector('#auth-indicator');
@@ -2046,6 +2049,8 @@ function renderAuth() {
   authLogoutButton.hidden = !signedIn;
   authFields.hidden = signedIn;
   authPasswordField.hidden = signedIn;
+  authRepeatPasswordField.hidden = signedIn || !isSignup;
+  authSignupNote.hidden = signedIn || !isSignup;
   authSubmitButton.hidden = signedIn;
   authForgotPasswordButton.hidden = signedIn;
   authLoginTab.hidden = signedIn;
@@ -2054,10 +2059,13 @@ function renderAuth() {
   authUserEmail.textContent = userEmail;
   authEmail.disabled = signedIn;
   authPassword.disabled = signedIn;
+  authRepeatPassword.disabled = signedIn || !isSignup;
   authEmail.required = !signedIn;
   authPassword.required = !signedIn;
+  authRepeatPassword.required = !signedIn && isSignup;
   authSubmitButton.textContent = isSignup ? 'Δημιουργία λογαριασμού' : 'Σύνδεση';
   authPassword.autocomplete = isSignup ? 'new-password' : 'current-password';
+  if (!isSignup) authRepeatPassword.value = '';
   authLoginTab.classList.toggle('active', !isSignup);
   authSignupTab.classList.toggle('active', isSignup);
   authLoginTab.setAttribute('aria-selected', String(!isSignup));
@@ -2083,6 +2091,7 @@ function showAuthMessage(message, isError = false) {
 function togglePasswordVisibility() {
   const showPassword = authPassword.type === 'password';
   authPassword.type = showPassword ? 'text' : 'password';
+  authRepeatPassword.type = showPassword ? 'text' : 'password';
   authPasswordToggle.textContent = showPassword ? 'Απόκρυψη' : 'Εμφάνιση';
 }
 
@@ -2205,6 +2214,23 @@ async function handleAuthSubmit(event) {
 
   const email = authEmail.value.trim();
   const password = authPassword.value;
+  const repeatPassword = authRepeatPassword.value;
+
+  if (authMode === 'signup') {
+    if (password.length < 6) {
+      showAuthMessage('Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.', true);
+      authPassword.focus();
+      setAuthLoading(false);
+      return;
+    }
+
+    if (repeatPassword !== password) {
+      showAuthMessage('Οι κωδικοί δεν ταιριάζουν.', true);
+      authRepeatPassword.focus();
+      setAuthLoading(false);
+      return;
+    }
+  }
 
   try {
     const authRequest = authMode === 'signup'
@@ -2214,13 +2240,15 @@ async function handleAuthSubmit(event) {
 
     if (error) throw error;
 
-    currentUser = data.user || currentUser;
+    const isSignup = authMode === 'signup';
+    currentUser = isSignup ? (data.session?.user || currentUser) : (data.user || currentUser);
     authPassword.value = '';
-    showAuthMessage(authMode === 'signup'
+    authRepeatPassword.value = '';
+    showAuthMessage(isSignup
       ? authStatusMessages.signupSuccess
       : authStatusMessages.signedIn);
     renderAuth();
-    await loadSupabaseData();
+    if (!isSignup || data.session) await loadSupabaseData();
   } catch (error) {
     showAuthMessage(getFriendlyAuthErrorMessage(error), true);
   } finally {
@@ -2239,6 +2267,7 @@ async function logout() {
     currentUser = null;
     authEmail.value = '';
     authPassword.value = '';
+    authRepeatPassword.value = '';
     showAuthMessage(authStatusMessages.logoutSuccess);
     sosHistoryEvents = [];
     sosHistoryStatus = '';

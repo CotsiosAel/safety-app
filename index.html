@@ -266,6 +266,7 @@
               <label>
                 <span>Email</span>
                 <input id="auth-email" name="email" type="email" autocomplete="email" required />
+                <small class="field-helper">Θα χρησιμοποιηθεί για σύνδεση και επαναφορά κωδικού.</small>
               </label>
               <label class="password-field" id="auth-password-field">
                 <span>Κωδικός</span>
@@ -274,6 +275,13 @@
                   <button class="password-toggle" id="auth-password-toggle" type="button">Εμφάνιση</button>
                 </span>
               </label>
+              <label class="password-field" id="auth-repeat-password-field" hidden>
+                <span>Επανάληψη κωδικού</span>
+                <span class="password-input-wrap">
+                  <input id="auth-repeat-password" name="repeat-password" type="password" autocomplete="new-password" minlength="6" />
+                </span>
+              </label>
+              <p class="auth-signup-note" id="auth-signup-note" hidden>Στο επόμενο στάδιο θα προστεθεί σύνδεση με τηλέφωνο/SMS.</p>
             </div>
             <div class="auth-actions">
               <button class="primary-button inline-button" id="auth-submit-button" type="submit">Σύνδεση</button>
