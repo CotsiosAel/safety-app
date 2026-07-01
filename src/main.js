@@ -398,6 +398,7 @@ let isRemoteSyncing = false;
 let sosHistoryEvents = [];
 let sosHistoryStatus = '';
 let activeSosSession = null;
+let isActiveSosSessionRestored = false;
 let activeSosLocationUpdateTimer = null;
 let activeSosLocationWatcherId = null;
 let isAutoUpdatingActiveSosLocation = false;
@@ -1224,6 +1225,7 @@ function createShareToken() {
 function createLocalActiveSosSession(location = currentLocation) {
   const now = new Date().toISOString();
 
+  isActiveSosSessionRestored = false;
   activeSosSession = {
     id: `local-sos-${Date.now()}`,
     userId: null,
@@ -1324,6 +1326,9 @@ function renderActiveSosSession(message = '') {
 
   if (!activeSosSession || activeSosSession.status !== 'active') {
     activeSosSection.hidden = true;
+    isActiveSosSessionRestored = false;
+    sosButton.classList.remove('activated');
+    sosButton.setAttribute('aria-pressed', 'false');
     activeSosFeedback.textContent = '';
     if (activeSosLiveStatus) activeSosLiveStatus.hidden = true;
     if (activeSosLastLiveUpdate) activeSosLastLiveUpdate.textContent = '—';
@@ -1337,6 +1342,8 @@ function renderActiveSosSession(message = '') {
   }
 
   activeSosSection.hidden = false;
+  sosButton.classList.add('activated');
+  sosButton.setAttribute('aria-pressed', 'true');
   renderActiveSosDiagnostics();
   if (activeSosLiveStatus) activeSosLiveStatus.hidden = false;
   activeSosStarted.textContent = formatSosEventDate(activeSosSession.startedAt);
@@ -1372,12 +1379,18 @@ function renderActiveSosSession(message = '') {
   }
 
   copyActiveSosTrackingButton.hidden = false;
+  if (endActiveSosButton) {
+    endActiveSosButton.textContent = isActiveSosSessionRestored ? 'Τερματισμός παλιού SOS' : 'Τερματισμός SOS';
+    endActiveSosButton.setAttribute('aria-label', endActiveSosButton.textContent);
+  }
   copyActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
   copyActiveSosTrackingButton.textContent = activeSosSession.shareToken
     ? 'Αντιγραφή tracking link'
     : 'Συνδέσου για live tracking';
   disableActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
-  activeSosFeedback.textContent = message;
+  activeSosFeedback.textContent = message || (isActiveSosSessionRestored
+    ? 'Υπάρχει ήδη ενεργό SOS από προηγούμενη χρήση. Αν ήταν δοκιμή, πάτησε Τερματισμός SOS.'
+    : '');
   renderSafetyStatusCard();
 }
 
@@ -1477,6 +1490,7 @@ async function createActiveSosSession(sosEventId, location = currentLocation) {
   if (error) throw error;
 
   activeSosSession = mapActiveSosSessionFromSupabase(data);
+  isActiveSosSessionRestored = false;
   renderActiveSosSession('Το ενεργό SOS ξεκίνησε.');
   syncActiveSosLocationAutoUpdate();
   return activeSosSession;
@@ -1485,6 +1499,7 @@ async function createActiveSosSession(sosEventId, location = currentLocation) {
 async function loadActiveSosSession() {
   if (!currentUser) {
     activeSosSession = null;
+    isActiveSosSessionRestored = false;
     renderActiveSosSession();
     syncActiveSosLocationAutoUpdate();
     return;
@@ -1698,6 +1713,7 @@ async function endActiveSosSession() {
 
   if (!currentUser) {
     activeSosSession = null;
+    isActiveSosSessionRestored = false;
     renderActiveSosSession();
     sosButton.classList.remove('activated');
     sosButton.setAttribute('aria-pressed', 'false');
@@ -1720,6 +1736,7 @@ async function endActiveSosSession() {
     if (error) throw error;
 
     activeSosSession = mapActiveSosSessionFromSupabase(data);
+    isActiveSosSessionRestored = false;
     renderActiveSosSession();
     syncActiveSosLocationAutoUpdate();
     sosButton.classList.remove('activated');
@@ -2065,6 +2082,7 @@ async function expireCheckInWhileOpen() {
       }
     } else {
       const now = new Date().toISOString();
+      isActiveSosSessionRestored = false;
       activeSosSession = {
         id: `local-checkin-${Date.now()}`,
         userId: null,
@@ -2744,15 +2762,22 @@ function renderAuth() {
   const userEmail = currentUser?.email || '';
   const hideSignupFields = signedIn || !isSignup;
 
-  if (hideSignupFields) authRepeatPassword.value = '';
+  if (signedIn) {
+    authPassword.value = '';
+    authRepeatPassword.value = '';
+  } else if (hideSignupFields) {
+    authRepeatPassword.value = '';
+  }
 
+  authForm.classList.toggle('auth-card-signed-in', signedIn);
   authLogoutButton.hidden = !signedIn;
   authFields.hidden = signedIn;
   authPasswordField.hidden = signedIn;
-  authRepeatPasswordField.hidden = hideSignupFields;
-  authSignupNote.hidden = hideSignupFields;
+  authPasswordToggle.hidden = signedIn;
+  authRepeatPasswordField.hidden = signedIn || !isSignup;
+  authSignupNote.hidden = signedIn || !isSignup;
   authSubmitButton.hidden = signedIn;
-  authForgotPasswordButton.hidden = signedIn;
+  authForgotPasswordButton.hidden = signedIn || isSignup;
   authModeTabs.hidden = signedIn;
   authLoginTab.hidden = signedIn;
   authSignupTab.hidden = signedIn;
@@ -2923,6 +2948,7 @@ async function loadSupabaseData() {
     contacts = ensureSinglePrimaryContact(sanitizeContacts((remoteContacts || []).map(mapContactFromSupabase)));
     sosHistoryEvents = (remoteSosEvents || []).map(mapSosEventFromSupabase);
     activeSosSession = mapActiveSosSessionFromSupabase(remoteActiveSos);
+    isActiveSosSessionRestored = activeSosSession?.status === 'active';
     sosHistoryStatus = '';
 
     if (contacts.length === 0 && savedLocalContacts.length > 0) contacts = savedLocalContacts;
@@ -2936,11 +2962,20 @@ async function loadSupabaseData() {
     renderProfile();
     renderContacts();
     renderSosHistory();
-    renderActiveSosSession();
+    renderActiveSosSession(isActiveSosSessionRestored
+      ? 'Υπάρχει ήδη ενεργό SOS από προηγούμενη χρήση. Αν ήταν δοκιμή, πάτησε Τερματισμός SOS.'
+      : '');
     syncActiveSosLocationAutoUpdate();
+    if (isActiveSosSessionRestored) {
+      sosButton.classList.add('activated');
+      sosButton.setAttribute('aria-pressed', 'true');
+      sosStatus.textContent = 'Αποκαταστάθηκε ενεργό SOS από προηγούμενη χρήση.';
+      showPage('home');
+    }
     showAuthMessage(authStatusMessages.signedIn);
   } catch (error) {
     activeSosSession = null;
+    isActiveSosSessionRestored = false;
     renderActiveSosSession();
     syncActiveSosLocationAutoUpdate();
     sosHistoryStatus = `Δεν φορτώθηκε το ιστορικό SOS: ${error.message}`;
@@ -3016,6 +3051,7 @@ async function logout() {
     sosHistoryEvents = [];
     sosHistoryStatus = '';
     activeSosSession = null;
+    isActiveSosSessionRestored = false;
     renderSosHistory();
     renderActiveSosSession();
     syncActiveSosLocationAutoUpdate();
@@ -3046,6 +3082,7 @@ async function initializeAuth() {
       sosHistoryEvents = [];
       sosHistoryStatus = '';
       activeSosSession = null;
+      isActiveSosSessionRestored = false;
       renderSosHistory();
       renderActiveSosSession();
       syncActiveSosLocationAutoUpdate();
@@ -3087,6 +3124,7 @@ function clearSafeMeData() {
   renderProfile();
   renderLocation();
   activeSosSession = null;
+  isActiveSosSessionRestored = false;
   renderSosHistory();
   renderActiveSosSession();
   syncActiveSosLocationAutoUpdate();
