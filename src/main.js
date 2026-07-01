@@ -39,6 +39,7 @@ const storageKeys = {
   locationPermissionRequested: 'safety-app-location-permission-requested',
   testSosCompleted: 'safety-app-test-sos-completed',
   setupChecklistCollapsed: 'safety-app-setup-checklist-collapsed',
+  safeWalkOutcome: 'safety-app-last-safe-walk-outcome',
 };
 
 
@@ -380,6 +381,7 @@ let hasRequestedLocationPermission = loadJson(storageKeys.locationPermissionRequ
 let isSetupChecklistCollapsed = loadJson(storageKeys.setupChecklistCollapsed, true) === true;
 let activeSafeWalk = loadJson(storageKeys.safeWalk, null);
 let selectedSafeWalkMinutes = 10;
+let lastSafeWalkOutcome = loadJson(storageKeys.safeWalkOutcome, null);
 let safeWalkTimer = null;
 let safeWalkExpiryInProgress = false;
 let activeCheckIn = loadJson(storageKeys.checkIn, null);
@@ -754,28 +756,28 @@ function getSetupChecklistItems() {
   return [
     {
       id: 'profile',
-      label: 'Συμπλήρωσε προφίλ',
+      label: '1. Προφίλ: όνομα και τηλέφωνο',
       completed: hasRequiredProfileDetails(),
-      buttonLabel: 'Συμπλήρωση',
+      buttonLabel: hasRequiredProfileDetails() ? 'Επεξεργασία' : 'Συμπλήρωση',
       action: 'profile',
     },
     {
       id: 'contacts',
-      label: 'Πρόσθεσε έμπιστη επαφή',
+      label: '2. Έμπιστη επαφή για SOS',
       completed: contacts.length > 0,
-      buttonLabel: 'Προσθήκη',
+      buttonLabel: contacts.length > 0 ? 'Διαχείριση' : 'Προσθήκη',
       action: 'contacts',
     },
     {
       id: 'location',
-      label: 'Επίτρεψε τοποθεσία',
-      completed: Boolean(currentLocation) || hasRequestedLocationPermission,
+      label: '3. Άδεια τοποθεσίας browser',
+      completed: Boolean(currentLocation),
       buttonLabel: 'Άδεια τοποθεσίας',
       action: 'location',
     },
     {
       id: 'test-sos',
-      label: 'Κάνε δοκιμαστικό SOS',
+      label: '4. Δοκιμαστικό SOS σε test mode',
       completed: hasCompletedTestSos,
       buttonLabel: 'Δοκιμή SOS',
       action: 'test-sos',
@@ -814,7 +816,7 @@ function renderSetupChecklist() {
       <div>
         <p class="eyebrow">SafeMe readiness</p>
         <h3 id="setup-checklist-title">Πρώτα βήματα ασφάλειας</h3>
-        <p>Ολοκλήρωσε αυτά τα βήματα για να είναι έτοιμο το SafeMe σε περίπτωση ανάγκης.</p>
+        <p>Για χρήση SOS ολοκλήρωσε πρώτα τα βήματα με τη σειρά. Μπορείς πάντα να επεξεργαστείς επαφές και προφίλ.</p>
       </div>
       <div class="setup-checklist-header-actions">
         <span class="setup-checklist-progress" aria-live="polite">${completedCount}/${items.length}</span>
@@ -830,7 +832,7 @@ function renderSetupChecklist() {
         </li>
       `).join('')}
     </ul>
-    <p class="setup-checklist-summary">${allCompleted ? 'Το SafeMe είναι έτοιμο για χρήση.' : 'Λείπουν ακόμα βήματα για πλήρη ετοιμότητα.'}</p>
+    <p class="setup-checklist-summary">${allCompleted ? 'Το SafeMe είναι έτοιμο για χρήση.' : 'Το SOS ξεκλειδώνει όταν ολοκληρωθούν όλα τα βήματα.'}</p>
   `;
 }
 
@@ -1365,9 +1367,14 @@ function renderActiveSosSession(message = '') {
       : 'Ανενεργή αυτόματη ενημέρωση';
   }
   if (activeSosTrackingStatus) {
-    activeSosTrackingStatus.textContent = activeSosSession.shareToken
-      ? 'Ενεργό tracking link'
-      : 'Live tracking: απαιτεί σύνδεση';
+    if (activeSosSession.shareToken) {
+      const trackingUrl = getSosTrackingUrl(activeSosSession.shareToken);
+      activeSosTrackingStatus.innerHTML = `<a href="${escapeHtml(trackingUrl)}" target="_blank" rel="noopener">Άνοιγμα public tracking link</a><br><small>${escapeHtml(trackingUrl)}</small>`;
+    } else {
+      activeSosTrackingStatus.textContent = currentUser
+        ? 'Δεν δημιουργήθηκε link. Χρησιμοποίησε SMS/WhatsApp και δοκίμασε live sync.'
+        : 'Live tracking: απαιτεί σύνδεση. Το SOS μένει ενεργό τοπικά σε αυτή τη συσκευή.';
+    }
   }
 
   if (hasSosLocation(activeSosSession)) {
@@ -1375,7 +1382,7 @@ function renderActiveSosSession(message = '') {
     const updatedText = activeSosSession.latestLocationAt ? ` (${formatSosEventDate(activeSosSession.latestLocationAt)})` : '';
     activeSosLocation.innerHTML = `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">Άνοιγμα στο Google Maps</a>${escapeHtml(updatedText)}`;
   } else {
-    activeSosLocation.textContent = 'Χωρίς τοποθεσία';
+    activeSosLocation.textContent = 'Χωρίς τοποθεσία — επίτρεψε Location στον browser ή πάτα «Ανανέωση GPS τώρα». Το SOS παραμένει ενεργό.';
   }
 
   copyActiveSosTrackingButton.hidden = false;
@@ -1390,7 +1397,7 @@ function renderActiveSosSession(message = '') {
   disableActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
   activeSosFeedback.textContent = message || (isActiveSosSessionRestored
     ? 'Υπάρχει ήδη ενεργό SOS από προηγούμενη χρήση. Αν ήταν δοκιμή, πάτησε Τερματισμός SOS.'
-    : '');
+    : 'Το SOS είναι ενεργό. Κράτα την εφαρμογή ανοιχτή, αντέγραψε/μοιράσου το tracking link και κάλεσε 112 αν υπάρχει άμεσος κίνδυνος.');
   renderSafetyStatusCard();
 }
 
@@ -1844,7 +1851,7 @@ function getSafeWalkValidationMessage() {
   if (activeCheckIn?.status === 'active') return 'Υπάρχει ήδη ενεργό check-in. Τερμάτισέ το πριν ξεκινήσεις Safe Walk.';
   if (!hasRequiredProfileDetails()) return 'Συμπλήρωσε πρώτα το προφίλ σου με όνομα και τηλέφωνο.';
   if (contacts.length === 0) return 'Πρόσθεσε τουλάχιστον μία έμπιστη επαφή πριν ξεκινήσεις Safe Walk.';
-  if (!currentLocation && !hasRequestedLocationPermission) return 'Πάτησε πρώτα «Ανανέωση» στην τοποθεσία ώστε ο browser να ζητήσει άδεια location.';
+  if (!currentLocation) return 'Πάτησε πρώτα «Ανανέωση» στην τοποθεσία και επίτρεψε Location στον browser για Safe Walk.';
   return '';
 }
 
@@ -1878,7 +1885,8 @@ function renderSafeWalk() {
     button.classList.toggle('active', Number(button.dataset.minutes) === selectedSafeWalkMinutes && !safeWalkCustomMinutes.value);
   });
   if (!isActive) {
-    safeWalkStatusPill.textContent = safeWalkExpiryInProgress ? 'ενεργοποίηση SOS' : 'έτοιμο';
+    safeWalkStatusPill.textContent = safeWalkExpiryInProgress ? 'failed / SOS' : (lastSafeWalkOutcome?.status || 'έτοιμο');
+    safeWalkStatusPill.className = `safe-walk-status-pill ${lastSafeWalkOutcome?.status ? `safe-walk-status-${lastSafeWalkOutcome.status}` : ''}`;
     renderSafetyStatusCard();
     return;
   }
@@ -1887,9 +1895,10 @@ function renderSafeWalk() {
   safeWalkActiveDestination.textContent = activeSafeWalk.destination || 'Δεν ορίστηκε';
   safeWalkStartedTime.textContent = formatCheckInDateTime(activeSafeWalk.startedAt);
   safeWalkExpectedTime.textContent = formatCheckInDateTime(activeSafeWalk.expiresAt);
-  safeWalkStatusText.textContent = 'active';
+  safeWalkStatusText.textContent = 'active / σε εξέλιξη';
   safeWalkLocationTime.textContent = currentLocation?.updatedAt ? formatCheckInDateTime(currentLocation.updatedAt) : 'Δεν υπάρχει ακόμα';
-  safeWalkStatusPill.textContent = 'active';
+  safeWalkStatusPill.textContent = `${activeSafeWalk.minutes === 1 ? '1-minute test • ' : ''}active`;
+  safeWalkStatusPill.className = 'safe-walk-status-pill safe-walk-status-active';
   renderSafetyStatusCard();
 }
 
@@ -1913,18 +1922,21 @@ function startSafeWalk() {
   const minutes = getSelectedSafeWalkMinutes();
   const startedAt = new Date();
   const expiresAt = new Date(startedAt.getTime() + minutes * 60 * 1000);
+  lastSafeWalkOutcome = null; localStorage.removeItem(storageKeys.safeWalkOutcome);
   activeSafeWalk = { status: 'active', destination: safeWalkDestination.value.trim(), minutes, startedAt: startedAt.toISOString(), expiresAt: expiresAt.toISOString() };
   saveActiveSafeWalk();
-  setSafeWalkMessage('Το Safe Walk ξεκίνησε. Επιβεβαίωσε ότι έφτασες/είσαι καλά πριν λήξει.');
+  setSafeWalkMessage(minutes === 1 ? 'Ξεκίνησε 1-minute Safe Walk test. Πάτησε «Έφτασα / Είμαι καλά» πριν μηδενίσει για να ολοκληρωθεί.' : 'Το Safe Walk ξεκίνησε. Επιβεβαίωσε ότι έφτασες/είσαι καλά πριν λήξει.');
   scheduleSafeWalkTimer();
 }
 
 function completeSafeWalkSafely() {
+  lastSafeWalkOutcome = { status: 'completed', at: new Date().toISOString() }; saveJson(storageKeys.safeWalkOutcome, lastSafeWalkOutcome);
   activeSafeWalk = null; saveActiveSafeWalk(); stopSafeWalkTimer(); renderSafeWalk();
   setSafeWalkMessage('Το Safe Walk ολοκληρώθηκε. Είσαι ασφαλής.');
 }
 
 function cancelSafeWalk() {
+  lastSafeWalkOutcome = { status: 'cancelled', at: new Date().toISOString() }; saveJson(storageKeys.safeWalkOutcome, lastSafeWalkOutcome);
   activeSafeWalk = null; saveActiveSafeWalk(); stopSafeWalkTimer(); renderSafeWalk();
   setSafeWalkMessage('Το Safe Walk ακυρώθηκε.');
 }
@@ -1952,6 +1964,7 @@ async function expireSafeWalkWhileOpen() {
   if (safeWalkExpiryInProgress) return;
   safeWalkExpiryInProgress = true;
   const expiredWalk = activeSafeWalk;
+  lastSafeWalkOutcome = { status: 'failed', at: new Date().toISOString() }; saveJson(storageKeys.safeWalkOutcome, lastSafeWalkOutcome);
   activeSafeWalk = null; saveActiveSafeWalk(); renderSafeWalk();
   setSafeWalkMessage('Το Safe Walk έληξε και ενεργοποιήθηκε SOS.');
   sosStatus.textContent = 'Το Safe Walk έληξε και ενεργοποιήθηκε SOS.';
@@ -1983,7 +1996,7 @@ function getCheckInValidationMessage() {
   if (activeSafeWalk?.status === 'active') return 'Υπάρχει ήδη ενεργό Safe Walk. Τερμάτισέ το πριν ξεκινήσεις check-in.';
   if (!hasRequiredProfileDetails()) return 'Συμπλήρωσε πρώτα το προφίλ σου με όνομα και τηλέφωνο.';
   if (contacts.length === 0) return 'Πρόσθεσε τουλάχιστον μία έμπιστη επαφή πριν ξεκινήσεις check-in.';
-  if (!currentLocation && !hasRequestedLocationPermission) return 'Πάτησε πρώτα «Ανανέωση» στην τοποθεσία ώστε ο browser να ζητήσει άδεια location.';
+  if (!currentLocation) return 'Πάτησε πρώτα «Ανανέωση» στην τοποθεσία και επίτρεψε Location στον browser για check-in.';
   return '';
 }
 

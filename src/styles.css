@@ -1454,6 +1454,13 @@ body.tracking-mode .modal-backdrop {
   font-size: 0.82rem;
   font-weight: 900;
 }
+
+.safe-walk-status-active { color: #065f46; background: #dcfce7; }
+.safe-walk-status-completed { color: #047857; background: #ecfdf5; }
+.safe-walk-status-cancelled { color: #92400e; background: #fef3c7; border-color: rgba(245, 158, 11, 0.28); }
+.safe-walk-status-failed { color: #be123c; background: #fff1f2; border-color: rgba(239, 35, 60, 0.28); }
+.safe-walk-test-preset { color: #1d4ed8; background: #eff6ff; border-color: rgba(37, 99, 235, 0.22); }
+
 .safe-walk-destination-label,
 .safe-walk-custom-label {
   display: grid;
