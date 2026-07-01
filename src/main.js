@@ -13,6 +13,7 @@ const pageTitles = {
   home: 'Αρχική σελίδα',
   contacts: 'Έμπιστες επαφές',
   profile: 'Προφίλ χρήστη',
+  health: 'Έλεγχος εφαρμογής',
   settings: 'Ρυθμίσεις & ασφάλεια',
 };
 
@@ -258,6 +259,16 @@ const settingsOpenContactsButton = document.querySelector('#settings-open-contac
 const settingsRefreshLocationButton = document.querySelector('#settings-refresh-location');
 const settingsClearDataButton = document.querySelector('#settings-clear-data');
 const settingsStatus = document.querySelector('#settings-status');
+const healthChecklist = document.querySelector('#health-checklist');
+const healthSummaryTitle = document.querySelector('#health-summary-title');
+const healthReportStatus = document.querySelector('#health-report-status');
+const healthCopyReportButton = document.querySelector('#health-copy-report');
+const healthOpenProfileButton = document.querySelector('#health-open-profile');
+const healthOpenContactsButton = document.querySelector('#health-open-contacts');
+const healthCheckLocationButton = document.querySelector('#health-check-location');
+const healthTestSosButton = document.querySelector('#health-test-sos');
+const healthTestCheckInButton = document.querySelector('#health-test-checkin');
+const healthTestSafeWalkButton = document.querySelector('#health-test-safe-walk');
 const authForm = document.querySelector('#auth-form');
 const authEmail = document.querySelector('#auth-email');
 const authPassword = document.querySelector('#auth-password');
@@ -508,6 +519,7 @@ function showPage(nextPage) {
 
   pages.forEach((page) => page.classList.toggle('active', page.id === nextPage));
   pageTitle.textContent = pageTitles[nextPage];
+  if (nextPage === 'health') renderHealthPage();
 }
 
 
@@ -549,12 +561,191 @@ function focusSosButton() {
   focusElementAfterScroll(sosButton);
 }
 
+
+function focusCheckInSection() {
+  showPage('home');
+  focusElementAfterScroll(document.querySelector('#checkin-section'));
+}
+
+function focusSafeWalkSection() {
+  showPage('home');
+  focusElementAfterScroll(document.querySelector('#safe-walk-section'));
+}
+
+function getHealthChecks() {
+  const hasSignedInAccount = Boolean(currentUser);
+  const hasProfile = hasRequiredProfileDetails();
+  const hasContacts = contacts.length > 0;
+  const hasLocation = Boolean(currentLocation);
+  const hasActiveSignedInTracking = Boolean(currentUser && activeSosSession?.status === 'active' && activeSosSession.shareToken);
+  const canCreateSignedInTracking = Boolean(currentUser);
+  const checkInFeatureReady = Boolean(checkInStartButton && checkInActivePanel && typeof startCheckIn === 'function');
+  const safeWalkFeatureReady = Boolean(safeWalkStartButton && safeWalkActivePanel && typeof startSafeWalk === 'function');
+
+  return [
+    {
+      id: 'account',
+      label: 'Λογαριασμός',
+      status: hasSignedInAccount ? 'OK' : 'Προσοχή',
+      explanation: hasSignedInAccount
+        ? 'Υπάρχει ενεργή σύνδεση και οι δυνατότητες συγχρονισμού είναι διαθέσιμες.'
+        : 'Χωρίς σύνδεση, το SafeMe δουλεύει τοπικά αλλά δεν έχει live tracking link.',
+      actionLabel: hasSignedInAccount ? '' : 'Άνοιγμα προφίλ',
+      action: 'profile',
+      important: true,
+    },
+    {
+      id: 'profile',
+      label: 'Προφίλ',
+      status: hasProfile ? 'OK' : 'Δεν ολοκληρώθηκε',
+      explanation: hasProfile
+        ? 'Το όνομα και το τηλέφωνο υπάρχουν στο προφίλ SOS.'
+        : 'Συμπλήρωσε όνομα και τηλέφωνο για πιο χρήσιμο μήνυμα SOS.',
+      actionLabel: hasProfile ? '' : 'Άνοιγμα προφίλ',
+      action: 'profile',
+      important: true,
+    },
+    {
+      id: 'contacts',
+      label: 'Έμπιστη επαφή',
+      status: hasContacts ? 'OK' : 'Δεν ολοκληρώθηκε',
+      explanation: hasContacts
+        ? `Υπάρχουν ${contacts.length} έμπιστες επαφές διαθέσιμες.`
+        : 'Πρόσθεσε τουλάχιστον μία έμπιστη επαφή για ειδοποίηση.',
+      actionLabel: hasContacts ? '' : 'Άνοιγμα επαφών',
+      action: 'contacts',
+      important: true,
+    },
+    {
+      id: 'location',
+      label: 'Τοποθεσία',
+      status: hasLocation ? 'OK' : 'Προσοχή',
+      explanation: hasLocation
+        ? 'Υπάρχει πρόσφατη τοποθεσία αποθηκευμένη στη συσκευή.'
+        : 'Δεν υπάρχει ακόμα τοποθεσία. Κάνε έλεγχο permission/GPS στον browser.',
+      actionLabel: hasLocation ? '' : 'Έλεγχος τοποθεσίας',
+      action: 'location',
+      important: true,
+    },
+    {
+      id: 'live-tracking',
+      label: 'Live tracking',
+      status: hasActiveSignedInTracking ? 'OK' : (canCreateSignedInTracking ? 'Προσοχή' : 'Δεν ολοκληρώθηκε'),
+      explanation: hasActiveSignedInTracking
+        ? 'Υπάρχει ενεργό signed-in SOS με share token για δημόσιο tracking link.'
+        : (canCreateSignedInTracking
+          ? 'Το live tracking απαιτεί signed-in ενεργό SOS. Η εφαρμογή μπορεί να δημιουργήσει share token όταν ξεκινήσει SOS.'
+          : 'Το live tracking απαιτεί σύνδεση και ενεργό SOS. Χωρίς σύνδεση το SOS μένει τοπικό.'),
+      actionLabel: hasActiveSignedInTracking ? '' : 'Δοκιμή SOS',
+      action: 'test-sos',
+      important: false,
+    },
+    {
+      id: 'test-sos',
+      label: 'Δοκιμαστικό SOS',
+      status: hasCompletedTestSos ? 'OK' : 'Δεν ολοκληρώθηκε',
+      explanation: hasCompletedTestSos
+        ? 'Έχει ολοκληρωθεί δοκιμαστικό SOS σε αυτή τη συσκευή.'
+        : 'Ενεργοποίησε λειτουργία δοκιμής και ετοίμασε ένα SOS χωρίς πραγματική ανάγκη.',
+      actionLabel: hasCompletedTestSos ? '' : 'Δοκιμή SOS',
+      action: 'test-sos',
+      important: true,
+    },
+    {
+      id: 'checkin',
+      label: 'Check-in Timer',
+      status: checkInFeatureReady ? 'OK' : 'Προσοχή',
+      explanation: checkInFeatureReady
+        ? 'Η λειτουργία Check-in υπάρχει και είναι έτοιμη για δοκιμή από την Αρχική.'
+        : 'Δεν εντοπίστηκαν όλα τα στοιχεία του Check-in Timer στη σελίδα.',
+      actionLabel: 'Δοκιμή Check-in',
+      action: 'checkin',
+      important: true,
+    },
+    {
+      id: 'safe-walk',
+      label: 'Safe Walk',
+      status: safeWalkFeatureReady ? 'OK' : 'Προσοχή',
+      explanation: safeWalkFeatureReady
+        ? 'Η λειτουργία Safe Walk υπάρχει και είναι έτοιμη για δοκιμή από την Αρχική.'
+        : 'Δεν εντοπίστηκαν όλα τα στοιχεία του Safe Walk στη σελίδα.',
+      actionLabel: 'Δοκιμή Safe Walk',
+      action: 'safe-walk',
+      important: true,
+    },
+  ];
+}
+
+function renderHealthPage() {
+  if (!healthChecklist) return;
+
+  const checks = getHealthChecks();
+  healthChecklist.innerHTML = checks.map((check) => `
+    <article class="health-card health-card-${check.status === 'OK' ? 'ok' : check.status === 'Προσοχή' ? 'warning' : 'incomplete'}">
+      <div class="health-card-header">
+        <h3>${escapeHtml(check.label)}</h3>
+        <span class="health-status">${escapeHtml(check.status)}</span>
+      </div>
+      <p>${escapeHtml(check.explanation)}</p>
+      ${check.actionLabel ? `<button class="ghost-button health-card-action" type="button" data-health-action="${escapeHtml(check.action)}">${escapeHtml(check.actionLabel)}</button>` : ''}
+    </article>
+  `).join('');
+
+  const importantReady = checks.filter((check) => check.important).every((check) => check.status === 'OK');
+  healthSummaryTitle.textContent = importantReady
+    ? 'Το SafeMe είναι έτοιμο για beta δοκιμή.'
+    : 'Υπάρχουν ακόμα σημεία που χρειάζονται έλεγχο.';
+}
+
+function handleHealthAction(action) {
+  if (action === 'profile') focusProfileForm();
+  if (action === 'contacts') focusContactForm();
+  if (action === 'location') refreshLocation();
+  if (action === 'test-sos') {
+    isSosTestMode = true;
+    saveJson(storageKeys.sosTestMode, true);
+    syncSosTestModeToggle();
+    focusSosButton();
+  }
+  if (action === 'checkin') focusCheckInSection();
+  if (action === 'safe-walk') focusSafeWalkSection();
+}
+
+function buildHealthReport() {
+  const statusById = Object.fromEntries(getHealthChecks().map((check) => [check.id, check.status]));
+
+  return [
+    'SafeMe αναφορά ελέγχου',
+    `Ημερομηνία/ώρα: ${new Intl.DateTimeFormat('el-GR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date())}`,
+    `Λογαριασμός: ${statusById.account}`,
+    `Προφίλ: ${statusById.profile}`,
+    `Επαφές: ${statusById.contacts}`,
+    `Τοποθεσία: ${statusById.location}`,
+    `Live tracking: ${statusById['live-tracking']}`,
+    `Δοκιμαστικό SOS: ${statusById['test-sos']}`,
+    `Check-in: ${statusById.checkin}`,
+    `Safe Walk: ${statusById['safe-walk']}`,
+  ].join('\n');
+}
+
+async function copyHealthReport() {
+  try {
+    await copyTextToClipboard(buildHealthReport());
+    healthReportStatus.textContent = 'Η αναφορά ελέγχου αντιγράφηκε.';
+    healthReportStatus.classList.remove('error');
+  } catch {
+    healthReportStatus.textContent = 'Δεν μπόρεσα να αντιγράψω την αναφορά. Δοκίμασε ξανά.';
+    healthReportStatus.classList.add('error');
+  }
+}
+
 function markTestSosCompleted() {
   if (!isSosTestMode || hasCompletedTestSos) return;
 
   hasCompletedTestSos = true;
   saveJson(storageKeys.testSosCompleted, true);
   renderSetupChecklist();
+  renderHealthPage();
 }
 
 function getSetupChecklistItems() {
@@ -797,6 +988,7 @@ function updateCurrentLocationFromPosition(position) {
   renderLocation();
   renderSafeWalk();
   renderSetupChecklist();
+  renderHealthPage();
   return currentLocation;
 }
 
@@ -829,6 +1021,7 @@ async function refreshLocation() {
   } finally {
     setLocationButtonsLoading(false);
     renderSetupChecklist();
+    renderHealthPage();
   }
 }
 
@@ -2283,6 +2476,7 @@ async function deleteContact(index) {
   await persistContacts();
   renderContacts();
   renderSetupChecklist();
+  renderHealthPage();
 }
 
 async function editContact(index) {
@@ -2950,6 +3144,17 @@ settingsOpenProfileButton.addEventListener('click', openSettingsProfile);
 settingsOpenContactsButton.addEventListener('click', openSettingsContacts);
 settingsRefreshLocationButton.addEventListener('click', refreshLocationFromSettings);
 settingsClearDataButton.addEventListener('click', clearSafeMeData);
+healthOpenProfileButton.addEventListener('click', () => handleHealthAction('profile'));
+healthOpenContactsButton.addEventListener('click', () => handleHealthAction('contacts'));
+healthCheckLocationButton.addEventListener('click', () => handleHealthAction('location'));
+healthTestSosButton.addEventListener('click', () => handleHealthAction('test-sos'));
+healthTestCheckInButton.addEventListener('click', () => handleHealthAction('checkin'));
+healthTestSafeWalkButton.addEventListener('click', () => handleHealthAction('safe-walk'));
+healthCopyReportButton.addEventListener('click', copyHealthReport);
+healthChecklist.addEventListener('click', (event) => {
+  const actionButton = event.target.closest('[data-health-action]');
+  if (actionButton) handleHealthAction(actionButton.dataset.healthAction);
+});
 refreshLocationButton.addEventListener('click', refreshLocation);
 setupChecklist?.addEventListener('click', handleSetupChecklistAction);
 shareLocationButton.addEventListener('click', shareLocation);
@@ -2988,6 +3193,7 @@ renderContacts();
 renderProfile();
 renderLocation();
 renderSetupChecklist();
+renderHealthPage();
 renderSosHistory();
 renderActiveSosSession();
 restoreSafeWalkOnLoad();

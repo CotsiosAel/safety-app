@@ -34,6 +34,7 @@
           <button class="nav-item active" type="button" data-page="home" aria-current="page"><span class="nav-icon">⌂</span><span>Αρχική</span></button>
           <button class="nav-item" type="button" data-page="contacts"><span class="nav-icon">👥</span><span>Επαφές</span></button>
           <button class="nav-item" type="button" data-page="profile"><span class="nav-icon">◎</span><span>Προφίλ</span></button>
+          <button class="nav-item" type="button" data-page="health"><span class="nav-icon">✓</span><span>Έλεγχος</span></button>
           <button class="nav-item" type="button" data-page="settings"><span class="nav-icon">⚙</span><span>Ρυθμίσεις</span></button>
         </nav>
 
@@ -395,6 +396,35 @@
             <button class="danger-outline-button inline-button" id="clear-data-button" type="button">Καθαρισμός δεδομένων</button>
             <p class="save-status" id="profile-status" aria-live="polite"></p>
           </form>
+        </section>
+
+
+        <section class="page health-page" id="health" aria-label="Έλεγχος εφαρμογής">
+          <div class="health-hero">
+            <div>
+              <p class="eyebrow">SafeMe app health</p>
+              <h2>Έλεγχος εφαρμογής</h2>
+              <p>Κάνε έναν γρήγορο έλεγχο για να βεβαιωθείς ότι το SafeMe είναι έτοιμο.</p>
+            </div>
+            <button class="primary-button health-copy-button" id="health-copy-report" type="button">Αντιγραφή αναφοράς ελέγχου</button>
+          </div>
+
+          <div class="health-actions" aria-label="Γρήγορες ενέργειες ελέγχου">
+            <button class="ghost-button" id="health-open-profile" type="button">Άνοιγμα προφίλ</button>
+            <button class="ghost-button" id="health-open-contacts" type="button">Άνοιγμα επαφών</button>
+            <button class="ghost-button" id="health-check-location" type="button">Έλεγχος τοποθεσίας</button>
+            <button class="ghost-button" id="health-test-sos" type="button">Δοκιμή SOS</button>
+            <button class="ghost-button" id="health-test-checkin" type="button">Δοκιμή Check-in</button>
+            <button class="ghost-button" id="health-test-safe-walk" type="button">Δοκιμή Safe Walk</button>
+          </div>
+
+          <div class="health-grid" id="health-checklist" aria-live="polite"></div>
+
+          <section class="health-summary-card" aria-live="polite">
+            <h3 id="health-summary-title">Υπάρχουν ακόμα σημεία που χρειάζονται έλεγχο.</h3>
+            <p id="health-report-status" class="save-status"></p>
+            <p class="health-disclaimer">Ο έλεγχος δεν αντικαθιστά πραγματική δοκιμή σε κινητό και δεν εγγυάται λειτουργία στο background.</p>
+          </section>
         </section>
 
         <section class="page settings-page" id="settings" aria-label="Ρυθμίσεις και ασφάλεια">
