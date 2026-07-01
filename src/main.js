@@ -255,6 +255,9 @@ const profileForm = document.querySelector('#profile-form');
 const profileName = document.querySelector('#profile-name');
 const profilePhone = document.querySelector('#profile-phone');
 const profileNotes = document.querySelector('#profile-notes');
+const profileLanguage = document.querySelector('#profile-language');
+const profileCreatedAt = document.querySelector('#profile-created-at');
+const profileUpdatedAt = document.querySelector('#profile-updated-at');
 const profileAvatar = document.querySelector('#profile-avatar');
 const profileStatus = document.querySelector('#profile-status');
 const clearDataButton = document.querySelector('#clear-data-button');
@@ -269,6 +272,7 @@ const pullRefreshIndicator = document.querySelector('#pull-refresh-indicator');
 const pullRefreshMessage = document.querySelector('#pull-refresh-message');
 const pullRefreshManualButton = document.querySelector('#pull-refresh-manual');
 const settingsClearDataButton = document.querySelector('#settings-clear-data');
+const settingsLogoutButton = document.querySelector('#settings-logout');
 const settingsStatus = document.querySelector('#settings-status');
 const healthChecklist = document.querySelector('#health-checklist');
 const healthSummaryTitle = document.querySelector('#health-summary-title');
@@ -301,6 +305,11 @@ const onlineStatusPill = document.querySelector('#online-status-pill');
 const currentLocationCard = document.querySelector('#current-location-card');
 const authLogoutButton = document.querySelector('#auth-logout-button');
 const authStatus = document.querySelector('#auth-status');
+const localImportCard = document.querySelector('#local-import-card');
+const localImportSummary = document.querySelector('#local-import-summary');
+const localImportButton = document.querySelector('#local-import-button');
+const localImportSkipButton = document.querySelector('#local-import-skip');
+const localImportStatus = document.querySelector('#local-import-status');
 const passwordResetForm = document.querySelector('#password-reset-form');
 const passwordResetNew = document.querySelector('#password-reset-new');
 const passwordResetRepeat = document.querySelector('#password-reset-repeat');
@@ -696,6 +705,7 @@ let sosNotificationHistory = loadJson(storageKeys.notificationHistory, []);
 let waitingServiceWorker = null;
 let hasAppUpdateAvailable = false;
 let lastVersionCheckAt = 0;
+let pendingLocalImport = null;
 
 
 function isLegacyDemoContact(contact) {
@@ -735,6 +745,7 @@ function mapContactToSupabase(contact) {
     name: contact.name,
     relationship: contact.relationship,
     phone: contact.phone,
+    email: contact.email || '',
     tone: contact.tone || 'default',
   };
 }
@@ -745,7 +756,10 @@ function mapProfileFromSupabase(savedProfile) {
   return sanitizeProfile({
     name: savedProfile.name || '',
     phone: savedProfile.phone || '',
-    medicalNotes: savedProfile.medical_notes || savedProfile.medicalNotes || '',
+    medicalNotes: savedProfile.medical_note || savedProfile.medical_notes || savedProfile.medicalNotes || '',
+    preferredLanguage: savedProfile.preferred_language || savedProfile.preferredLanguage || 'el',
+    createdAt: savedProfile.created_at || savedProfile.createdAt || null,
+    updatedAt: savedProfile.updated_at || savedProfile.updatedAt || null,
   });
 }
 
@@ -754,7 +768,9 @@ function mapProfileToSupabase(savedProfile) {
     id: currentUser.id,
     name: savedProfile.name,
     phone: savedProfile.phone,
+    medical_note: savedProfile.medicalNotes,
     medical_notes: savedProfile.medicalNotes,
+    preferred_language: savedProfile.preferredLanguage || 'el',
     updated_at: new Date().toISOString(),
   };
 }
@@ -771,7 +787,8 @@ async function persistContacts() {
 function sanitizeProfile(savedProfile) {
   if (!savedProfile) return null;
 
-  return savedProfile.phone === legacyDemoProfilePhone ? null : savedProfile;
+  if (savedProfile.phone === legacyDemoProfilePhone) return null;
+  return { preferredLanguage: 'el', ...savedProfile };
 }
 
 function getProfileValue(field, fallback) {
@@ -2951,10 +2968,14 @@ function renderProfile() {
   profileName.textContent = displayName;
   profilePhone.textContent = getProfileValue('phone', 'Δεν έχει προστεθεί τηλέφωνο');
   profileNotes.textContent = getProfileValue('medicalNotes', 'Δεν έχουν προστεθεί ιατρικές σημειώσεις');
+  profileLanguage.textContent = (profile?.preferredLanguage || 'el') === 'en' ? 'English' : 'Ελληνικά';
+  profileCreatedAt.textContent = formatDiagnosticDateTime(profile?.createdAt);
+  profileUpdatedAt.textContent = formatDiagnosticDateTime(profile?.updatedAt);
   profileAvatar.textContent = profile?.name ? getInitials(profile.name) : '👤';
   profileForm.elements.name.value = profile?.name || '';
   profileForm.elements.phone.value = profile?.phone || '';
   profileForm.elements.medicalNotes.value = profile?.medicalNotes || '';
+  profileForm.elements.preferredLanguage.value = profile?.preferredLanguage || 'el';
 }
 
 async function saveProfile(event) {
@@ -2964,6 +2985,9 @@ async function saveProfile(event) {
     name: formData.get('name').trim(),
     phone: formData.get('phone').trim(),
     medicalNotes: formData.get('medicalNotes').trim(),
+    preferredLanguage: formData.get('preferredLanguage') || 'el',
+    createdAt: profile?.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   saveJson(storageKeys.profile, profile);
@@ -3230,6 +3254,57 @@ async function saveContactsToSupabase() {
   if (insertError) throw insertError;
 }
 
+
+function getLocalImportCandidate() {
+  const localProfile = sanitizeProfile(loadJson(storageKeys.profile, null));
+  const localContacts = ensureSinglePrimaryContact(sanitizeContacts(loadJson(storageKeys.contacts, [])));
+  if (!localProfile && localContacts.length === 0) return null;
+  return { profile: localProfile, contacts: localContacts };
+}
+
+function renderLocalImportPrompt() {
+  if (!localImportCard) return;
+  const hasCandidate = Boolean(currentUser && pendingLocalImport && (pendingLocalImport.profile || pendingLocalImport.contacts.length > 0));
+  localImportCard.hidden = !hasCandidate;
+  if (!hasCandidate) return;
+  const parts = [];
+  if (pendingLocalImport.profile) parts.push('προφίλ');
+  if (pendingLocalImport.contacts.length) parts.push(`${pendingLocalImport.contacts.length} επαφή/ές`);
+  localImportSummary.textContent = `Βρήκαμε ${parts.join(' και ')} αποθηκευμένα σε αυτή τη συσκευή. Θέλεις να τα αποθηκεύσεις στον λογαριασμό σου;`;
+}
+
+async function importLocalEmergencyInfo() {
+  if (!currentUser || !pendingLocalImport) return;
+  localImportButton.disabled = true;
+  localImportStatus.textContent = 'Αποθηκεύω τα τοπικά στοιχεία στον λογαριασμό...';
+  try {
+    if (pendingLocalImport.profile) {
+      profile = { ...pendingLocalImport.profile, updatedAt: new Date().toISOString() };
+      await saveProfileToSupabase();
+    }
+    if (pendingLocalImport.contacts.length > 0) {
+      contacts = ensureSinglePrimaryContact(pendingLocalImport.contacts);
+      await saveContactsToSupabase();
+    }
+    saveJson(storageKeys.profile, profile);
+    saveJson(storageKeys.contacts, contacts);
+    pendingLocalImport = null;
+    localImportStatus.textContent = 'Τα τοπικά στοιχεία αποθηκεύτηκαν στον λογαριασμό.';
+    renderProfile(); renderContacts(); renderSetupChecklist(); renderHealthPage(); renderLocalImportPrompt();
+  } catch (error) {
+    localImportStatus.textContent = 'Δεν αποθηκεύτηκαν στον λογαριασμό. Τα στοιχεία παραμένουν στη συσκευή και μπορείς να δοκιμάσεις ξανά.';
+    localImportStatus.classList.add('error');
+  } finally {
+    localImportButton.disabled = false;
+  }
+}
+
+function skipLocalEmergencyImport() {
+  pendingLocalImport = null;
+  if (localImportStatus) localImportStatus.textContent = 'Παράλειψη εισαγωγής. Τα τοπικά στοιχεία παραμένουν σε αυτή τη συσκευή.';
+  renderLocalImportPrompt();
+}
+
 async function loadSupabaseData() {
   if (!currentUser) return;
 
@@ -3255,21 +3330,21 @@ async function loadSupabaseData() {
 
     const savedLocalProfile = profile;
     const savedLocalContacts = contacts;
+    const remoteContactList = ensureSinglePrimaryContact(sanitizeContacts((remoteContacts || []).map(mapContactFromSupabase)));
 
-    profile = mapProfileFromSupabase(remoteProfile) || savedLocalProfile;
-    contacts = ensureSinglePrimaryContact(sanitizeContacts((remoteContacts || []).map(mapContactFromSupabase)));
+    pendingLocalImport = (!remoteProfile && remoteContactList.length === 0) ? getLocalImportCandidate() : null;
+    profile = mapProfileFromSupabase(remoteProfile) || null;
+    contacts = remoteContactList;
+    if (!remoteProfile && !pendingLocalImport) profile = savedLocalProfile;
+    if (remoteContactList.length === 0 && !pendingLocalImport) contacts = savedLocalContacts;
     sosHistoryEvents = (remoteSosEvents || []).map(mapSosEventFromSupabase);
     activeSosSession = mapActiveSosSessionFromSupabase(remoteActiveSos);
     isActiveSosSessionRestored = activeSosSession?.status === 'active';
     sosHistoryStatus = '';
 
-    if (contacts.length === 0 && savedLocalContacts.length > 0) contacts = savedLocalContacts;
-
     saveJson(storageKeys.profile, profile);
     saveJson(storageKeys.contacts, contacts);
-
-    if (!remoteProfile && profile) await saveProfileToSupabase();
-    if ((remoteContacts || []).length === 0 && contacts.length > 0) await saveContactsToSupabase();
+    renderLocalImportPrompt();
 
     renderProfile();
     renderContacts();
@@ -3292,7 +3367,7 @@ async function loadSupabaseData() {
     syncActiveSosLocationAutoUpdate();
     sosHistoryStatus = `Δεν φορτώθηκε το ιστορικό SOS: ${error.message}`;
     renderSosHistory();
-    showAuthMessage(`Δεν έγινε συγχρονισμός Supabase: ${error.message}`, true);
+    showAuthMessage('Δεν έγινε συγχρονισμός λογαριασμού. Το SOS παραμένει διαθέσιμο τοπικά και μπορείς να δοκιμάσεις ξανά.', true);
   } finally {
     isRemoteSyncing = false;
     renderSetupChecklist();
@@ -3502,6 +3577,9 @@ settingsRefreshAppButton.addEventListener('click', () => refreshAppSafely());
 appUpdateRefreshButton?.addEventListener('click', () => refreshAppSafely());
 pullRefreshManualButton?.addEventListener('click', () => refreshAppSafely());
 settingsClearDataButton.addEventListener('click', clearSafeMeData);
+settingsLogoutButton?.addEventListener('click', logout);
+localImportButton?.addEventListener('click', importLocalEmergencyInfo);
+localImportSkipButton?.addEventListener('click', skipLocalEmergencyImport);
 healthOpenProfileButton.addEventListener('click', () => handleHealthAction('profile'));
 healthOpenContactsButton.addEventListener('click', () => handleHealthAction('contacts'));
 healthCheckLocationButton.addEventListener('click', () => handleHealthAction('location'));
