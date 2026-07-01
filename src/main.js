@@ -180,9 +180,15 @@ function initializePublicTrackingMode() {
 }
 
 function initializeSafeMeApp() {
+const PASSWORD_RESET_REDIRECT_URL = 'https://cotsiosael.github.io/safety-app/';
+
 const authStatusMessages = {
-  signedOut: 'Δεν έχεις συνδεθεί. Τα στοιχεία αποθηκεύονται τοπικά.',
-  signedIn: 'Συνδεδεμένος/η στο Supabase. Τα στοιχεία συγχρονίζονται.',
+  signedOut: 'Χωρίς σύνδεση. Τα στοιχεία αποθηκεύονται με ασφάλεια μόνο σε αυτή τη συσκευή.',
+  signedIn: 'Συνδέθηκες επιτυχώς. Τα στοιχεία σου συγχρονίζονται με ασφάλεια.',
+  signupSuccess: 'Ο λογαριασμός δημιουργήθηκε. Έλεγξε το email σου για επιβεβαίωση, αν ζητηθεί.',
+  logoutSuccess: 'Αποσυνδέθηκες επιτυχώς.',
+  passwordResetSent: 'Σου στείλαμε email για επαναφορά κωδικού, αν υπάρχει λογαριασμός με αυτό το email.',
+  networkError: 'Δεν ήταν δυνατή η επικοινωνία με την υπηρεσία σύνδεσης. Έλεγξε τη σύνδεσή σου και δοκίμασε ξανά.',
 };
 
 const navButtons = document.querySelectorAll('.nav-item');
@@ -219,8 +225,16 @@ const clearDataButton = document.querySelector('#clear-data-button');
 const authForm = document.querySelector('#auth-form');
 const authEmail = document.querySelector('#auth-email');
 const authPassword = document.querySelector('#auth-password');
-const authSignupButton = document.querySelector('#auth-signup-button');
-const authLoginButton = document.querySelector('#auth-login-button');
+const authLoginTab = document.querySelector('#auth-login-tab');
+const authSignupTab = document.querySelector('#auth-signup-tab');
+const authSubmitButton = document.querySelector('#auth-submit-button');
+const authForgotPasswordButton = document.querySelector('#auth-forgot-password');
+const authPasswordToggle = document.querySelector('#auth-password-toggle');
+const authFields = document.querySelector('#auth-fields');
+const authPasswordField = document.querySelector('#auth-password-field');
+const authSignedIn = document.querySelector('#auth-signed-in');
+const authUserEmail = document.querySelector('#auth-user-email');
+const authIndicator = document.querySelector('#auth-indicator');
 const authLogoutButton = document.querySelector('#auth-logout-button');
 const authStatus = document.querySelector('#auth-status');
 const storageMode = document.querySelector('#storage-mode');
@@ -269,6 +283,7 @@ let preparedSosContact = null;
 let preparedSosTrackingUrl = '';
 let currentUser = null;
 let authMode = 'login';
+let hasPendingLogoutMessage = false;
 let isRemoteSyncing = false;
 let sosHistoryEvents = [];
 let sosHistoryStatus = '';
@@ -1609,16 +1624,72 @@ async function saveProfile(event) {
 
 
 function setAuthLoading(isLoading) {
-  authSignupButton.disabled = isLoading;
-  authLoginButton.disabled = isLoading;
+  authSubmitButton.disabled = isLoading || Boolean(currentUser);
+  authForgotPasswordButton.disabled = isLoading || Boolean(currentUser);
+  authLoginTab.disabled = isLoading || Boolean(currentUser);
+  authSignupTab.disabled = isLoading || Boolean(currentUser);
+  authPasswordToggle.disabled = isLoading || Boolean(currentUser);
   authLogoutButton.disabled = isLoading || !currentUser;
+}
+
+function getFriendlyAuthErrorMessage(error) {
+  const rawMessage = String(error?.message || '').toLowerCase();
+
+  if (rawMessage.includes('invalid login credentials') || rawMessage.includes('invalid credentials')) {
+    return 'Το email ή ο κωδικός δεν είναι σωστός. Έλεγξέ τα και δοκίμασε ξανά.';
+  }
+
+  if (rawMessage.includes('email not confirmed') || rawMessage.includes('not confirmed')) {
+    return 'Το email σου δεν έχει επιβεβαιωθεί ακόμη. Άνοιξε το email επιβεβαίωσης και δοκίμασε ξανά.';
+  }
+
+  if (rawMessage.includes('failed to fetch') || rawMessage.includes('network') || rawMessage.includes('fetch')) {
+    return authStatusMessages.networkError;
+  }
+
+  if (rawMessage.includes('already registered') || rawMessage.includes('user already registered')) {
+    return 'Υπάρχει ήδη λογαριασμός με αυτό το email. Δοκίμασε σύνδεση ή επαναφορά κωδικού.';
+  }
+
+  if (rawMessage.includes('password')) {
+    return 'Ο κωδικός δεν έγινε δεκτός. Χρησιμοποίησε τουλάχιστον 6 χαρακτήρες.';
+  }
+
+  return 'Κάτι πήγε στραβά με τη σύνδεση. Δοκίμασε ξανά σε λίγο.';
+}
+
+function setAuthMode(nextMode) {
+  authMode = nextMode;
+  renderAuth();
 }
 
 function renderAuth() {
   const signedIn = Boolean(currentUser);
+  const isSignup = authMode === 'signup';
+  const userEmail = currentUser?.email || '';
+
   authLogoutButton.hidden = !signedIn;
+  authFields.hidden = signedIn;
+  authPasswordField.hidden = signedIn;
+  authSubmitButton.hidden = signedIn;
+  authForgotPasswordButton.hidden = signedIn;
+  authLoginTab.hidden = signedIn;
+  authSignupTab.hidden = signedIn;
+  authSignedIn.hidden = !signedIn;
+  authUserEmail.textContent = userEmail;
   authEmail.disabled = signedIn;
   authPassword.disabled = signedIn;
+  authEmail.required = !signedIn;
+  authPassword.required = !signedIn;
+  authSubmitButton.textContent = isSignup ? 'Δημιουργία λογαριασμού' : 'Σύνδεση';
+  authPassword.autocomplete = isSignup ? 'new-password' : 'current-password';
+  authLoginTab.classList.toggle('active', !isSignup);
+  authSignupTab.classList.toggle('active', isSignup);
+  authLoginTab.setAttribute('aria-selected', String(!isSignup));
+  authSignupTab.setAttribute('aria-selected', String(isSignup));
+  authIndicator.textContent = signedIn ? 'Συνδεδεμένος' : 'Χωρίς σύνδεση';
+  authIndicator.classList.toggle('signed-in', signedIn);
+  authIndicator.classList.toggle('signed-out', !signedIn);
   storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικά, χωρίς backend';
 
   if (!authStatus.textContent) {
@@ -1629,6 +1700,38 @@ function renderAuth() {
 function showAuthMessage(message, isError = false) {
   authStatus.textContent = message;
   authStatus.classList.toggle('error', isError);
+}
+
+function togglePasswordVisibility() {
+  const showPassword = authPassword.type === 'password';
+  authPassword.type = showPassword ? 'text' : 'password';
+  authPasswordToggle.textContent = showPassword ? 'Απόκρυψη' : 'Εμφάνιση';
+}
+
+async function sendPasswordResetEmail() {
+  const email = authEmail.value.trim();
+
+  if (!email) {
+    showAuthMessage('Συμπλήρωσε πρώτα το email σου για να στείλουμε οδηγίες επαναφοράς.', true);
+    authEmail.focus();
+    return;
+  }
+
+  setAuthLoading(true);
+
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: PASSWORD_RESET_REDIRECT_URL,
+    });
+
+    if (error) throw error;
+
+    showAuthMessage(authStatusMessages.passwordResetSent);
+  } catch (error) {
+    showAuthMessage(getFriendlyAuthErrorMessage(error), true);
+  } finally {
+    setAuthLoading(false);
+  }
 }
 
 async function saveProfileToSupabase() {
@@ -1736,12 +1839,12 @@ async function handleAuthSubmit(event) {
     currentUser = data.user || currentUser;
     authPassword.value = '';
     showAuthMessage(authMode === 'signup'
-      ? 'Ο λογαριασμός δημιουργήθηκε. Έλεγξε email επιβεβαίωσης αν ζητηθεί.'
-      : 'Συνδέθηκες επιτυχώς.');
+      ? authStatusMessages.signupSuccess
+      : authStatusMessages.signedIn);
     renderAuth();
     await loadSupabaseData();
   } catch (error) {
-    showAuthMessage(error.message || 'Η σύνδεση απέτυχε.', true);
+    showAuthMessage(getFriendlyAuthErrorMessage(error), true);
   } finally {
     setAuthLoading(false);
   }
@@ -1751,13 +1854,14 @@ async function logout() {
   setAuthLoading(true);
 
   try {
+    hasPendingLogoutMessage = true;
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
 
     currentUser = null;
     authEmail.value = '';
     authPassword.value = '';
-    showAuthMessage(authStatusMessages.signedOut);
+    showAuthMessage(authStatusMessages.logoutSuccess);
     sosHistoryEvents = [];
     sosHistoryStatus = '';
     activeSosSession = null;
@@ -1766,7 +1870,8 @@ async function logout() {
     syncActiveSosLocationAutoUpdate();
     renderAuth();
   } catch (error) {
-    showAuthMessage(error.message || 'Η αποσύνδεση απέτυχε.', true);
+    hasPendingLogoutMessage = false;
+    showAuthMessage(getFriendlyAuthErrorMessage(error), true);
   } finally {
     setAuthLoading(false);
   }
@@ -1789,7 +1894,12 @@ async function initializeAuth() {
       renderSosHistory();
       renderActiveSosSession();
       syncActiveSosLocationAutoUpdate();
-      showAuthMessage(authStatusMessages.signedOut);
+      if (hasPendingLogoutMessage) {
+        showAuthMessage(authStatusMessages.logoutSuccess);
+        hasPendingLogoutMessage = false;
+      } else {
+        showAuthMessage(authStatusMessages.signedOut);
+      }
     } else {
       loadSupabaseData();
     }
@@ -1838,8 +1948,10 @@ sosModal.addEventListener('click', (event) => {
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !sosModal.hidden) closeSosModal();
 });
-authSignupButton.addEventListener('click', () => { authMode = 'signup'; });
-authLoginButton.addEventListener('click', () => { authMode = 'login'; });
+authSignupTab.addEventListener('click', () => setAuthMode('signup'));
+authLoginTab.addEventListener('click', () => setAuthMode('login'));
+authForgotPasswordButton.addEventListener('click', sendPasswordResetEmail);
+authPasswordToggle.addEventListener('click', togglePasswordVisibility);
 authForm.addEventListener('submit', handleAuthSubmit);
 authLogoutButton.addEventListener('click', logout);
 contactsForm.addEventListener('submit', addContact);

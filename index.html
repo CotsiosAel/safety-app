@@ -50,6 +50,7 @@
           </div>
           <div class="topbar-actions">
             <span class="status-pill"><span></span> Online</span>
+            <span class="auth-indicator signed-out" id="auth-indicator" aria-live="polite">Χωρίς σύνδεση</span>
             <button class="ghost-button" id="share-location-button" type="button">Μοιράσου θέση</button>
           </div>
         </header>
@@ -202,23 +203,31 @@
 
           <form class="auth-card" id="auth-form">
             <div class="section-heading compact-heading">
-              <p class="eyebrow">Supabase auth</p>
-              <h2>Σύνδεση ή εγγραφή</h2>
+              <p class="eyebrow">Ασφαλής λογαριασμός</p>
+              <h2>Σύνδεση στο SafeMe</h2>
               <p>Συνδέσου για συγχρονισμό προφίλ και έμπιστων επαφών. Χωρίς σύνδεση, το SafeMe συνεχίζει με localStorage.</p>
             </div>
-            <div class="form-grid">
+            <p class="auth-signed-in" id="auth-signed-in" hidden>Συνδεδεμένος ως: <strong id="auth-user-email"></strong></p>
+            <div class="auth-mode-tabs" role="tablist" aria-label="Επιλογή σύνδεσης ή δημιουργίας λογαριασμού">
+              <button class="auth-mode-tab active" id="auth-login-tab" type="button" role="tab" aria-selected="true">Σύνδεση</button>
+              <button class="auth-mode-tab" id="auth-signup-tab" type="button" role="tab" aria-selected="false">Δημιουργία λογαριασμού</button>
+            </div>
+            <div class="form-grid" id="auth-fields">
               <label>
                 <span>Email</span>
                 <input id="auth-email" name="email" type="email" autocomplete="email" required />
               </label>
-              <label>
+              <label class="password-field" id="auth-password-field">
                 <span>Κωδικός</span>
-                <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="6" required />
+                <span class="password-input-wrap">
+                  <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="6" required />
+                  <button class="password-toggle" id="auth-password-toggle" type="button">Εμφάνιση</button>
+                </span>
               </label>
             </div>
             <div class="auth-actions">
-              <button class="primary-button inline-button" id="auth-login-button" type="submit">Σύνδεση</button>
-              <button class="ghost-button inline-button" id="auth-signup-button" type="submit">Εγγραφή</button>
+              <button class="primary-button inline-button" id="auth-submit-button" type="submit">Σύνδεση</button>
+              <button class="ghost-button inline-button" id="auth-forgot-password" type="button">Ξέχασα τον κωδικό μου</button>
               <button class="danger-outline-button inline-button" id="auth-logout-button" type="button" hidden>Αποσύνδεση</button>
             </div>
             <p class="save-status" id="auth-status" aria-live="polite"></p>
