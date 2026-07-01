@@ -122,6 +122,8 @@ function renderPublicTrackingPage(state) {
               allowfullscreen>
             </iframe>
           </div>
+          <p class="public-tracking-coordinates">Συντεταγμένες: ${escapeHtml(coordinates)}</p>
+          <p class="public-tracking-map-fallback">Αν ο χάρτης δεν εμφανίζεται, άνοιξέ τον στο Google Maps.</p>
           <a class="public-tracking-map" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener">Άνοιγμα στο Google Maps</a>`
         : '<p class="public-tracking-muted">Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα.</p>'}
       <button class="primary-button inline-button" id="public-tracking-refresh" type="button">Ανανέωση τοποθεσίας</button>

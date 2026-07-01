@@ -682,19 +682,30 @@ body.tracking-mode .modal-backdrop {
   position: relative;
   overflow: hidden;
   width: 100%;
-  min-height: 320px;
-  margin: 0 0 16px;
+  height: 360px;
+  margin: 0 0 14px;
   border: 1px solid #dbe6f3;
   border-radius: 22px;
   background: #e7edf5;
 }
 
 .public-tracking-map-embed iframe {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
   border: 0;
+  display: block;
+}
+
+.public-tracking-coordinates,
+.public-tracking-map-fallback {
+  margin: 0 0 10px;
+  color: var(--muted);
+  line-height: 1.5;
+  font-weight: 800;
+}
+
+.public-tracking-map-fallback {
+  color: var(--ink);
 }
 
 .public-tracking-map {
@@ -720,4 +731,5 @@ body.tracking-mode .modal-backdrop {
 @media (max-width: 640px) {
   .public-tracking-card { border-radius: 24px; }
   .public-tracking-details div { grid-template-columns: 1fr; gap: 4px; }
+  .public-tracking-map-embed { height: 280px; }
 }
