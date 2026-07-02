@@ -123,10 +123,10 @@
                 <div class="sos-contact-notify-header">
                   <div>
                     <p class="eyebrow">Emergency contacts</p>
-                    <h4 id="sos-contact-notify-title">Notify emergency contacts</h4>
-                    <p>Στείλε χειροκίνητα το SOS μήνυμα σε όσες επαφές μπορείς. Το SafeMe δεν στέλνει αυτόματα SMS.</p>
+                    <h4 id="sos-contact-notify-title">Ειδοποίηση επαφών έκτακτης ανάγκης</h4>
+                    <p>Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται.</p>
                   </div>
-                  <button class="danger-button compact-danger-button" id="notify-all-sos-contacts" type="button">Notify all contacts</button>
+                  <button class="danger-button compact-danger-button" id="notify-all-sos-contacts" type="button">Ειδοποίηση όλων των επαφών</button>
                 </div>
                 <p class="sos-contact-warning" id="sos-contact-warning" aria-live="polite"></p>
                 <div class="sos-contact-list" id="sos-contact-list" aria-live="polite"></div>
@@ -141,6 +141,7 @@
                 <button class="ghost-button" id="test-active-sos-live-sync" type="button">Δοκιμή live sync τώρα</button>
                 <button class="ghost-button" id="refresh-active-sos-gps" type="button">Ανανέωση GPS τώρα</button>
                 <button class="danger-outline-button" id="disable-active-sos-tracking" type="button">Απενεργοποίηση tracking link</button>
+                <button class="danger-button" id="notify-all-sos-contacts-action" type="button">Ειδοποίηση όλων των επαφών</button>
                 <button class="danger-outline-button" id="end-active-sos" type="button">Τερματισμός SOS</button>
                 <a class="emergency-action-button" href="tel:112">Κλήση 112</a>
                 <a class="emergency-action-button" href="tel:199">Κλήση 199</a>
@@ -622,22 +623,24 @@
 
     <div class="modal-backdrop" id="sos-modal" role="dialog" aria-modal="true" aria-labelledby="sos-modal-title" hidden>
       <div class="modal-card">
-        <button class="modal-close" type="button" data-close-sos aria-label="Κλείσιμο">×</button>
-        <div id="sos-confirmation-step">
+        <button class="modal-close" type="button" data-close-sos aria-label="Ακύρωση SOS">×</button>
+        <div class="sos-countdown-step" id="sos-confirmation-step">
           <span class="modal-icon">⚡</span>
-          <p class="eyebrow">Επιβεβαίωση SOS</p>
-          <h2 id="sos-modal-title">Να ετοιμαστεί μήνυμα SOS;</h2>
-          <p>Θα δημιουργηθεί μήνυμα με τα στοιχεία σου και link τοποθεσίας για αποστολή σε έμπιστη επαφή.</p>
-          <div class="modal-actions">
-            <button class="ghost-button" type="button" data-close-sos>Άκυρο</button>
-            <button class="danger-button" id="sos-confirm" type="button">Ναι, ετοίμασε SOS</button>
+          <p class="sos-test-mode-label" id="sos-countdown-test-label" hidden>Λειτουργία δοκιμής SOS</p>
+          <p class="eyebrow">SafeMe SOS</p>
+          <h2 id="sos-modal-title">Ενεργοποίηση SOS</h2>
+          <p>Η ειδοποίηση θα ετοιμαστεί για τις επαφές έκτακτης ανάγκης.</p>
+          <output class="sos-countdown-number" id="sos-countdown-number" aria-live="assertive">5</output>
+          <div class="modal-actions sos-countdown-actions">
+            <button class="danger-outline-button sos-cancel-button" type="button" data-close-sos>Ακύρωση</button>
+            <button class="danger-button visually-hidden" id="sos-confirm" type="button" tabindex="-1">Ενεργοποίηση τώρα</button>
           </div>
         </div>
         <div class="sos-action-panel" id="sos-action-panel" hidden>
           <span class="modal-icon">🆘</span>
           <p class="eyebrow">SafeMe SOS</p>
-          <h2 id="sos-action-title">Το μήνυμα SOS είναι έτοιμο</h2>
-          <p class="sos-test-mode-label" id="sos-test-mode-label" hidden>Λειτουργία δοκιμής ενεργή</p>
+          <h2 id="sos-action-title">Το SOS ενεργοποιήθηκε</h2>
+          <p class="sos-test-mode-label" id="sos-test-mode-label" hidden>Λειτουργία δοκιμής SOS</p>
           <p id="sos-action-description">Διάλεξε τρόπο αποστολής προς την κύρια έμπιστη επαφή ή αντιγραφή για χειροκίνητη χρήση.</p>
           <section class="emergency-call-section modal-emergency-calls" aria-labelledby="sos-emergency-call-title">
             <h3 id="sos-emergency-call-title">Άμεση κλήση έκτακτης ανάγκης</h3>

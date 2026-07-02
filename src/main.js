@@ -241,6 +241,8 @@ const sosCopyMessageButton = document.querySelector('#sos-copy-message');
 const sosCopyTrackingButton = document.querySelector('#sos-copy-tracking');
 const sosNativeShareButton = document.querySelector('#sos-native-share');
 const sosConfirmButton = document.querySelector('#sos-confirm');
+const sosCountdownNumber = document.querySelector('#sos-countdown-number');
+const sosCountdownTestLabel = document.querySelector('#sos-countdown-test-label');
 const sosCancelButtons = document.querySelectorAll('[data-close-sos]');
 const contactsList = document.querySelector('#contacts-list');
 const contactsForm = document.querySelector('#contact-form');
@@ -387,6 +389,7 @@ const sosContactNotify = document.querySelector('#sos-contact-notify');
 const sosContactList = document.querySelector('#sos-contact-list');
 const sosContactWarning = document.querySelector('#sos-contact-warning');
 const notifyAllSosContactsButton = document.querySelector('#notify-all-sos-contacts');
+const notifyAllSosContactsActionButton = document.querySelector('#notify-all-sos-contacts-action');
 const sosNotificationHistoryList = document.querySelector('#sos-notification-history-list');
 
 
@@ -607,12 +610,15 @@ function renderSosContactNotifications() {
   if (!hasActive) return;
 
   const trackingUrl = getSosTrackingUrl(activeSosSession?.shareToken);
-  notifyAllSosContactsButton.disabled = !trackingUrl || contacts.length === 0;
-  sosContactWarning.textContent = !trackingUrl
-    ? 'Προσοχή: δεν υπάρχει active tracking link. Συνδέσου ή δημιούργησε link πριν στείλεις SOS μήνυμα.'
-    : contacts.length === 0
-      ? 'Δεν υπάρχουν emergency contacts. Πήγαινε στις Επαφές για setup.'
-      : '';
+  notifyAllSosContactsButton.disabled = !trackingUrl || contacts.length === 0 || isSosTestMode;
+  if (notifyAllSosContactsActionButton) notifyAllSosContactsActionButton.disabled = !trackingUrl || contacts.length === 0 || isSosTestMode;
+  sosContactWarning.textContent = isSosTestMode
+    ? 'Λειτουργία δοκιμής SOS: δεν ετοιμάζεται πραγματικό μήνυμα έκτακτης ανάγκης.'
+    : !trackingUrl
+      ? 'Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται. Δεν υπάρχει active tracking link.'
+      : contacts.length === 0
+        ? 'Δεν υπάρχουν emergency contacts. Πήγαινε στις Επαφές για setup.'
+        : 'Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται.';
 
   if (contacts.length === 0) {
     sosContactList.innerHTML = '<article class="sos-contact-empty"><strong>Δεν υπάρχουν emergency contacts</strong><p>Άνοιξε τις Επαφές και πρόσθεσε τουλάχιστον ένα άτομο.</p><button class="ghost-button" type="button" data-sos-open-contacts>Άνοιγμα επαφών</button></article>';
@@ -641,6 +647,7 @@ function renderSosContactNotifications() {
 }
 
 async function notifyAllSosContacts() {
+  if (isSosTestMode) { renderActiveSosSession('Λειτουργία δοκιμής SOS: δεν ετοιμάστηκε πραγματικό μήνυμα έκτακτης ανάγκης.'); return; }
   const message = getActiveSosEmergencyMessage();
   const trackingUrl = getSosTrackingUrl(activeSosSession?.shareToken);
   if (!trackingUrl) { renderActiveSosSession('Δεν υπάρχει tracking link — δεν στέλνω broken SOS μήνυμα.'); return; }
@@ -686,6 +693,8 @@ let preparedSosMessage = '';
 let preparedSosContact = null;
 let preparedContactInvite = null;
 let preparedSosTrackingUrl = '';
+let sosCountdownTimer = null;
+let sosCountdownRemaining = 5;
 let currentUser = null;
 let authMode = 'login';
 let isPasswordRecoveryMode = false;
@@ -1497,7 +1506,7 @@ const trustedContactInviteMessage = [
 function getSosMessageIntro() {
   return isSosTestMode
     ? 'ΔΟΚΙΜΗ SOS - Δεν πρόκειται για πραγματική ανάγκη.'
-    : 'SOS - Χρειάζομαι βοήθεια.';
+    : 'Χρειάζομαι βοήθεια. Αυτή είναι η τοποθεσία μου:';
 }
 
 function getSosTrackingUrl(shareToken) {
@@ -1514,21 +1523,15 @@ function buildSosMessage(location = currentLocation, shareToken = activeSosSessi
     : 'Δεν μπόρεσα να πάρω τοποθεσία από τη συσκευή μου.';
   const trackingUrl = getSosTrackingUrl(shareToken);
   const trackingText = trackingUrl || 'Δεν είναι διαθέσιμο χωρίς σύνδεση στο SafeMe.';
-  const medicalText = profile?.medicalNotes || 'Δεν έχουν προστεθεί.';
-
-  return [
-    `${getSosMessageIntro()} Please check my live SafeMe status and contact emergency services if needed.`,
-    '',
-    `👤 Όνομα: ${profile?.name || 'Δεν έχει συμπληρωθεί.'}`,
-    `☎️ Τηλέφωνο: ${profile?.phone || 'Δεν έχει συμπληρωθεί.'}`,
-    '',
-    `📍 Άμεση τοποθεσία Google Maps: ${locationText}`,
-    '',
-    `🔴 Live tracking SafeMe: ${trackingText}`,
-    'Άνοιξε το link και έλεγξε τη live κατάσταση/τελευταία τοποθεσία μου.',
-    '',
-    `🧾 Ιατρικές σημειώσεις: ${medicalText}`,
-  ].join('\n');
+  const sentAt = new Intl.DateTimeFormat('el-GR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
+  const lines = [];
+  if (isSosTestMode) lines.push('Λειτουργία δοκιμής SOS - Δεν πρόκειται για πραγματική ανάγκη.', '');
+  lines.push(`${getSosMessageIntro()} ${trackingUrl || locationText}`);
+  if (profile?.name) lines.push(`Όνομα: ${profile.name}`);
+  lines.push(`Ώρα: ${sentAt}`);
+  lines.push(`Τοποθεσία: ${locationText}`);
+  if (trackingUrl) lines.push(`Tracking link: ${trackingText}`);
+  return lines.join('\n');
 }
 
 function getSmsLink(contact, message) {
@@ -2672,6 +2675,9 @@ function showSosActionPanel(message, contact, historyMessage = '') {
   sosActionPanel.hidden = false;
   sosMessagePreview.textContent = message;
   sosTestModeLabel.hidden = !isSosTestMode;
+  sosSendSmsButton.disabled = isSosTestMode;
+  sosSendWhatsappButton.disabled = isSosTestMode;
+  sosNativeShareButton.disabled = isSosTestMode;
   const contactMessage = contact
     ? `Κύρια επαφή: ${contact.name} (${formatPhone(contact.phone)})`
     : 'Δεν βρέθηκε κύρια επαφή.';
@@ -2693,6 +2699,9 @@ function resetSosModal() {
   sosCopyTrackingButton.hidden = true;
   sosCopyTrackingButton.disabled = true;
   sosCopyTrackingButton.textContent = 'Αντιγραφή tracking link';
+  sosSendSmsButton.disabled = false;
+  sosSendWhatsappButton.disabled = false;
+  sosNativeShareButton.disabled = false;
 }
 
 function sendPreparedSosSms() {
@@ -2781,6 +2790,34 @@ function getSosValidationMessage() {
   return '';
 }
 
+function stopSosCountdown() {
+  if (sosCountdownTimer) window.clearInterval(sosCountdownTimer);
+  sosCountdownTimer = null;
+}
+
+function renderSosCountdown() {
+  if (sosCountdownNumber) sosCountdownNumber.textContent = String(sosCountdownRemaining);
+  if (sosCountdownTestLabel) sosCountdownTestLabel.hidden = !isSosTestMode;
+  if (sosStatus) sosStatus.textContent = isSosTestMode
+    ? `Λειτουργία δοκιμής SOS: ενεργοποίηση σε ${sosCountdownRemaining}...`
+    : `Ενεργοποίηση SOS σε ${sosCountdownRemaining}...`;
+}
+
+function startSosCountdown() {
+  stopSosCountdown();
+  sosCountdownRemaining = 5;
+  renderSosCountdown();
+  sosCountdownTimer = window.setInterval(() => {
+    sosCountdownRemaining -= 1;
+    if (sosCountdownRemaining <= 0) {
+      stopSosCountdown();
+      confirmSos();
+      return;
+    }
+    renderSosCountdown();
+  }, 1000);
+}
+
 function openSosModal() {
   const validationMessage = getSosValidationMessage();
 
@@ -2794,12 +2831,20 @@ function openSosModal() {
   resetSosModal();
   sosModal.hidden = false;
   document.body.classList.add('modal-open');
-  sosConfirmButton.focus();
+  startSosCountdown();
+  sosModal.querySelector('[data-close-sos]')?.focus();
 }
 
 function closeSosModal() {
+  const wasCountingDown = !sosConfirmStep.hidden && Boolean(sosCountdownTimer);
+  stopSosCountdown();
   sosModal.hidden = true;
   document.body.classList.remove('modal-open');
+  if (wasCountingDown) {
+    sosStatus.textContent = 'Το SOS ακυρώθηκε πριν ενεργοποιηθεί.';
+    sosButton.classList.remove('activated');
+    sosButton.setAttribute('aria-pressed', 'false');
+  }
   sosButton.focus();
 }
 
@@ -2812,8 +2857,11 @@ async function confirmSos() {
     return;
   }
 
+  stopSosCountdown();
   setSosConfirmLoading(true);
-  sosStatus.textContent = 'Ετοιμάζω μήνυμα SOS με την τοποθεσία σου...';
+  sosStatus.textContent = isSosTestMode
+    ? 'Λειτουργία δοκιμής SOS: δεν ετοιμάζεται πραγματική ειδοποίηση.'
+    : 'Το SOS ενεργοποιήθηκε. Ετοιμάσαμε μήνυμα βοήθειας με την τοποθεσία σου.';
 
   if (!currentLocation) {
     await refreshLocation();
@@ -2821,6 +2869,14 @@ async function confirmSos() {
 
   const contact = getPrimaryContact();
   let historyMessage = '';
+
+  if (isSosTestMode) {
+    const message = buildSosMessage(currentLocation, null);
+    setSosConfirmLoading(false);
+    showSosActionPanel(message, contact, 'Λειτουργία δοκιμής SOS: δεν δημιουργήθηκε ενεργό SOS και δεν ετοιμάστηκε πραγματική αποστολή.');
+    markTestSosCompleted();
+    return;
+  }
 
   if (currentUser) {
     try {
@@ -2857,7 +2913,7 @@ async function confirmSos() {
     }
   }
 
-  showSosActionPanel(message, contact, historyMessage);
+  showSosActionPanel(message, contact, historyMessage || 'Το SOS ενεργοποιήθηκε. Ετοιμάσαμε μήνυμα βοήθειας με την τοποθεσία σου.');
   markTestSosCompleted();
 }
 
@@ -3723,6 +3779,7 @@ refreshActiveSosGpsButton.addEventListener('click', refreshActiveSosGpsNow);
 updateActiveSosLocationButton.addEventListener('click', updateActiveSosLocation);
 copyActiveSosTrackingButton.addEventListener('click', copyActiveSosTrackingLink);
 disableActiveSosTrackingButton.addEventListener('click', disableActiveSosTrackingLink);
+notifyAllSosContactsActionButton?.addEventListener('click', notifyAllSosContacts);
 endActiveSosButton.addEventListener('click', endActiveSosSession);
 safeWalkPresetButtons.forEach((button) => {
   button.addEventListener('click', () => {
