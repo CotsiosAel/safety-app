@@ -178,6 +178,7 @@
                 <button class="home-quick-action" type="button" data-open-tool="safe-walk">Safe Walk</button>
                 <button class="home-quick-action" type="button" data-open-tool="contacts">Οι επαφές μου</button>
               </div>
+              <p class="home-quick-action-status" id="home-quick-action-status" aria-live="polite"></p>
             </section>
 
             <section class="emergency-call-section" aria-labelledby="emergency-call-title">
@@ -225,11 +226,11 @@
             <p class="contacts-note">Καλό είναι οι έμπιστες επαφές να γνωρίζουν από πριν τι είναι το SafeMe.</p>
           </div>
 
-          <div class="card-list" id="contacts-list" aria-live="polite"></div>
+          <div class="card-list" id="contacts-list" tabindex="-1" aria-live="polite"></div>
 
           <button class="danger-outline-button contacts-clear-button" id="clear-contacts-button" type="button">Καθαρισμός επαφών</button>
 
-          <form class="form-card" id="contact-form">
+          <form class="form-card" id="contact-form" tabindex="-1">
             <div class="section-heading compact-heading">
               <p class="eyebrow">Νέα επαφή</p>
               <h2>Προσθήκη έμπιστης επαφής</h2>
@@ -290,7 +291,7 @@
             </article>
           </div>
 
-            <section class="safe-walk-card" id="safe-walk-section" aria-labelledby="safe-walk-title">
+            <section class="safe-walk-card" id="safe-walk-section" tabindex="-1" aria-labelledby="safe-walk-title">
               <div class="safe-walk-header">
                 <div>
                   <p class="eyebrow">SafeMe monitored trip</p>
@@ -340,7 +341,7 @@
               <p class="safe-walk-message" id="safe-walk-message" aria-live="polite"></p>
             </section>
 
-            <section class="checkin-card" id="checkin-section" aria-labelledby="checkin-title">
+            <section class="checkin-card" id="checkin-section" tabindex="-1" aria-labelledby="checkin-title">
               <div class="checkin-header">
                 <div>
                   <p class="eyebrow">SafeMe check-in timer</p>

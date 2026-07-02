@@ -325,7 +325,8 @@ const storageMode = document.querySelector('#storage-mode');
 const locationText = document.querySelector('#location-text');
 const refreshLocationButton = document.querySelector('#refresh-location-button');
 const shareLocationButton = document.querySelector('#share-location-button');
-const homeQuickActionButtons = document.querySelectorAll('[data-open-tool]');
+const homeQuickActions = document.querySelector('.home-quick-actions');
+const homeQuickActionStatus = document.querySelector('#home-quick-action-status');
 const safetyToolsTestSosButton = document.querySelector('#safety-tools-test-sos');
 const contactsReadinessText = document.querySelector('#contacts-readiness-text');
 const locationReadinessText = document.querySelector('#location-readiness-text');
@@ -921,11 +922,11 @@ function showPage(nextPage) {
 }
 
 
-function focusElementAfterScroll(element) {
+function focusElementAfterScroll(element, fallbackElement = null) {
   if (!element) return;
 
   element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  window.setTimeout(() => element.focus({ preventScroll: true }), 220);
+  window.setTimeout(() => (fallbackElement || element).focus({ preventScroll: true }), 220);
 }
 
 function openProfileAuthCard() {
@@ -943,7 +944,8 @@ function focusProfileForm() {
 
 function focusContactForm() {
   showPage('contacts');
-  focusElementAfterScroll(contactsForm?.elements?.name || contactsForm);
+  const contactTarget = contactsList?.children?.length ? contactsList : contactsForm;
+  focusElementAfterScroll(contactTarget, contactsForm?.elements?.name || contactTarget);
 }
 
 function openSettingsProfile() {
@@ -962,12 +964,44 @@ function focusSosButton() {
 
 function focusCheckInSection() {
   showPage('safety-tools');
-  focusElementAfterScroll(document.querySelector('#checkin-section'));
+  const checkInSection = document.querySelector('#checkin-section');
+  focusElementAfterScroll(checkInSection, checkInStartButton || checkInSection);
 }
 
 function focusSafeWalkSection() {
   showPage('safety-tools');
-  focusElementAfterScroll(document.querySelector('#safe-walk-section'));
+  const safeWalkSection = document.querySelector('#safe-walk-section');
+  focusElementAfterScroll(safeWalkSection, safeWalkDestination || safeWalkStartButton || safeWalkSection);
+}
+
+function setHomeQuickActionStatus(message) {
+  if (homeQuickActionStatus) {
+    homeQuickActionStatus.textContent = message;
+    window.clearTimeout(setHomeQuickActionStatus.timeoutId);
+    setHomeQuickActionStatus.timeoutId = window.setTimeout(() => {
+      homeQuickActionStatus.textContent = '';
+    }, 1800);
+  }
+  console.log(`[SafeMe Home] ${message}`);
+}
+
+function handleHomeQuickAction(action) {
+  if (action === 'checkin') {
+    setHomeQuickActionStatus('Άνοιγμα Check-in...');
+    focusCheckInSection();
+    return;
+  }
+
+  if (action === 'safe-walk') {
+    setHomeQuickActionStatus('Άνοιγμα Safe Walk...');
+    focusSafeWalkSection();
+    return;
+  }
+
+  if (action === 'contacts') {
+    setHomeQuickActionStatus('Άνοιγμα επαφών...');
+    focusContactForm();
+  }
 }
 
 function getHealthChecks() {
@@ -3745,16 +3779,12 @@ navButtons.forEach((button) => {
   button.addEventListener('click', () => showPage(button.dataset.page));
 });
 
-homeQuickActionButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    const action = button.dataset.openTool;
-    if (action === 'contacts') {
-      focusContactForm();
-      return;
-    }
-    if (action === 'checkin') focusCheckInSection();
-    if (action === 'safe-walk') focusSafeWalkSection();
-  });
+homeQuickActions?.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-open-tool]');
+  if (!button || !homeQuickActions.contains(button)) return;
+
+  event.preventDefault();
+  handleHomeQuickAction(button.dataset.openTool);
 });
 
 safetyToolsTestSosButton?.addEventListener('click', () => handleHealthAction('test-sos'));
