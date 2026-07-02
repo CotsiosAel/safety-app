@@ -3095,11 +3095,10 @@ async function deleteContact(index) {
 
   const previousContacts = contacts;
   isContactsMutationInProgress = true;
-  renderContacts();
+  updateContacts((currentContacts) => currentContacts.filter((contact) => contact.id !== contactToDelete.id));
 
   try {
     await deleteContactFromSupabase(contactToDelete);
-    updateContacts((currentContacts) => currentContacts.filter((contact) => contact.id !== contactToDelete.id));
   } catch (error) {
     updateContacts(previousContacts);
     window.alert('Δεν μπόρεσα να διαγράψω την επαφή. Δοκίμασε ξανά.');
@@ -3249,12 +3248,14 @@ async function addContact(event) {
 
   const previousContacts = contacts;
   isContactsMutationInProgress = true;
-  renderContacts();
+  updateContacts((currentContacts) => [...currentContacts, newContact]);
+  contactsForm.reset();
 
   try {
     const savedContact = await saveContactToSupabase(newContact);
-    updateContacts((currentContacts) => [...currentContacts, savedContact]);
-    contactsForm.reset();
+    updateContacts((currentContacts) => currentContacts.map((contact) => (
+      contact.id === newContact.id ? savedContact : contact
+    )));
   } catch (error) {
     updateContacts(previousContacts);
     window.alert('Δεν μπόρεσα να αποθηκεύσω την επαφή. Δοκίμασε ξανά.');
