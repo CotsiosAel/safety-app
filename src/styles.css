@@ -663,6 +663,18 @@ body.modal-open { overflow: hidden; }
   letter-spacing: -0.05em;
   text-transform: uppercase;
 }
+.active-sos-intro {
+  margin: 0;
+  padding: 14px 16px;
+  color: #991b1b;
+  background: #fff1f2;
+  border: 2px solid rgba(239, 35, 60, 0.22);
+  border-radius: 18px;
+  font-size: 1.05rem;
+  font-weight: 950;
+  line-height: 1.45;
+}
+
 .active-sos-details {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -762,6 +774,18 @@ body.modal-open { overflow: hidden; }
   justify-content: center;
   overflow-wrap: anywhere;
 }
+
+.sos-notify-primary,
+.active-sos-actions .active-sos-primary-action {
+  min-height: 72px;
+  font-size: 1.08rem;
+  box-shadow: 0 18px 42px rgba(239, 35, 60, 0.28);
+}
+
+.active-sos-actions .active-sos-primary-action {
+  grid-column: 1 / -1;
+}
+
 .emergency-action-button {
   display: inline-flex;
   align-items: center;
@@ -777,7 +801,19 @@ body.modal-open { overflow: hidden; }
 }
 
 @media (max-width: 900px) {
-  .active-sos-details { grid-template-columns: 1fr; }
+  .active-sos-intro {
+  margin: 0;
+  padding: 14px 16px;
+  color: #991b1b;
+  background: #fff1f2;
+  border: 2px solid rgba(239, 35, 60, 0.22);
+  border-radius: 18px;
+  font-size: 1.05rem;
+  font-weight: 950;
+  line-height: 1.45;
+}
+
+.active-sos-details { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
@@ -2396,46 +2432,6 @@ body.tracking-mode .modal-backdrop {
   }
 }
 
-.sos-countdown-step {
-  display: grid;
-  gap: 16px;
-}
-.sos-countdown-debug {
-  margin: -8px 0 0;
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-.sos-countdown-number {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: min(48vw, 190px);
-  height: min(48vw, 190px);
-  margin: 6px auto;
-  color: #fff;
-  background: radial-gradient(circle at 35% 25%, #fb7185, var(--red) 55%, var(--red-dark));
-  border-radius: 999px;
-  box-shadow: 0 24px 64px rgba(239, 35, 60, 0.38);
-  font-size: clamp(4.5rem, 22vw, 8rem);
-  font-weight: 1000;
-  line-height: 1;
-}
-.sos-countdown-progress {
-  width: min(62vw, 240px);
-  height: 10px;
-  margin: -2px auto 0;
-  overflow: hidden;
-  background: rgba(239, 35, 60, 0.14);
-  border-radius: 999px;
-}
-.sos-countdown-progress > span {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, var(--red), #fb7185);
-  border-radius: inherit;
-  transition: width 180ms ease;
-}
 .sos-cancel-button {
   min-height: 64px;
   font-size: 1.15rem;
