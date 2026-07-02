@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./src/styles.css?v=2026-07-01-2" />
+    <link rel="stylesheet" href="./src/styles.css?v=2026-07-02-home-mobile" />
   </head>
   <body>
     <div class="app-update-banner" id="app-update-banner" role="status" aria-live="polite" hidden>
@@ -68,24 +68,11 @@
 
         <section class="page page-grid active" id="home" aria-labelledby="page-title">
           <article class="hero-card">
-            <div class="hero-copy">
-              <p class="eyebrow">SafeMe emergency hub</p>
-              <h2>Μείνε ασφαλής με ένα άγγιγμα.</h2>
-              <p>Ενεργοποίησε SOS, ενημέρωσε τον κύκλο εμπιστοσύνης σου και κράτησε όλες τις κρίσιμες πληροφορίες σου σε ένα μοντέρνο, καθαρό περιβάλλον.</p>
+            <div class="hero-copy home-emergency-intro">
+              <p class="eyebrow">SafeMe emergency dashboard</p>
+              <h2>SOS πρώτα</h2>
+              <p>Άμεση πρόσβαση σε SOS, έμπιστες επαφές και τοποθεσία.</p>
             </div>
-
-            <section class="setup-checklist-card" id="setup-checklist" aria-labelledby="setup-checklist-title">
-              <div class="setup-checklist-header">
-                <div>
-                  <p class="eyebrow">SafeMe readiness</p>
-                  <h3 id="setup-checklist-title">Πρώτα βήματα ασφάλειας</h3>
-                  <p>Για να χρησιμοποιήσεις SOS χρειάζονται: προφίλ, έμπιστη επαφή, άδεια τοποθεσίας και μία δοκιμή.</p>
-                </div>
-                <span class="setup-checklist-progress" id="setup-checklist-progress" aria-live="polite">0/4</span>
-              </div>
-              <ul class="setup-checklist-items" id="setup-checklist-items" aria-live="polite"></ul>
-              <p class="setup-checklist-summary" id="setup-checklist-summary">Λείπουν ακόμα βήματα για πλήρη ετοιμότητα.</p>
-            </section>
 
             <div class="sos-stage" aria-live="polite">
               <span class="sos-ring sos-ring-one"></span>
@@ -162,6 +149,24 @@
 
 
 
+            <section class="home-readiness-summary" aria-label="Safety readiness">
+              <article class="info-card readiness-card" id="contacts-readiness-card">
+                <span class="card-icon">👥</span>
+                <div>
+                  <h3>Emergency contacts ready</h3>
+                  <p id="contacts-readiness-text">Πρόσθεσε έμπιστες επαφές για SOS ειδοποιήσεις.</p>
+                </div>
+              </article>
+
+              <article class="info-card readiness-card" id="location-readiness-card">
+                <span class="card-icon">📍</span>
+                <div>
+                  <h3>Location active</h3>
+                  <p id="location-readiness-text">Ενεργοποίησε την τοποθεσία για πιο χρήσιμο SOS.</p>
+                </div>
+              </article>
+            </section>
+
             <section class="home-quick-actions" aria-labelledby="home-quick-actions-title">
               <div class="section-heading compact-heading">
                 <p class="eyebrow">Quick actions</p>
@@ -170,7 +175,7 @@
               <div class="home-quick-action-grid">
                 <button class="home-quick-action" type="button" data-open-tool="checkin">Check-in</button>
                 <button class="home-quick-action" type="button" data-open-tool="safe-walk">Safe Walk</button>
-                <button class="home-quick-action" type="button" data-open-tool="contacts">My contacts</button>
+                <button class="home-quick-action" type="button" data-open-tool="contacts">Οι επαφές μου</button>
               </div>
             </section>
 
@@ -182,19 +187,21 @@
               </div>
               <p>Χρησιμοποίησε τους αριθμούς έκτακτης ανάγκης μόνο σε πραγματική ανάγκη.</p>
             </section>
+
+            <section class="setup-checklist-card home-setup-card" id="setup-checklist" aria-labelledby="setup-checklist-title">
+              <div class="setup-checklist-header">
+                <div>
+                  <p class="eyebrow">SafeMe readiness</p>
+                  <h3 id="setup-checklist-title">Πρώτα βήματα ασφάλειας</h3>
+                  <p>Για να χρησιμοποιήσεις SOS χρειάζονται: προφίλ, έμπιστη επαφή, άδεια τοποθεσίας και μία δοκιμή.</p>
+                </div>
+                <span class="setup-checklist-progress" id="setup-checklist-progress" aria-live="polite">0/4</span>
+              </div>
+              <ul class="setup-checklist-items" id="setup-checklist-items" aria-live="polite"></ul>
+              <p class="setup-checklist-summary" id="setup-checklist-summary">Λείπουν ακόμα βήματα για πλήρη ετοιμότητα.</p>
+            </section>
           </article>
 
-          <article class="info-card readiness-card" id="contacts-readiness-card">
-            <span class="card-icon">👥</span>
-            <h3>Emergency contacts ready</h3>
-            <p id="contacts-readiness-text">Πρόσθεσε έμπιστες επαφές για SOS ειδοποιήσεις.</p>
-          </article>
-
-          <article class="info-card readiness-card" id="location-readiness-card">
-            <span class="card-icon">📍</span>
-            <h3>Location active</h3>
-            <p id="location-readiness-text">Ενεργοποίησε την τοποθεσία για πιο χρήσιμο SOS.</p>
-          </article>
 
           <article class="info-card safety-status-card status-normal" id="safety-status-card">
             <span class="card-icon" id="safety-status-icon">💗</span>
