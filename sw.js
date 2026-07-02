@@ -1,16 +1,16 @@
-const CACHE_NAME = 'safeme-shell-2026-07-02-contacts-state-fix';
+const CACHE_NAME = 'safeme-shell-2026-07-02-pwa-update-fix';
 const SHELL_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css?v=2026-07-02-contacts-state-fix',
-  './src/main.js?v=2026-07-02-contacts-state-fix',
+  './src/styles.css?v=2026-07-02-pwa-update-fix',
+  './src/main.js?v=2026-07-02-pwa-update-fix',
   './assets/icon.png',
   './version.json',
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS)));
 });
 
 self.addEventListener('activate', (event) => {
@@ -18,7 +18,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('fetch', (event) => {

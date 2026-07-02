@@ -5,7 +5,7 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const SOS_TRACKING_BASE_URL = 'https://cotsiosael.github.io/safety-app/';
-const APP_VERSION = '2026-07-02-emergency-repair';
+const APP_VERSION = '2026-07-02-contacts-state-fix';
 const APP_VERSION_URL = './version.json';
 const trackingParams = new URLSearchParams(window.location.search);
 const hasTrackingTokenParam = trackingParams.has('track');
@@ -430,21 +430,74 @@ function isActiveSosInProgress() {
   return activeSosSession?.status === 'active';
 }
 
+function clearStoredAppUpdateFlags() {
+  const legacyUpdateKeys = [
+    'app-update-available',
+    'safeme-app-update-available',
+    'safeme-update-available',
+    'safety-app-update-available',
+    'safeme-waiting-service-worker',
+  ];
+
+  legacyUpdateKeys.forEach((key) => {
+    try { localStorage.removeItem(key); } catch {}
+    try { sessionStorage.removeItem(key); } catch {}
+  });
+}
+
+function hideAppUpdateBanner() {
+  hasAppUpdateAvailable = false;
+  waitingServiceWorker = null;
+  clearStoredAppUpdateFlags();
+  if (appUpdateBanner) appUpdateBanner.hidden = true;
+}
+
 function showAppUpdateBanner(message = 'Update available / Νέα έκδοση διαθέσιμη.') {
+  if (!waitingServiceWorker) {
+    hideAppUpdateBanner();
+    return;
+  }
+
   hasAppUpdateAvailable = true;
+  clearStoredAppUpdateFlags();
   if (!appUpdateBanner) return;
   appUpdateMessage.textContent = message;
   appUpdateBanner.hidden = false;
 }
 
-function refreshAppSafely({ requireConfirmationForActiveSos = true } = {}) {
+function setWaitingServiceWorker(worker) {
+  if (!worker || !navigator.serviceWorker.controller) {
+    hideAppUpdateBanner();
+    return;
+  }
+
+  waitingServiceWorker = worker;
+  showAppUpdateBanner(isActiveSosInProgress()
+    ? 'Νέα έκδοση διαθέσιμη. Το SOS είναι ενεργό — κάνε refresh όταν είναι ασφαλές.'
+    : 'Update available / Νέα έκδοση διαθέσιμη.');
+}
+
+async function refreshAppSafely({ requireConfirmationForActiveSos = true } = {}) {
   if (isActiveSosInProgress() && requireConfirmationForActiveSos) {
     const shouldRefresh = window.confirm('SOS is active. Refresh manually only if needed.');
     if (!shouldRefresh) return false;
   }
 
-  if (waitingServiceWorker) waitingServiceWorker.postMessage({ type: 'SKIP_WAITING' });
-  window.location.reload();
+  const registration = navigator.serviceWorker?.getRegistration
+    ? await navigator.serviceWorker.getRegistration()
+    : null;
+  const worker = waitingServiceWorker || registration?.waiting || null;
+
+  if (!worker) {
+    hideAppUpdateBanner();
+    return false;
+  }
+
+  if (isReloadingForServiceWorkerUpdate) return true;
+  isReloadingForServiceWorkerUpdate = true;
+  if (appUpdateRefreshButton) appUpdateRefreshButton.disabled = true;
+  if (appUpdateMessage) appUpdateMessage.textContent = 'Updating… / Γίνεται ενημέρωση…';
+  worker.postMessage({ type: 'SKIP_WAITING' });
   return true;
 }
 
@@ -454,52 +507,50 @@ async function checkForAppUpdate({ force = false } = {}) {
   lastVersionCheckAt = now;
 
   try {
-    const response = await fetch(`${APP_VERSION_URL}?t=${now}`, { cache: 'no-store' });
-    if (response.ok) {
-      const data = await response.json();
-      if (data.version && data.version !== APP_VERSION) {
-        showAppUpdateBanner(isActiveSosInProgress()
-          ? 'Νέα έκδοση διαθέσιμη. Το SOS είναι ενεργό — πάτησε Refresh app μόνο όταν είναι ασφαλές.'
-          : 'Update available / Νέα έκδοση διαθέσιμη.');
-      }
-    }
+    await fetch(`${APP_VERSION_URL}?t=${now}`, { cache: 'no-store' });
   } catch {}
 
   if (navigator.serviceWorker?.getRegistration) {
     const registration = await navigator.serviceWorker.getRegistration();
-    if (registration) await registration.update();
+    if (!registration) {
+      hideAppUpdateBanner();
+      return;
+    }
+
+    await registration.update();
+    if (registration.waiting) setWaitingServiceWorker(registration.waiting);
+    else if (!waitingServiceWorker) hideAppUpdateBanner();
   }
 }
 
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
 
+  clearStoredAppUpdateFlags();
+
   navigator.serviceWorker.register('./sw.js').then((registration) => {
-    if (registration.waiting) {
-      waitingServiceWorker = registration.waiting;
-      showAppUpdateBanner(isActiveSosInProgress()
-        ? 'Νέα έκδοση διαθέσιμη. Το SOS είναι ενεργό — κάνε refresh όταν είναι ασφαλές.'
-        : 'Update available / Νέα έκδοση διαθέσιμη.');
-    }
+    if (registration.waiting) setWaitingServiceWorker(registration.waiting);
+    else hideAppUpdateBanner();
 
     registration.addEventListener('updatefound', () => {
       const worker = registration.installing;
       if (!worker) return;
       worker.addEventListener('statechange', () => {
-        if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-          waitingServiceWorker = worker;
-          showAppUpdateBanner(isActiveSosInProgress()
-            ? 'Νέα έκδοση διαθέσιμη. Το SOS είναι ενεργό — κάνε refresh όταν είναι ασφαλές.'
-            : 'Update available / Νέα έκδοση διαθέσιμη.');
+        if (worker.state === 'installed') {
+          if (navigator.serviceWorker.controller) setWaitingServiceWorker(worker);
+          else hideAppUpdateBanner();
         }
       });
     });
-  }).catch(() => {});
+  }).catch(() => hideAppUpdateBanner());
 
-  let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (refreshing || isActiveSosInProgress()) return;
-    refreshing = true;
+    if (!isReloadingForServiceWorkerUpdate) {
+      hideAppUpdateBanner();
+      return;
+    }
+
+    hideAppUpdateBanner();
     window.location.reload();
   });
 }
@@ -753,6 +804,7 @@ let lastEndedSosSession = loadJson(storageKeys.endedSosSession, null);
 let waitingServiceWorker = null;
 let hasAppUpdateAvailable = false;
 let lastVersionCheckAt = 0;
+let isReloadingForServiceWorkerUpdate = false;
 let pendingLocalImport = null;
 
 
