@@ -2160,3 +2160,224 @@ body.tracking-mode .modal-backdrop {
     grid-template-columns: 1fr;
   }
 }
+
+/* Home dashboard refinements after Safety Tools navigation merge */
+.home-emergency-intro {
+  margin-bottom: 18px;
+}
+.home-emergency-intro h2 {
+  font-size: clamp(1.75rem, 5vw, 3.2rem);
+  line-height: 1;
+}
+.home-emergency-intro p:last-child {
+  margin-top: 10px;
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+.home-setup-card {
+  margin: 18px auto 0;
+}
+.home-readiness-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 720px;
+  margin: 18px auto 0;
+  text-align: left;
+}
+.home-readiness-summary .readiness-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 22px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+}
+.home-readiness-summary .card-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border-radius: 15px;
+  font-size: 1.18rem;
+}
+.home-readiness-summary h3 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+.home-readiness-summary p {
+  margin: 5px 0 0;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+.home-quick-action {
+  background: linear-gradient(180deg, #ffffff, #eef5ff);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.10);
+}
+
+@media (max-width: 960px) {
+  .sidebar {
+    position: relative;
+    top: auto;
+    z-index: 1;
+    padding: 12px 14px;
+  }
+  .brand-mark {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+  }
+  .brand strong { font-size: 1.2rem; }
+  .nav-list {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .nav-item {
+    min-height: 54px;
+    padding: 8px 6px;
+    border-radius: 14px;
+    font-size: 0.78rem;
+    line-height: 1.15;
+  }
+  .nav-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+  }
+  .content {
+    padding-top: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .content { padding: 14px 12px 30px; }
+  .topbar {
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .topbar > div:first-child {
+    display: none;
+  }
+  .topbar-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .topbar-actions .status-pill,
+  .topbar-actions .auth-indicator,
+  .topbar-actions .ghost-button {
+    min-height: 38px;
+    width: 100%;
+    padding: 8px 6px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    line-height: 1.15;
+    text-align: center;
+  }
+  .auth-indicator::before,
+  .status-pill span {
+    display: none;
+  }
+  .hero-card {
+    padding: 18px 14px 20px;
+    border-radius: 24px;
+  }
+  .home-emergency-intro {
+    margin-bottom: 8px;
+  }
+  .home-emergency-intro h2 {
+    font-size: 1.35rem;
+  }
+  .home-emergency-intro p:last-child {
+    display: none;
+  }
+  .home-setup-card {
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 18px;
+  }
+  .home-setup-card .setup-checklist-header p:not(.eyebrow),
+  .home-setup-card .setup-checklist-summary {
+    display: none;
+  }
+  .home-setup-card .setup-checklist-header {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  .home-setup-card .setup-checklist-header h3 {
+    font-size: 1rem;
+  }
+  .home-setup-card .setup-checklist-items {
+    gap: 8px;
+  }
+  .home-setup-card .setup-checklist-item {
+    padding: 9px;
+    border-radius: 14px;
+  }
+  .sos-stage {
+    width: min(66vw, 230px);
+    height: min(66vw, 230px);
+  }
+  .sos-button {
+    width: min(50vw, 176px);
+    height: min(50vw, 176px);
+  }
+  .sos-status { margin-top: 10px; }
+  .sos-test-toggle {
+    margin-top: 10px;
+    padding: 10px 12px;
+    font-size: 0.84rem;
+  }
+  .home-readiness-summary {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .home-readiness-summary .readiness-card {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 18px;
+  }
+  .home-readiness-summary .card-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    font-size: 1rem;
+  }
+  .home-readiness-summary h3 {
+    font-size: 0.84rem;
+    letter-spacing: -0.02em;
+  }
+  .home-readiness-summary p {
+    font-size: 0.74rem;
+  }
+  .home-quick-actions {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 20px;
+  }
+  .home-quick-action-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .home-quick-action {
+    min-height: 58px;
+    padding: 10px 8px;
+    border-radius: 16px;
+    font-size: 0.82rem;
+  }
+  .emergency-call-section {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 20px;
+  }
+  .emergency-call-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .emergency-call-button {
+    min-width: 0;
+  }
+}
