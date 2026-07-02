@@ -42,8 +42,8 @@
         <nav class="nav-list" aria-label="Μενού εφαρμογής">
           <button class="nav-item active" type="button" data-page="home" aria-current="page"><span class="nav-icon">⌂</span><span>Αρχική</span></button>
           <button class="nav-item" type="button" data-page="contacts"><span class="nav-icon">👥</span><span>Επαφές</span></button>
+          <button class="nav-item" type="button" data-page="safety-tools"><span class="nav-icon">🧰</span><span>Εργαλεία Ασφάλειας</span></button>
           <button class="nav-item" type="button" data-page="profile"><span class="nav-icon">◎</span><span>Προφίλ</span></button>
-          <button class="nav-item" type="button" data-page="health"><span class="nav-icon">✓</span><span>Έλεγχος</span></button>
           <button class="nav-item" type="button" data-page="settings"><span class="nav-icon">⚙</span><span>Ρυθμίσεις</span></button>
         </nav>
 
@@ -162,6 +162,126 @@
 
 
 
+            <section class="home-quick-actions" aria-labelledby="home-quick-actions-title">
+              <div class="section-heading compact-heading">
+                <p class="eyebrow">Quick actions</p>
+                <h3 id="home-quick-actions-title">Γρήγορη βοήθεια</h3>
+              </div>
+              <div class="home-quick-action-grid">
+                <button class="home-quick-action" type="button" data-open-tool="checkin">Check-in</button>
+                <button class="home-quick-action" type="button" data-open-tool="safe-walk">Safe Walk</button>
+                <button class="home-quick-action" type="button" data-open-tool="contacts">My contacts</button>
+              </div>
+            </section>
+
+            <section class="emergency-call-section" aria-labelledby="emergency-call-title">
+              <h3 id="emergency-call-title">Άμεση κλήση έκτακτης ανάγκης</h3>
+              <div class="emergency-call-buttons">
+                <a class="emergency-call-button" href="tel:112">Κλήση 112</a>
+                <a class="emergency-call-button" href="tel:199">Κλήση 199</a>
+              </div>
+              <p>Χρησιμοποίησε τους αριθμούς έκτακτης ανάγκης μόνο σε πραγματική ανάγκη.</p>
+            </section>
+          </article>
+
+          <article class="info-card readiness-card" id="contacts-readiness-card">
+            <span class="card-icon">👥</span>
+            <h3>Emergency contacts ready</h3>
+            <p id="contacts-readiness-text">Πρόσθεσε έμπιστες επαφές για SOS ειδοποιήσεις.</p>
+          </article>
+
+          <article class="info-card readiness-card" id="location-readiness-card">
+            <span class="card-icon">📍</span>
+            <h3>Location active</h3>
+            <p id="location-readiness-text">Ενεργοποίησε την τοποθεσία για πιο χρήσιμο SOS.</p>
+          </article>
+
+          <article class="info-card safety-status-card status-normal" id="safety-status-card">
+            <span class="card-icon" id="safety-status-icon">💗</span>
+            <h3 id="safety-status-title">Κατάσταση</h3>
+            <p id="safety-status-description">Ασφαλής και διαθέσιμη για check-in</p>
+            <div class="progress safety-status-progress" aria-hidden="true"><span></span></div>
+          </article>
+
+          <article class="quick-card">
+            <strong id="contact-count">0</strong>
+            <span>έμπιστες επαφές έτοιμες για ειδοποίηση</span>
+          </article>
+        </section>
+
+        <section class="page contacts-page" id="contacts" aria-label="Έμπιστες επαφές">
+          <div class="section-heading">
+            <p class="eyebrow">Trusted circle</p>
+            <h2>Έμπιστες επαφές</h2>
+            <p>Κάλεσε άμεσα ή ενημέρωσε τα άτομα που έχεις επιλέξει για καταστάσεις ανάγκης.</p>
+            <p class="contacts-note">Καλό είναι οι έμπιστες επαφές να γνωρίζουν από πριν τι είναι το SafeMe.</p>
+          </div>
+
+          <div class="card-list" id="contacts-list" aria-live="polite"></div>
+
+          <button class="danger-outline-button contacts-clear-button" id="clear-contacts-button" type="button">Καθαρισμός επαφών</button>
+
+          <form class="form-card" id="contact-form">
+            <div class="section-heading compact-heading">
+              <p class="eyebrow">Νέα επαφή</p>
+              <h2>Προσθήκη έμπιστης επαφής</h2>
+            </div>
+            <div class="form-grid">
+              <label>
+                <span>Όνομα</span>
+                <input name="name" type="text" placeholder="π.χ. Γιώργος Δημητρίου" required />
+              </label>
+              <label>
+                <span>Σχέση</span>
+                <input name="relationship" type="text" placeholder="π.χ. Πατέρας" required />
+              </label>
+              <label>
+                <span>Τηλέφωνο</span>
+                <input name="phone" type="tel" placeholder="π.χ. +306941234567" />
+              </label>
+              <label>
+                <span>Email (προαιρετικό)</span>
+                <input name="email" type="email" placeholder="π.χ. name@example.com" />
+              </label>
+            </div>
+            <button class="primary-button inline-button" type="submit">Αποθήκευση επαφής</button>
+          </form>
+        </section>
+
+        <section class="page safety-tools-page" id="safety-tools" aria-label="Εργαλεία Ασφάλειας">
+          <div class="section-heading">
+            <p class="eyebrow">Safety tools</p>
+            <h2>Εργαλεία Ασφάλειας</h2>
+            <p>Όλα τα εργαλεία πρόληψης και τοποθεσίας σε ένα καθαρό σημείο, ξεχωριστά από το SOS της αρχικής.</p>
+          </div>
+
+          <div class="safety-tools-grid">
+            <article class="safety-tool-card">
+              <span class="card-icon">🚶</span>
+              <h3>Safe Walk</h3>
+              <p>Ξεκίνα μια ασφαλή διαδρομή. Αν δεν επιβεβαιώσεις ότι έφτασες, το SafeMe θα ενεργοποιήσει SOS.</p>
+              <a class="primary-button tool-card-button" href="#safe-walk-section">Έναρξη Safe Walk</a>
+            </article>
+            <article class="safety-tool-card">
+              <span class="card-icon">✅</span>
+              <h3>Check-in Ασφαλείας</h3>
+              <p>Στείλε γρήγορη επιβεβαίωση ότι είσαι καλά.</p>
+              <a class="primary-button tool-card-button" href="#checkin-section">Κάνε Check-in</a>
+            </article>
+            <article class="safety-tool-card">
+              <span class="card-icon">📍</span>
+              <h3>Τρέχουσα Τοποθεσία</h3>
+              <p>Δες και μοιράσου την τρέχουσα θέση σου με τις επαφές σου.</p>
+              <a class="primary-button tool-card-button" href="#current-location-card">Προβολή τοποθεσίας</a>
+            </article>
+            <article class="safety-tool-card">
+              <span class="card-icon">🧪</span>
+              <h3>Δοκιμή SOS</h3>
+              <p>Δοκίμασε το SOS χωρίς να σταλεί πραγματική ειδοποίηση.</p>
+              <button class="primary-button tool-card-button" id="safety-tools-test-sos" type="button">Test Mode</button>
+            </article>
+          </div>
+
             <section class="safe-walk-card" id="safe-walk-section" aria-labelledby="safe-walk-title">
               <div class="safe-walk-header">
                 <div>
@@ -253,73 +373,12 @@
               <p class="checkin-message" id="checkin-message" aria-live="polite"></p>
             </section>
 
-            <section class="emergency-call-section" aria-labelledby="emergency-call-title">
-              <h3 id="emergency-call-title">Άμεση κλήση έκτακτης ανάγκης</h3>
-              <div class="emergency-call-buttons">
-                <a class="emergency-call-button" href="tel:112">Κλήση 112</a>
-                <a class="emergency-call-button" href="tel:199">Κλήση 199</a>
-              </div>
-              <p>Χρησιμοποίησε τους αριθμούς έκτακτης ανάγκης μόνο σε πραγματική ανάγκη.</p>
-            </section>
-          </article>
-
           <article class="info-card dark-card" id="current-location-card" tabindex="-1">
             <span class="card-icon">📍</span>
             <h3>Τρέχουσα τοποθεσία</h3>
             <p id="location-text">Πάτησε ανανέωση για να βρεθεί η θέση σου.</p>
             <button class="secondary-button" id="refresh-location-button" type="button">Ανανέωση</button>
           </article>
-
-          <article class="info-card safety-status-card status-normal" id="safety-status-card">
-            <span class="card-icon" id="safety-status-icon">💗</span>
-            <h3 id="safety-status-title">Κατάσταση</h3>
-            <p id="safety-status-description">Ασφαλής και διαθέσιμη για check-in</p>
-            <div class="progress safety-status-progress" aria-hidden="true"><span></span></div>
-          </article>
-
-          <article class="quick-card">
-            <strong id="contact-count">0</strong>
-            <span>έμπιστες επαφές έτοιμες για ειδοποίηση</span>
-          </article>
-        </section>
-
-        <section class="page contacts-page" id="contacts" aria-label="Έμπιστες επαφές">
-          <div class="section-heading">
-            <p class="eyebrow">Trusted circle</p>
-            <h2>Έμπιστες επαφές</h2>
-            <p>Κάλεσε άμεσα ή ενημέρωσε τα άτομα που έχεις επιλέξει για καταστάσεις ανάγκης.</p>
-            <p class="contacts-note">Καλό είναι οι έμπιστες επαφές να γνωρίζουν από πριν τι είναι το SafeMe.</p>
-          </div>
-
-          <div class="card-list" id="contacts-list" aria-live="polite"></div>
-
-          <button class="danger-outline-button contacts-clear-button" id="clear-contacts-button" type="button">Καθαρισμός επαφών</button>
-
-          <form class="form-card" id="contact-form">
-            <div class="section-heading compact-heading">
-              <p class="eyebrow">Νέα επαφή</p>
-              <h2>Προσθήκη έμπιστης επαφής</h2>
-            </div>
-            <div class="form-grid">
-              <label>
-                <span>Όνομα</span>
-                <input name="name" type="text" placeholder="π.χ. Γιώργος Δημητρίου" required />
-              </label>
-              <label>
-                <span>Σχέση</span>
-                <input name="relationship" type="text" placeholder="π.χ. Πατέρας" required />
-              </label>
-              <label>
-                <span>Τηλέφωνο</span>
-                <input name="phone" type="tel" placeholder="π.χ. +306941234567" />
-              </label>
-              <label>
-                <span>Email (προαιρετικό)</span>
-                <input name="email" type="email" placeholder="π.χ. name@example.com" />
-              </label>
-            </div>
-            <button class="primary-button inline-button" type="submit">Αποθήκευση επαφής</button>
-          </form>
         </section>
 
         <section class="page profile-card" id="profile" aria-label="Προφίλ χρήστη">
