@@ -695,6 +695,8 @@ let preparedSosContact = null;
 let preparedContactInvite = null;
 let preparedSosTrackingUrl = '';
 let sosCountdownTimer = null;
+let sosCountdownAnimationFrame = null;
+let sosCountdownFallbackTimer = null;
 let sosCountdownStartedAt = 0;
 let sosCountdownEndsAt = 0;
 let sosCountdownRemaining = 5;
@@ -2796,7 +2798,11 @@ function getSosValidationMessage() {
 
 function stopSosCountdown() {
   if (sosCountdownTimer) window.clearInterval(sosCountdownTimer);
+  if (sosCountdownAnimationFrame) window.cancelAnimationFrame(sosCountdownAnimationFrame);
+  if (sosCountdownFallbackTimer) window.clearTimeout(sosCountdownFallbackTimer);
   sosCountdownTimer = null;
+  sosCountdownAnimationFrame = null;
+  sosCountdownFallbackTimer = null;
 }
 
 function setSosCountdownTimerState(timerState) {
@@ -2821,28 +2827,39 @@ function completeSosCountdown() {
   confirmSos();
 }
 
-function tickSosCountdown() {
-  if (!sosCountdownEndsAt) return;
+function tickSosCountdownFrame() {
+  const remainingMs = sosCountdownEndsAt - Date.now();
+  const remainingSeconds = Math.ceil(remainingMs / 1000);
+  const visibleSeconds = Math.max(1, Math.min(5, remainingSeconds));
 
-  if (Date.now() >= sosCountdownEndsAt) {
+  sosCountdownRemaining = visibleSeconds;
+  if (sosCountdownNumber) sosCountdownNumber.textContent = String(visibleSeconds);
+  if (sosCountdownDebug) sosCountdownDebug.textContent = `timer: running / tick: ${visibleSeconds} / ms: ${Math.max(0, remainingMs)}`;
+  renderSosCountdown(visibleSeconds);
+  console.log('[SafeMe SOS] countdown tick', visibleSeconds);
+
+  if (remainingMs <= 0) {
     completeSosCountdown();
     return;
   }
 
-  const remainingSeconds = Math.ceil((sosCountdownEndsAt - Date.now()) / 1000);
-  renderSosCountdown(remainingSeconds);
-  console.log('[SafeMe SOS] countdown tick', sosCountdownRemaining);
+  sosCountdownAnimationFrame = window.requestAnimationFrame(tickSosCountdownFrame);
 }
 
 function startSosCountdown() {
   stopSosCountdown();
   sosActivationInProgress = false;
   sosCountdownStartedAt = Date.now();
-  sosCountdownEndsAt = sosCountdownStartedAt + 5000;
-  setSosCountdownTimerState('running');
+  sosCountdownEndsAt = Date.now() + 5000;
+  sosCountdownRemaining = 5;
+  if (sosCountdownNumber) sosCountdownNumber.textContent = '5';
+  if (sosCountdownDebug) sosCountdownDebug.textContent = 'timer: running / tick: 5';
+  if (sosCountdownNumber) sosCountdownNumber.dataset.timerState = 'running';
   console.log('[SafeMe SOS] countdown start');
   renderSosCountdown(5);
-  sosCountdownTimer = window.setInterval(tickSosCountdown, 250);
+  if (sosCountdownDebug) sosCountdownDebug.textContent = 'timer: running / tick: 5';
+  sosCountdownAnimationFrame = window.requestAnimationFrame(tickSosCountdownFrame);
+  sosCountdownFallbackTimer = window.setTimeout(completeSosCountdown, 5200);
 }
 
 function openSosModal() {
@@ -2863,7 +2880,7 @@ function openSosModal() {
 }
 
 function closeSosModal() {
-  const wasCountingDown = !sosConfirmStep.hidden && Boolean(sosCountdownTimer);
+  const wasCountingDown = !sosConfirmStep.hidden && Boolean(sosCountdownAnimationFrame || sosCountdownFallbackTimer || sosCountdownTimer);
   stopSosCountdown();
   if (wasCountingDown) {
     setSosCountdownTimerState('cancelled');
