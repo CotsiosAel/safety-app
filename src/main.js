@@ -706,6 +706,7 @@ function saveJson(key, value) {
 }
 
 let contacts = ensureSinglePrimaryContact(sanitizeContacts(loadJson(storageKeys.contacts, defaultContacts)));
+let isContactsMutationInProgress = false;
 let profile = sanitizeProfile(loadJson(storageKeys.profile, defaultProfile));
 let currentLocation = loadJson(storageKeys.location, null);
 let isSosTestMode = loadJson(storageKeys.sosTestMode, false) === true;
@@ -3005,7 +3006,18 @@ function handleSosTestModeChange() {
   }
 }
 
+function renderContactsFormState() {
+  if (clearContactsButton) clearContactsButton.disabled = isContactsMutationInProgress;
+  if (!contactsForm) return;
+
+  const fields = contactsForm.querySelectorAll('input, button');
+  fields.forEach((field) => {
+    field.disabled = isContactsMutationInProgress;
+  });
+}
+
 function renderContacts() {
+  renderContactsFormState();
   if (contacts.length === 0) {
     contactsList.innerHTML = `
       <article class="empty-state">
@@ -3035,10 +3047,10 @@ function renderContacts() {
           </div>
           <div class="contact-actions">
             ${phoneForLink ? `<a href="tel:${escapeHtml(phoneForLink)}" class="call-link">☎ ${escapeHtml(formatPhone(contact.phone))}</a>` : '<span class="missing-contact-inline">Missing phone</span>'}
-            <button class="ghost-button contact-invite-button" type="button" data-contact-index="${index}">Ενημέρωση επαφής</button>
-            <button class="ghost-button edit-contact-button" type="button" data-contact-index="${index}">Επεξεργασία</button>
-            <button class="secondary-button primary-contact-button" type="button" data-contact-index="${index}" ${isPrimary ? 'disabled aria-disabled="true"' : ''}>Κύρια επαφή</button>
-            <button class="danger-outline-button delete-contact-button" type="button" data-contact-index="${index}">Διαγραφή</button>
+            <button class="ghost-button contact-invite-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Ενημέρωση επαφής</button>
+            <button class="ghost-button edit-contact-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Επεξεργασία</button>
+            <button class="secondary-button primary-contact-button" type="button" data-contact-index="${index}" ${isPrimary || isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Κύρια επαφή</button>
+            <button class="danger-outline-button delete-contact-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Διαγραφή</button>
           </div>
         </article>
       `;
@@ -3053,16 +3065,34 @@ function ensurePrimaryContact() {
 }
 
 async function deleteContact(index) {
+  if (isContactsMutationInProgress) return;
+
   const confirmed = window.confirm('Θέλεις σίγουρα να διαγράψεις αυτή την επαφή;');
 
   if (!confirmed) return;
 
+  const previousContacts = contacts;
+  isContactsMutationInProgress = true;
   contacts = contacts.filter((_, contactIndex) => contactIndex !== index);
   ensurePrimaryContact();
-  await persistContacts();
+  saveJson(storageKeys.contacts, contacts);
   renderContacts();
   renderSetupChecklist();
   renderHealthPage();
+
+  try {
+    await persistContacts();
+  } catch (error) {
+    contacts = previousContacts;
+    saveJson(storageKeys.contacts, contacts);
+    renderContacts();
+    renderSetupChecklist();
+    renderHealthPage();
+    window.alert('Δεν μπόρεσα να διαγράψω την επαφή. Δοκίμασε ξανά.');
+  } finally {
+    isContactsMutationInProgress = false;
+    renderContacts();
+  }
 }
 
 async function editContact(index) {
@@ -3110,6 +3140,8 @@ async function setPrimaryContact(index) {
 }
 
 async function clearTrustedContacts() {
+  if (isContactsMutationInProgress) return;
+
   const confirmed = window.confirm('Θέλεις σίγουρα να διαγράψεις όλες τις έμπιστες επαφές;');
 
   if (!confirmed) return;
@@ -3189,6 +3221,8 @@ function handleContactsListClick(event) {
 
 async function addContact(event) {
   event.preventDefault();
+  if (isContactsMutationInProgress) return;
+
   const formData = new FormData(contactsForm);
   const newContact = {
     name: formData.get('name').trim(),
@@ -3198,11 +3232,28 @@ async function addContact(event) {
     tone: contacts.length === 0 ? 'primary' : 'default',
   };
 
+  const previousContacts = contacts;
+  isContactsMutationInProgress = true;
   contacts = [...contacts, newContact];
-  await persistContacts();
+  saveJson(storageKeys.contacts, contacts);
+  contactsForm.reset();
   renderContacts();
   renderSetupChecklist();
-  contactsForm.reset();
+  renderHealthPage();
+
+  try {
+    await persistContacts();
+  } catch (error) {
+    contacts = previousContacts;
+    saveJson(storageKeys.contacts, contacts);
+    renderContacts();
+    renderSetupChecklist();
+    renderHealthPage();
+    window.alert('Δεν μπόρεσα να αποθηκεύσω την επαφή. Δοκίμασε ξανά.');
+  } finally {
+    isContactsMutationInProgress = false;
+    renderContacts();
+  }
 }
 
 function renderProfile() {
