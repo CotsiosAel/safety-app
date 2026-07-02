@@ -695,6 +695,7 @@ let preparedContactInvite = null;
 let preparedSosTrackingUrl = '';
 let sosCountdownTimer = null;
 let sosCountdownRemaining = 5;
+let sosActivationInProgress = false;
 let currentUser = null;
 let authMode = 'login';
 let isPasswordRecoveryMode = false;
@@ -2791,7 +2792,7 @@ function getSosValidationMessage() {
 }
 
 function stopSosCountdown() {
-  if (sosCountdownTimer) window.clearInterval(sosCountdownTimer);
+  if (sosCountdownTimer) window.clearTimeout(sosCountdownTimer);
   sosCountdownTimer = null;
 }
 
@@ -2803,19 +2804,30 @@ function renderSosCountdown() {
     : `Ενεργοποίηση SOS σε ${sosCountdownRemaining}...`;
 }
 
+function completeSosCountdown() {
+  stopSosCountdown();
+  sosConfirmStep.hidden = true;
+  confirmSos();
+}
+
+function tickSosCountdown() {
+  sosCountdownRemaining -= 1;
+  renderSosCountdown();
+
+  if (sosCountdownRemaining <= 1) {
+    sosCountdownTimer = window.setTimeout(completeSosCountdown, 1000);
+    return;
+  }
+
+  sosCountdownTimer = window.setTimeout(tickSosCountdown, 1000);
+}
+
 function startSosCountdown() {
   stopSosCountdown();
+  sosActivationInProgress = false;
   sosCountdownRemaining = 5;
   renderSosCountdown();
-  sosCountdownTimer = window.setInterval(() => {
-    sosCountdownRemaining -= 1;
-    if (sosCountdownRemaining <= 0) {
-      stopSosCountdown();
-      confirmSos();
-      return;
-    }
-    renderSosCountdown();
-  }, 1000);
+  sosCountdownTimer = window.setTimeout(tickSosCountdown, 1000);
 }
 
 function openSosModal() {
@@ -2849,9 +2861,13 @@ function closeSosModal() {
 }
 
 async function confirmSos() {
+  if (sosActivationInProgress) return;
+  sosActivationInProgress = true;
+
   const validationMessage = getSosValidationMessage();
 
   if (validationMessage) {
+    sosActivationInProgress = false;
     closeSosModal();
     sosStatus.textContent = validationMessage;
     return;
@@ -2874,6 +2890,7 @@ async function confirmSos() {
     const message = buildSosMessage(currentLocation, null);
     setSosConfirmLoading(false);
     showSosActionPanel(message, contact, 'Λειτουργία δοκιμής SOS: δεν δημιουργήθηκε ενεργό SOS και δεν ετοιμάστηκε πραγματική αποστολή.');
+    sosActivationInProgress = false;
     markTestSosCompleted();
     return;
   }
@@ -2914,6 +2931,7 @@ async function confirmSos() {
   }
 
   showSosActionPanel(message, contact, historyMessage || 'Το SOS ενεργοποιήθηκε. Ετοιμάσαμε μήνυμα βοήθειας με την τοποθεσία σου.');
+  sosActivationInProgress = false;
   markTestSosCompleted();
 }
 

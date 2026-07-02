@@ -38,4 +38,42 @@ for (const pattern of ['markSosSessionEnded(endingSession', 'stopActiveSosLocati
   }
 }
 
+
+const countdownStart = source.indexOf('function completeSosCountdown()');
+const countdownEnd = source.indexOf('function openSosModal()', countdownStart);
+const countdownBody = source.slice(countdownStart, countdownEnd);
+
+const countdownRequirements = [
+  ['countdown starts at 5', 'sosCountdownRemaining = 5'],
+  ['countdown reaches 1 before activation', 'if (sosCountdownRemaining <= 1)'],
+  ['countdown activates SOS automatically', 'window.setTimeout(completeSosCountdown, 1000)'],
+  ['countdown clears existing timer before starting', 'stopSosCountdown()'],
+  ['countdown uses one active timeout handle', 'sosCountdownTimer = window.setTimeout'],
+];
+
+for (const [label, pattern] of countdownRequirements) {
+  if (!countdownBody.includes(pattern)) {
+    console.error(`Missing SOS countdown safeguard: ${label}`);
+    process.exit(1);
+  }
+}
+
+const closeSosStart = source.indexOf('function closeSosModal()');
+const closeSosEnd = source.indexOf('async function confirmSos()', closeSosStart);
+const closeSosBody = source.slice(closeSosStart, closeSosEnd);
+
+for (const pattern of ['stopSosCountdown()', "sosModal.hidden = true", "Το SOS ακυρώθηκε πριν ενεργοποιηθεί."]) {
+  if (!closeSosBody.includes(pattern)) {
+    console.error(`Cancel flow is missing countdown cleanup/feedback: ${pattern}`);
+    process.exit(1);
+  }
+}
+
+for (const pattern of ['let sosActivationInProgress = false', 'if (sosActivationInProgress) return', 'sosActivationInProgress = true']) {
+  if (!source.includes(pattern)) {
+    console.error(`Missing duplicate SOS activation guard: ${pattern}`);
+    process.exit(1);
+  }
+}
+
 console.log('SOS persistence regression safeguards are present.');
