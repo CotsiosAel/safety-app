@@ -1,10 +1,10 @@
-const CACHE_NAME = 'safeme-shell-2026-07-02-pwa-update-fix';
+const CACHE_NAME = 'safeme-shell-2026-07-02-no-update-banner';
 const SHELL_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css?v=2026-07-02-pwa-update-fix',
-  './src/main.js?v=2026-07-02-pwa-update-fix',
+  './src/styles.css?v=2026-07-02-no-update-banner',
+  './src/main.js?v=2026-07-02-no-update-banner',
   './assets/icon.png',
   './version.json',
 ];
