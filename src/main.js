@@ -242,6 +242,7 @@ const sosCopyTrackingButton = document.querySelector('#sos-copy-tracking');
 const sosNativeShareButton = document.querySelector('#sos-native-share');
 const sosConfirmButton = document.querySelector('#sos-confirm');
 const sosCountdownNumber = document.querySelector('#sos-countdown-number');
+const sosCountdownDebug = document.querySelector('#sos-countdown-debug');
 const sosCountdownTestLabel = document.querySelector('#sos-countdown-test-label');
 const sosCancelButtons = document.querySelectorAll('[data-close-sos]');
 const contactsList = document.querySelector('#contacts-list');
@@ -694,6 +695,8 @@ let preparedSosContact = null;
 let preparedContactInvite = null;
 let preparedSosTrackingUrl = '';
 let sosCountdownTimer = null;
+let sosCountdownStartedAt = 0;
+let sosCountdownEndsAt = 0;
 let sosCountdownRemaining = 5;
 let sosActivationInProgress = false;
 let currentUser = null;
@@ -2792,11 +2795,17 @@ function getSosValidationMessage() {
 }
 
 function stopSosCountdown() {
-  if (sosCountdownTimer) window.clearTimeout(sosCountdownTimer);
+  if (sosCountdownTimer) window.clearInterval(sosCountdownTimer);
   sosCountdownTimer = null;
 }
 
-function renderSosCountdown() {
+function setSosCountdownTimerState(timerState) {
+  if (sosCountdownNumber) sosCountdownNumber.dataset.timerState = timerState;
+  if (sosCountdownDebug) sosCountdownDebug.textContent = `timer: ${timerState}`;
+}
+
+function renderSosCountdown(remainingSeconds = sosCountdownRemaining) {
+  sosCountdownRemaining = Math.min(5, Math.max(1, remainingSeconds));
   if (sosCountdownNumber) sosCountdownNumber.textContent = String(sosCountdownRemaining);
   if (sosCountdownTestLabel) sosCountdownTestLabel.hidden = !isSosTestMode;
   if (sosStatus) sosStatus.textContent = isSosTestMode
@@ -2806,28 +2815,34 @@ function renderSosCountdown() {
 
 function completeSosCountdown() {
   stopSosCountdown();
+  setSosCountdownTimerState('completed');
+  console.log('[SafeMe SOS] countdown complete');
   sosConfirmStep.hidden = true;
   confirmSos();
 }
 
 function tickSosCountdown() {
-  sosCountdownRemaining -= 1;
-  renderSosCountdown();
+  if (!sosCountdownEndsAt) return;
 
-  if (sosCountdownRemaining <= 1) {
-    sosCountdownTimer = window.setTimeout(completeSosCountdown, 1000);
+  if (Date.now() >= sosCountdownEndsAt) {
+    completeSosCountdown();
     return;
   }
 
-  sosCountdownTimer = window.setTimeout(tickSosCountdown, 1000);
+  const remainingSeconds = Math.ceil((sosCountdownEndsAt - Date.now()) / 1000);
+  renderSosCountdown(remainingSeconds);
+  console.log('[SafeMe SOS] countdown tick', sosCountdownRemaining);
 }
 
 function startSosCountdown() {
   stopSosCountdown();
   sosActivationInProgress = false;
-  sosCountdownRemaining = 5;
-  renderSosCountdown();
-  sosCountdownTimer = window.setTimeout(tickSosCountdown, 1000);
+  sosCountdownStartedAt = Date.now();
+  sosCountdownEndsAt = sosCountdownStartedAt + 5000;
+  setSosCountdownTimerState('running');
+  console.log('[SafeMe SOS] countdown start');
+  renderSosCountdown(5);
+  sosCountdownTimer = window.setInterval(tickSosCountdown, 250);
 }
 
 function openSosModal() {
@@ -2850,6 +2865,10 @@ function openSosModal() {
 function closeSosModal() {
   const wasCountingDown = !sosConfirmStep.hidden && Boolean(sosCountdownTimer);
   stopSosCountdown();
+  if (wasCountingDown) {
+    setSosCountdownTimerState('cancelled');
+    console.log('[SafeMe SOS] countdown cancelled');
+  }
   sosModal.hidden = true;
   document.body.classList.remove('modal-open');
   if (wasCountingDown) {
