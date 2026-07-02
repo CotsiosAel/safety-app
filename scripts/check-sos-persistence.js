@@ -1,6 +1,8 @@
 import { readFile } from 'node:fs/promises';
 
 const source = await readFile('src/main.js', 'utf8');
+const markup = await readFile('index.html', 'utf8');
+const styles = await readFile('src/styles.css', 'utf8');
 
 const requiredPatterns = [
   ['ended session tombstone storage key', "endedSosSession: 'safety-app-ended-sos-session'"],
@@ -45,33 +47,71 @@ const countdownBody = source.slice(countdownStart, countdownEnd);
 
 const countdownRequirements = [
   ['countdown keeps legacy interval cleanup', 'window.clearInterval(sosCountdownTimer)'],
-  ['countdown cancels animation frame', 'window.cancelAnimationFrame(sosCountdownAnimationFrame)'],
+  ['countdown cancels legacy animation frame cleanup', 'window.cancelAnimationFrame(sosCountdownAnimationFrame)'],
   ['countdown clears forced fallback timeout', 'window.clearTimeout(sosCountdownFallbackTimer)'],
+  ['countdown removes CSS running class during cleanup', "classList.remove('sos-countdown-running')"],
   ['countdown stores deadline start timestamp', 'sosCountdownStartedAt = Date.now()'],
   ['countdown stores deadline end timestamp', 'sosCountdownEndsAt = Date.now() + 5000'],
   ['countdown resets remaining seconds', 'sosCountdownRemaining = 5'],
-  ['countdown renders an immediate 5 directly', "sosCountdownNumber.textContent = '5'"],
-  ['countdown marks running tick debug state', "sosCountdownDebug.textContent = 'timer: running / tick: 5'"],
-  ['countdown uses requestAnimationFrame handle', 'sosCountdownAnimationFrame = window.requestAnimationFrame(tickSosCountdownFrame)'],
-  ['countdown uses forced fallback timeout', 'sosCountdownFallbackTimer = window.setTimeout(completeSosCountdown, 5200)'],
-  ['countdown derives remaining milliseconds from deadline', 'const remainingMs = sosCountdownEndsAt - Date.now()'],
-  ['countdown derives remaining seconds from deadline', 'Math.ceil(remainingMs / 1000)'],
-  ['countdown clamps visible seconds', 'Math.max(1, Math.min(5, remainingSeconds))'],
-  ['countdown updates visible number directly every frame', 'sosCountdownNumber.textContent = String(visibleSeconds)'],
-  ['countdown updates running debug every frame', 'timer: running / tick: ${visibleSeconds} / ms: ${Math.max(0, remainingMs)}'],
-  ['countdown completes from elapsed milliseconds', 'if (remainingMs <= 0)'],
+  ['countdown resets duplicate completion guard', 'sosCountdownCompleted = false'],
+  ['countdown marks CSS running debug state', "setSosCountdownTimerState('css-running')"],
+  ['countdown restarts CSS animation by removing running class', "sosCountdownNumber.classList.remove('sos-countdown-running')"],
+  ['countdown forces reflow before restart', 'void sosCountdownNumber.offsetWidth'],
+  ['countdown starts CSS animation', "sosCountdownNumber.classList.add('sos-countdown-running')"],
+  ['countdown uses forced fallback timeout', 'sosCountdownFallbackTimer = window.setTimeout(completeSosCountdown, 5500)'],
+  ['countdown guards duplicate completion', 'if (sosCountdownCompleted) return'],
+  ['countdown records completion guard', 'sosCountdownCompleted = true'],
   ['countdown marks completed debug state', "setSosCountdownTimerState('completed')"],
   ['countdown activates SOS automatically', 'confirmSos()'],
   ['countdown logs start', "console.log('[SafeMe SOS] countdown start')"],
-  ['countdown logs tick', "console.log('[SafeMe SOS] countdown tick'"],
   ['countdown logs complete', "console.log('[SafeMe SOS] countdown complete')"],
 ];
-
 for (const [label, pattern] of countdownRequirements) {
   if (!countdownBody.includes(pattern)) {
     console.error(`Missing SOS countdown safeguard: ${label}`);
     process.exit(1);
   }
+}
+
+
+const countdownMarkupRequirements = [
+  ['countdown output keeps stable id', 'id="sos-countdown-number"'],
+  ['countdown renders animated strip', 'class="sos-countdown-strip"'],
+  ['countdown includes digit 5', '<span>5</span>'],
+  ['countdown includes digit 1', '<span>1</span>'],
+];
+
+for (const [label, pattern] of countdownMarkupRequirements) {
+  if (!markup.includes(pattern)) {
+    console.error(`Missing SOS countdown markup safeguard: ${label}`);
+    process.exit(1);
+  }
+}
+
+const countdownStyleRequirements = [
+  ['countdown clips animated strip to circle', 'overflow: hidden'],
+  ['countdown has running animation class', '.sos-countdown-running .sos-countdown-strip'],
+  ['countdown animation lasts five seconds', 'animation: sos-countdown-strip 5s'],
+  ['countdown keyframes keep 5 visible for first second', '0%, 19.999%'],
+  ['countdown keyframes show 1 for fifth second', '80%, 100%'],
+  ['countdown final offset shows digit 1', 'translate(-50%, -4.5em)'],
+];
+
+for (const [label, pattern] of countdownStyleRequirements) {
+  if (!styles.includes(pattern)) {
+    console.error(`Missing SOS countdown CSS safeguard: ${label}`);
+    process.exit(1);
+  }
+}
+
+if (countdownBody.includes('requestAnimationFrame(tickSosCountdownFrame)') || countdownBody.includes('textContent = String(visibleSeconds)')) {
+  console.error('SOS countdown must not rely on JavaScript animation frames or text updates for visual ticks.');
+  process.exit(1);
+}
+
+if (!source.includes("sosCountdownStrip?.addEventListener('animationend', completeSosCountdown)")) {
+  console.error('SOS countdown must complete from the CSS animationend event.');
+  process.exit(1);
 }
 
 const closeSosStart = source.indexOf('function closeSosModal()');

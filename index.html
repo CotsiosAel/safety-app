@@ -630,7 +630,15 @@
           <p class="eyebrow">SafeMe SOS</p>
           <h2 id="sos-modal-title">Ενεργοποίηση SOS</h2>
           <p>Η ειδοποίηση θα ετοιμαστεί για τις επαφές έκτακτης ανάγκης.</p>
-          <output class="sos-countdown-number" id="sos-countdown-number" aria-live="assertive">5</output>
+          <output class="sos-countdown-number" id="sos-countdown-number" aria-live="assertive">
+            <span class="sos-countdown-strip">
+              <span>5</span>
+              <span>4</span>
+              <span>3</span>
+              <span>2</span>
+              <span>1</span>
+            </span>
+          </output>
           <p class="sos-countdown-debug" id="sos-countdown-debug">timer: running</p>
           <div class="modal-actions sos-countdown-actions">
             <button class="danger-outline-button sos-cancel-button" type="button" data-close-sos>Ακύρωση</button>
