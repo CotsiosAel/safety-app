@@ -47,7 +47,7 @@ const countdownBody = source.slice(countdownStart, countdownEnd);
 
 const countdownRequirements = [
   ['countdown stores scheduled timeout handles', 'let sosCountdownTimeouts = []'],
-  ['countdown clears every scheduled timeout', 'sosCountdownTimeouts.forEach(clearTimeout)'],
+  ['countdown clears every scheduled timeout', 'sosCountdownTimeouts.forEach((timeoutId) => window.clearTimeout(timeoutId))'],
   ['countdown resets scheduled timeout handles', 'sosCountdownTimeouts = []'],
   ['countdown keeps legacy interval cleanup', 'window.clearInterval(sosCountdownTimer)'],
   ['countdown cancels legacy animation frame cleanup', 'window.cancelAnimationFrame(sosCountdownAnimationFrame)'],
@@ -55,19 +55,18 @@ const countdownRequirements = [
   ['countdown resets duplicate completion guard', 'sosCountdownCompleted = false'],
   ['countdown sets visible number directly', 'function setSosCountdownNumber(value)'],
   ['countdown writes direct text content', 'sosCountdownNumber.textContent = String(value)'],
-  ['countdown writes direct data attribute', 'sosCountdownNumber.setAttribute("data-countdown-value", String(value))'],
-  ['countdown logs visible countdown values', 'console.log("[SafeMe SOS] visible countdown", value)'],
+  ['countdown writes direct data attribute', "sosCountdownNumber.setAttribute('data-countdown-value', String(value))"],
+  ['countdown logs visible countdown values', "console.log('[SafeMe SOS] visible countdown', value)"],
   ['countdown initializes at 5', 'setSosCountdownNumber(5)'],
-  ['countdown schedules 4 after one second', '}, 1000)'],
-  ['countdown schedules 3 after two seconds', '}, 2000)'],
-  ['countdown schedules 2 after three seconds', '}, 3000)'],
-  ['countdown schedules 1 after four seconds', '}, 4000)'],
-  ['countdown completes after five seconds', 'window.setTimeout(completeSosCountdown, 5000)'],
+  ['countdown schedules 4 after one second', 'window.setTimeout(() => setSosCountdownNumber(4), 1000)'],
+  ['countdown schedules 3 after two seconds', 'window.setTimeout(() => setSosCountdownNumber(3), 2000)'],
+  ['countdown schedules 2 after three seconds', 'window.setTimeout(() => setSosCountdownNumber(2), 3000)'],
+  ['countdown schedules 1 after four seconds', 'window.setTimeout(() => setSosCountdownNumber(1), 4000)'],
+  ['countdown completes after five seconds', 'window.setTimeout(() => completeSosCountdown(), 5000)'],
   ['countdown guards duplicate completion', 'if (sosCountdownCompleted) return'],
   ['countdown records completion guard', 'sosCountdownCompleted = true'],
   ['countdown marks completed debug state', "sosCountdownDebug.textContent = 'timer: completed'"],
   ['countdown activates SOS automatically', 'confirmSos()'],
-  ['countdown logs start', "console.log('[SafeMe SOS] countdown start')"],
   ['countdown logs complete', "console.log('[SafeMe SOS] countdown complete')"],
 ];
 for (const [label, pattern] of countdownRequirements) {
@@ -80,7 +79,8 @@ for (const [label, pattern] of countdownRequirements) {
 const countdownMarkupRequirements = [
   ['countdown output keeps stable id', 'id="sos-countdown-number"'],
   ['countdown output is plain text', '<output class="sos-countdown-number" id="sos-countdown-number" aria-live="assertive">5</output>'],
-  ['countdown renders progress fallback', 'id="sos-countdown-progress"'],
+  ['countdown renders progress fallback', '<div class="sos-countdown-progress" id="sos-countdown-progress"'],
+  ['countdown progress includes fill span', '<span></span>'],
 ];
 
 for (const [label, pattern] of countdownMarkupRequirements) {

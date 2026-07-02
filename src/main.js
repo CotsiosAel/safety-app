@@ -242,7 +242,7 @@ const sosCopyTrackingButton = document.querySelector('#sos-copy-tracking');
 const sosNativeShareButton = document.querySelector('#sos-native-share');
 const sosConfirmButton = document.querySelector('#sos-confirm');
 const sosCountdownNumber = document.querySelector('#sos-countdown-number');
-const sosCountdownProgress = document.querySelector('#sos-countdown-progress');
+const sosCountdownProgress = document.querySelector('#sos-countdown-progress > span');
 const sosCountdownDebug = document.querySelector('#sos-countdown-debug');
 const sosCountdownTestLabel = document.querySelector('#sos-countdown-test-label');
 const sosCancelButtons = document.querySelectorAll('[data-close-sos]');
@@ -2699,6 +2699,7 @@ function resetSosModal() {
   sosConfirmStep.hidden = false;
   sosActionPanel.hidden = true;
   sosTestModeLabel.hidden = true;
+  if (sosCountdownTestLabel) sosCountdownTestLabel.hidden = !isSosTestMode;
   sosActionFeedback.textContent = '';
   sosMessagePreview.textContent = '';
   preparedSosTrackingUrl = '';
@@ -2797,7 +2798,7 @@ function getSosValidationMessage() {
 }
 
 function stopSosCountdown() {
-  sosCountdownTimeouts.forEach(clearTimeout);
+  sosCountdownTimeouts.forEach((timeoutId) => window.clearTimeout(timeoutId));
   sosCountdownTimeouts = [];
   if (sosCountdownTimer) window.clearInterval(sosCountdownTimer);
   if (sosCountdownAnimationFrame) window.cancelAnimationFrame(sosCountdownAnimationFrame);
@@ -2818,20 +2819,16 @@ function setSosCountdownProgress(value) {
 function setSosCountdownNumber(value) {
   if (sosCountdownNumber) {
     sosCountdownNumber.textContent = String(value);
-    sosCountdownNumber.setAttribute("data-countdown-value", String(value));
+    sosCountdownNumber.setAttribute('data-countdown-value', String(value));
   }
+
   setSosCountdownProgress(value);
+
   if (sosCountdownDebug) {
     sosCountdownDebug.textContent = `timer: scheduled / ${value}`;
   }
-  console.log("[SafeMe SOS] visible countdown", value);
-}
 
-function renderSosCountdown(remainingSeconds = 5) {
-  if (sosCountdownTestLabel) sosCountdownTestLabel.hidden = !isSosTestMode;
-  if (sosStatus) sosStatus.textContent = isSosTestMode
-    ? `Λειτουργία δοκιμής SOS: ενεργοποίηση σε ${remainingSeconds}...`
-    : `Ενεργοποίηση SOS σε ${remainingSeconds}...`;
+  console.log('[SafeMe SOS] visible countdown', value);
 }
 
 function completeSosCountdown() {
@@ -2849,28 +2846,15 @@ function startSosCountdown() {
   stopSosCountdown();
   sosActivationInProgress = false;
   sosCountdownCompleted = false;
-  console.log('[SafeMe SOS] countdown start');
-  renderSosCountdown(5);
+
   setSosCountdownNumber(5);
 
   sosCountdownTimeouts = [
-    window.setTimeout(() => {
-      setSosCountdownNumber(4);
-      renderSosCountdown(4);
-    }, 1000),
-    window.setTimeout(() => {
-      setSosCountdownNumber(3);
-      renderSosCountdown(3);
-    }, 2000),
-    window.setTimeout(() => {
-      setSosCountdownNumber(2);
-      renderSosCountdown(2);
-    }, 3000),
-    window.setTimeout(() => {
-      setSosCountdownNumber(1);
-      renderSosCountdown(1);
-    }, 4000),
-    window.setTimeout(completeSosCountdown, 5000),
+    window.setTimeout(() => setSosCountdownNumber(4), 1000),
+    window.setTimeout(() => setSosCountdownNumber(3), 2000),
+    window.setTimeout(() => setSosCountdownNumber(2), 3000),
+    window.setTimeout(() => setSosCountdownNumber(1), 4000),
+    window.setTimeout(() => completeSosCountdown(), 5000),
   ];
 }
 
