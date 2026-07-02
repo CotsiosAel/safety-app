@@ -2096,7 +2096,18 @@ body.tracking-mode .modal-backdrop {
   border-radius: 18px;
   font-weight: 900;
   cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.home-quick-action-status {
+  min-height: 1.2em;
+  margin: 12px 0 0;
+  color: #1d4ed8;
+  font-size: 0.9rem;
+  font-weight: 900;
+  text-align: center;
 }
 
 .home-quick-action:hover,
