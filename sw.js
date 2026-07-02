@@ -1,10 +1,10 @@
-const CACHE_NAME = 'safeme-shell-2026-07-02-emergency-repair';
+const CACHE_NAME = 'safeme-shell-2026-07-02-contacts-state-fix';
 const SHELL_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css?v=2026-07-02-emergency-repair',
-  './src/main.js?v=2026-07-02-emergency-repair',
+  './src/styles.css?v=2026-07-02-contacts-state-fix',
+  './src/main.js?v=2026-07-02-contacts-state-fix',
   './assets/icon.png',
   './version.json',
 ];
