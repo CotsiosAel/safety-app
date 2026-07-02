@@ -2395,11 +2395,13 @@ body.tracking-mode .modal-backdrop {
   font-size: 0.8rem;
 }
 .sos-countdown-number {
+  position: relative;
   display: grid;
   place-items: center;
   width: min(48vw, 190px);
   height: min(48vw, 190px);
   margin: 6px auto;
+  overflow: hidden;
   color: #fff;
   background: radial-gradient(circle at 35% 25%, #fb7185, var(--red) 55%, var(--red-dark));
   border-radius: 999px;
@@ -2407,6 +2409,42 @@ body.tracking-mode .modal-backdrop {
   font-size: clamp(4.5rem, 22vw, 8rem);
   font-weight: 1000;
   line-height: 1;
+}
+.sos-countdown-strip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 100%;
+  grid-template-rows: repeat(5, 1em);
+  line-height: 1;
+  transform: translate(-50%, -0.5em);
+  will-change: transform;
+}
+.sos-countdown-strip > span {
+  display: grid;
+  height: 1em;
+  place-items: center;
+}
+.sos-countdown-running .sos-countdown-strip {
+  animation: sos-countdown-strip 5s linear forwards;
+}
+@keyframes sos-countdown-strip {
+  0%, 19.999% {
+    transform: translate(-50%, -0.5em);
+  }
+  20%, 39.999% {
+    transform: translate(-50%, -1.5em);
+  }
+  40%, 59.999% {
+    transform: translate(-50%, -2.5em);
+  }
+  60%, 79.999% {
+    transform: translate(-50%, -3.5em);
+  }
+  80%, 100% {
+    transform: translate(-50%, -4.5em);
+  }
 }
 .sos-cancel-button {
   min-height: 64px;

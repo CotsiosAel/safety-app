@@ -242,6 +242,7 @@ const sosCopyTrackingButton = document.querySelector('#sos-copy-tracking');
 const sosNativeShareButton = document.querySelector('#sos-native-share');
 const sosConfirmButton = document.querySelector('#sos-confirm');
 const sosCountdownNumber = document.querySelector('#sos-countdown-number');
+const sosCountdownStrip = sosCountdownNumber?.querySelector('.sos-countdown-strip');
 const sosCountdownDebug = document.querySelector('#sos-countdown-debug');
 const sosCountdownTestLabel = document.querySelector('#sos-countdown-test-label');
 const sosCancelButtons = document.querySelectorAll('[data-close-sos]');
@@ -700,6 +701,7 @@ let sosCountdownFallbackTimer = null;
 let sosCountdownStartedAt = 0;
 let sosCountdownEndsAt = 0;
 let sosCountdownRemaining = 5;
+let sosCountdownCompleted = false;
 let sosActivationInProgress = false;
 let currentUser = null;
 let authMode = 'login';
@@ -2803,6 +2805,7 @@ function stopSosCountdown() {
   sosCountdownTimer = null;
   sosCountdownAnimationFrame = null;
   sosCountdownFallbackTimer = null;
+  sosCountdownNumber?.classList.remove('sos-countdown-running');
 }
 
 function setSosCountdownTimerState(timerState) {
@@ -2812,7 +2815,6 @@ function setSosCountdownTimerState(timerState) {
 
 function renderSosCountdown(remainingSeconds = sosCountdownRemaining) {
   sosCountdownRemaining = Math.min(5, Math.max(1, remainingSeconds));
-  if (sosCountdownNumber) sosCountdownNumber.textContent = String(sosCountdownRemaining);
   if (sosCountdownTestLabel) sosCountdownTestLabel.hidden = !isSosTestMode;
   if (sosStatus) sosStatus.textContent = isSosTestMode
     ? `Λειτουργία δοκιμής SOS: ενεργοποίηση σε ${sosCountdownRemaining}...`
@@ -2820,6 +2822,8 @@ function renderSosCountdown(remainingSeconds = sosCountdownRemaining) {
 }
 
 function completeSosCountdown() {
+  if (sosCountdownCompleted) return;
+  sosCountdownCompleted = true;
   stopSosCountdown();
   setSosCountdownTimerState('completed');
   console.log('[SafeMe SOS] countdown complete');
@@ -2827,39 +2831,22 @@ function completeSosCountdown() {
   confirmSos();
 }
 
-function tickSosCountdownFrame() {
-  const remainingMs = sosCountdownEndsAt - Date.now();
-  const remainingSeconds = Math.ceil(remainingMs / 1000);
-  const visibleSeconds = Math.max(1, Math.min(5, remainingSeconds));
-
-  sosCountdownRemaining = visibleSeconds;
-  if (sosCountdownNumber) sosCountdownNumber.textContent = String(visibleSeconds);
-  if (sosCountdownDebug) sosCountdownDebug.textContent = `timer: running / tick: ${visibleSeconds} / ms: ${Math.max(0, remainingMs)}`;
-  renderSosCountdown(visibleSeconds);
-  console.log('[SafeMe SOS] countdown tick', visibleSeconds);
-
-  if (remainingMs <= 0) {
-    completeSosCountdown();
-    return;
-  }
-
-  sosCountdownAnimationFrame = window.requestAnimationFrame(tickSosCountdownFrame);
-}
-
 function startSosCountdown() {
   stopSosCountdown();
   sosActivationInProgress = false;
+  sosCountdownCompleted = false;
   sosCountdownStartedAt = Date.now();
   sosCountdownEndsAt = Date.now() + 5000;
   sosCountdownRemaining = 5;
-  if (sosCountdownNumber) sosCountdownNumber.textContent = '5';
-  if (sosCountdownDebug) sosCountdownDebug.textContent = 'timer: running / tick: 5';
-  if (sosCountdownNumber) sosCountdownNumber.dataset.timerState = 'running';
+  setSosCountdownTimerState('css-running');
   console.log('[SafeMe SOS] countdown start');
   renderSosCountdown(5);
-  if (sosCountdownDebug) sosCountdownDebug.textContent = 'timer: running / tick: 5';
-  sosCountdownAnimationFrame = window.requestAnimationFrame(tickSosCountdownFrame);
-  sosCountdownFallbackTimer = window.setTimeout(completeSosCountdown, 5200);
+  if (sosCountdownNumber) {
+    sosCountdownNumber.classList.remove('sos-countdown-running');
+    void sosCountdownNumber.offsetWidth;
+    sosCountdownNumber.classList.add('sos-countdown-running');
+  }
+  sosCountdownFallbackTimer = window.setTimeout(completeSosCountdown, 5500);
 }
 
 function openSosModal() {
@@ -2880,7 +2867,7 @@ function openSosModal() {
 }
 
 function closeSosModal() {
-  const wasCountingDown = !sosConfirmStep.hidden && Boolean(sosCountdownAnimationFrame || sosCountdownFallbackTimer || sosCountdownTimer);
+  const wasCountingDown = !sosConfirmStep.hidden && Boolean(sosCountdownFallbackTimer || sosCountdownNumber?.classList.contains('sos-countdown-running'));
   stopSosCountdown();
   if (wasCountingDown) {
     setSosCountdownTimerState('cancelled');
@@ -3767,6 +3754,7 @@ sosButton.addEventListener('click', openSosModal);
 sosTestModeToggle.addEventListener('change', handleSosTestModeChange);
 sosConfirmButton.addEventListener('click', confirmSos);
 sosCancelButtons.forEach((button) => button.addEventListener('click', closeSosModal));
+sosCountdownStrip?.addEventListener('animationend', completeSosCountdown);
 sosSendSmsButton.addEventListener('click', sendPreparedSosSms);
 sosSendWhatsappButton.addEventListener('click', sendPreparedSosWhatsapp);
 sosCopyMessageButton.addEventListener('click', copyPreparedSosMessage);
