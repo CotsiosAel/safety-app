@@ -346,6 +346,9 @@ const refreshActiveSosGpsButton = document.querySelector('#refresh-active-sos-gp
 const updateActiveSosLocationButton = document.querySelector('#update-active-sos-location');
 const endActiveSosButton = document.querySelector('#end-active-sos');
 const copyActiveSosTrackingButton = document.querySelector('#copy-active-sos-tracking');
+const shareActiveSosLocationButton = document.querySelector('#share-active-sos-location');
+const activeSosTestModeLabel = document.querySelector('#active-sos-test-mode-label');
+const activeSosTrackingReady = document.querySelector('#active-sos-tracking-ready');
 const disableActiveSosTrackingButton = document.querySelector('#disable-active-sos-tracking');
 const safeWalkPresetButtons = document.querySelectorAll('.safe-walk-preset');
 const safeWalkDestination = document.querySelector('#safe-walk-destination');
@@ -1840,9 +1843,15 @@ function renderActiveSosSession(message = '') {
   renderActiveSosDiagnostics();
   if (activeSosLiveStatus) activeSosLiveStatus.hidden = false;
   if (activeSosIntro) {
-    activeSosIntro.innerHTML = activeSosSession.testMode
-      ? 'Λειτουργία δοκιμής SOS<br />Δεν πρόκειται για πραγματική ανάγκη.'
-      : 'Το SOS ενεργοποιήθηκε<br />Ετοιμάσαμε μήνυμα βοήθειας με την τοποθεσία σου.';
+    activeSosIntro.textContent = 'Ετοιμάσαμε μήνυμα βοήθειας με την τοποθεσία σου.';
+  }
+  if (activeSosTestModeLabel) {
+    activeSosTestModeLabel.hidden = !activeSosSession.testMode;
+  }
+  if (activeSosTrackingReady) {
+    activeSosTrackingReady.textContent = activeSosSession.shareToken
+      ? 'Tracking link έτοιμο'
+      : 'Tracking link μη διαθέσιμο';
   }
   activeSosStarted.textContent = formatSosEventDate(activeSosSession.startedAt);
   activeSosStatus.textContent = activeSosSession.testMode ? 'Λειτουργία δοκιμής SOS' : activeSosSession.status;
@@ -2039,6 +2048,7 @@ function setActiveSosButtonsLoading(isLoading) {
   updateActiveSosLocationButton.disabled = isLoading;
   endActiveSosButton.disabled = isLoading;
   copyActiveSosTrackingButton.disabled = isLoading || !activeSosSession?.shareToken;
+  if (shareActiveSosLocationButton) shareActiveSosLocationButton.disabled = isLoading;
   disableActiveSosTrackingButton.disabled = isLoading || !activeSosSession?.shareToken;
 }
 
@@ -3835,6 +3845,7 @@ testActiveSosLiveSyncButton?.addEventListener('click', testActiveSosLiveSyncNow)
 refreshActiveSosGpsButton?.addEventListener('click', refreshActiveSosGpsNow);
 updateActiveSosLocationButton?.addEventListener('click', updateActiveSosLocation);
 copyActiveSosTrackingButton?.addEventListener('click', copyActiveSosTrackingLink);
+shareActiveSosLocationButton?.addEventListener('click', shareLocation);
 disableActiveSosTrackingButton?.addEventListener('click', disableActiveSosTrackingLink);
 notifyAllSosContactsActionButton?.addEventListener('click', notifyAllSosContacts);
 endActiveSosButton?.addEventListener('click', endActiveSosSession);

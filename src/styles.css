@@ -2468,3 +2468,106 @@ body.tracking-mode .modal-backdrop {
   margin-top: 0;
   justify-content: center;
 }
+
+.active-sos-summary {
+  display: grid;
+  gap: 8px;
+}
+.active-sos-summary .eyebrow { margin-bottom: 0; color: #9f1239; }
+.active-sos-test-mode {
+  width: fit-content;
+  margin: 0;
+  padding: 8px 12px;
+  color: #9f1239;
+  background: #fff1f2;
+  border: 1px solid rgba(239, 35, 60, 0.28);
+  border-radius: 999px;
+  font-weight: 950;
+}
+.active-sos-test-mode[hidden] { display: none; }
+.active-sos-emergency-actions,
+.active-sos-compact-actions,
+.active-sos-debug-actions {
+  display: grid;
+  gap: 12px;
+}
+.active-sos-call-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.active-sos-primary-action {
+  width: 100%;
+  min-height: 76px;
+  margin-top: 0;
+  font-size: 1.12rem;
+}
+.active-sos-tracking-ready {
+  width: fit-content;
+  margin: 0;
+  padding: 8px 12px;
+  color: #7f1d1d;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(239, 35, 60, 0.18);
+  border-radius: 999px;
+  font-weight: 900;
+}
+.active-sos-compact-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.active-sos-compact-actions .ghost-button,
+.active-sos-debug-actions .ghost-button,
+.active-sos-debug-actions .danger-outline-button,
+.active-sos-end-action {
+  min-height: 50px;
+  margin-top: 0;
+}
+.active-sos-disclosure {
+  padding: 0;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(239, 35, 60, 0.20);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.active-sos-disclosure summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  color: #7f1d1d;
+  cursor: pointer;
+  font-weight: 950;
+  list-style: none;
+}
+.active-sos-disclosure summary::-webkit-details-marker { display: none; }
+.active-sos-disclosure summary::after {
+  content: "▾";
+  transition: transform 180ms ease;
+}
+.active-sos-disclosure[open] summary::after { transform: rotate(180deg); }
+.active-sos-disclosure .active-sos-details,
+.active-sos-disclosure .active-sos-debug-details,
+.active-sos-disclosure .active-sos-live-note,
+.active-sos-disclosure .active-sos-live-status,
+.active-sos-disclosure .active-sos-debug-actions {
+  margin: 0 16px 16px;
+}
+.active-sos-debug { border-style: dashed; }
+.active-sos-end-action {
+  width: 100%;
+  justify-self: start;
+}
+
+@media (max-width: 640px) {
+  .active-sos-card {
+    gap: 12px;
+    margin-top: 20px;
+    padding: 16px;
+  }
+  .active-sos-card h3 { font-size: 1.75rem; }
+  .active-sos-intro { padding: 12px 14px; }
+  .active-sos-call-actions,
+  .active-sos-compact-actions { grid-template-columns: 1fr; }
+  .emergency-action-button { min-height: 60px; }
+}
