@@ -5,7 +5,7 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const SOS_TRACKING_BASE_URL = 'https://cotsiosael.github.io/safety-app/';
-const APP_VERSION = '2026-07-01-2';
+const APP_VERSION = '2026-07-02-emergency-repair';
 const APP_VERSION_URL = './version.json';
 const trackingParams = new URLSearchParams(window.location.search);
 const hasTrackingTokenParam = trackingParams.has('track');
@@ -389,6 +389,38 @@ const sosContactWarning = document.querySelector('#sos-contact-warning');
 const notifyAllSosContactsButton = document.querySelector('#notify-all-sos-contacts');
 const notifyAllSosContactsActionButton = document.querySelector('#notify-all-sos-contacts-action');
 const sosNotificationHistoryList = document.querySelector('#sos-notification-history-list');
+
+function showGlobalSafetyMessage(message) {
+  const fallbackTarget = document.querySelector('#sos-status') || document.querySelector('#home-quick-action-status') || document.body;
+  if (!fallbackTarget) return;
+
+  if (fallbackTarget === document.body) {
+    let notice = document.querySelector('#global-safety-error');
+    if (!notice) {
+      notice = document.createElement('div');
+      notice.id = 'global-safety-error';
+      notice.setAttribute('role', 'status');
+      notice.style.cssText = 'position:fixed;left:1rem;right:1rem;bottom:1rem;z-index:9999;padding:.85rem 1rem;border-radius:14px;background:#7f1d1d;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.25);font-weight:700;';
+      document.body.appendChild(notice);
+    }
+    notice.textContent = message;
+    window.clearTimeout(showGlobalSafetyMessage.timeoutId);
+    showGlobalSafetyMessage.timeoutId = window.setTimeout(() => notice.remove(), 5000);
+    return;
+  }
+
+  fallbackTarget.textContent = message;
+}
+
+window.addEventListener('error', (event) => {
+  console.error('[SafeMe] Uncaught runtime error', event.error || event.message);
+  showGlobalSafetyMessage('Κάτι πήγε στραβά, αλλά η εφαρμογή παραμένει ανοιχτή. Δοκίμασε ξανά.');
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[SafeMe] Unhandled promise rejection', event.reason);
+  showGlobalSafetyMessage('Κάτι πήγε στραβά, αλλά η εφαρμογή παραμένει ανοιχτή. Δοκίμασε ξανά.');
+});
 
 
 function isActiveSosInProgress() {
@@ -906,7 +938,7 @@ function showPage(nextPage) {
   });
 
   pages.forEach((page) => page.classList.toggle('active', page.id === nextPage));
-  pageTitle.textContent = pageTitles[nextPage];
+  if (pageTitle) pageTitle.textContent = pageTitles[nextPage];
   if (nextPage === 'health') renderHealthPage();
 }
 
@@ -1327,7 +1359,8 @@ function setLocationButtonsLoading(isLoading) {
 function setSosConfirmLoading(isLoading) {
   if (!sosButton) return;
   sosButton.disabled = isLoading;
-  sosButton.querySelector('small').textContent = isLoading ? 'Ετοιμάζω...' : 'Πατήστε';
+  const sosButtonHint = sosButton.querySelector('small');
+  if (sosButtonHint) sosButtonHint.textContent = isLoading ? 'Ετοιμάζω...' : 'Πατήστε';
 }
 
 function showLocationMessage(message) {
@@ -2273,7 +2306,7 @@ function renderCheckIn() {
   checkInActivePanel.hidden = !isActive;
   checkInStartButton.disabled = isActive || checkInExpiryInProgress;
   checkInCustomMinutes.disabled = isActive || checkInExpiryInProgress;
-  checkInPresetButtons.forEach((button) => {
+  checkInPresetButtons?.forEach((button) => {
     button.disabled = isActive || checkInExpiryInProgress;
     button.classList.toggle('active', Number(button.dataset.minutes) === selectedCheckInMinutes && !checkInCustomMinutes.value);
   });
@@ -2358,7 +2391,7 @@ function renderSafeWalk() {
   safeWalkStartButton.disabled = isActive || safeWalkExpiryInProgress;
   safeWalkDestination.disabled = isActive || safeWalkExpiryInProgress;
   safeWalkCustomMinutes.disabled = isActive || safeWalkExpiryInProgress;
-  safeWalkPresetButtons.forEach((button) => {
+  safeWalkPresetButtons?.forEach((button) => {
     button.disabled = isActive || safeWalkExpiryInProgress;
     button.classList.toggle('active', Number(button.dataset.minutes) === selectedSafeWalkMinutes && !safeWalkCustomMinutes.value);
   });
@@ -2846,14 +2879,16 @@ async function activateSosFromMainButton() {
 }
 
 function closeSosModal() {
-  sosModal.hidden = true;
+  if (sosModal) sosModal.hidden = true;
   document.body.classList.remove('modal-open');
-  sosButton.focus();
+  sosButton?.focus();
 }
 
 async function confirmSos() {
   if (sosActivationInProgress) return;
   sosActivationInProgress = true;
+
+  try {
 
   setSosConfirmLoading(true);
   sosStatus.textContent = isSosTestMode
@@ -2933,22 +2968,30 @@ async function confirmSos() {
   }
 
   renderActiveSosSession(historyMessage || 'Το SOS ενεργοποιήθηκε. Ετοιμάσαμε μήνυμα βοήθειας με την τοποθεσία σου.');
-  sosActivationInProgress = false;
   markTestSosCompleted();
+  } catch (error) {
+    console.error('[SafeMe] SOS activation failed', error);
+    const message = 'Δεν μπόρεσα να ενεργοποιήσω SOS. Δοκίμασε ξανά.';
+    if (sosStatus) sosStatus.textContent = message;
+    showGlobalSafetyMessage(message);
+  } finally {
+    setSosConfirmLoading(false);
+    sosActivationInProgress = false;
+  }
 }
 
 function syncSosTestModeToggle() {
-  sosTestModeToggle.checked = isSosTestMode;
+  if (sosTestModeToggle) sosTestModeToggle.checked = isSosTestMode;
 }
 
 function handleSosTestModeChange() {
-  isSosTestMode = sosTestModeToggle.checked;
+  isSosTestMode = Boolean(sosTestModeToggle?.checked);
   saveJson(storageKeys.sosTestMode, isSosTestMode);
 
   if (preparedSosMessage) {
     preparedSosMessage = buildSosMessage(currentLocation);
-    sosMessagePreview.textContent = preparedSosMessage;
-    sosTestModeLabel.hidden = !isSosTestMode;
+    if (sosMessagePreview) sosMessagePreview.textContent = preparedSosMessage;
+    if (sosTestModeLabel) sosTestModeLabel.hidden = !isSosTestMode;
   }
 }
 
@@ -3716,7 +3759,7 @@ navButtons.forEach((button) => {
 
 document.addEventListener('click', (event) => {
   const button = event.target.closest('[data-open-tool]');
-  if (!button || !homeQuickActions?.contains(button)) return;
+  if (!button) return;
 
   event.preventDefault();
   handleHomeQuickAction(button.dataset.openTool);
@@ -3724,100 +3767,100 @@ document.addEventListener('click', (event) => {
 
 safetyToolsTestSosButton?.addEventListener('click', () => handleHealthAction('test-sos'));
 
-sosButton.addEventListener('click', activateSosFromMainButton);
-sosTestModeToggle.addEventListener('change', handleSosTestModeChange);
-sosCancelButtons.forEach((button) => button.addEventListener('click', closeSosModal));
-sosSendSmsButton.addEventListener('click', sendPreparedSosSms);
-sosSendWhatsappButton.addEventListener('click', sendPreparedSosWhatsapp);
-sosCopyMessageButton.addEventListener('click', copyPreparedSosMessage);
-sosCopyTrackingButton.addEventListener('click', copyPreparedSosTrackingLink);
-sosNativeShareButton.addEventListener('click', sharePreparedSosMessage);
-sosModal.addEventListener('click', (event) => {
+if (sosButton) sosButton.addEventListener('click', activateSosFromMainButton);
+sosTestModeToggle?.addEventListener('change', handleSosTestModeChange);
+sosCancelButtons?.forEach((button) => button.addEventListener('click', closeSosModal));
+sosSendSmsButton?.addEventListener('click', sendPreparedSosSms);
+sosSendWhatsappButton?.addEventListener('click', sendPreparedSosWhatsapp);
+sosCopyMessageButton?.addEventListener('click', copyPreparedSosMessage);
+sosCopyTrackingButton?.addEventListener('click', copyPreparedSosTrackingLink);
+sosNativeShareButton?.addEventListener('click', sharePreparedSosMessage);
+sosModal?.addEventListener('click', (event) => {
   if (event.target === sosModal) closeSosModal();
 });
-contactInviteCloseButton.addEventListener('click', closeContactInviteModal);
-contactInviteSmsButton.addEventListener('click', sendContactInviteSms);
-contactInviteWhatsappButton.addEventListener('click', sendContactInviteWhatsapp);
-contactInviteCopyButton.addEventListener('click', copyContactInviteMessage);
-contactInviteModal.addEventListener('click', (event) => {
+contactInviteCloseButton?.addEventListener('click', closeContactInviteModal);
+contactInviteSmsButton?.addEventListener('click', sendContactInviteSms);
+contactInviteWhatsappButton?.addEventListener('click', sendContactInviteWhatsapp);
+contactInviteCopyButton?.addEventListener('click', copyContactInviteMessage);
+contactInviteModal?.addEventListener('click', (event) => {
   if (event.target === contactInviteModal) closeContactInviteModal();
 });
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return;
-  if (!contactInviteModal.hidden) {
+  if (contactInviteModal && !contactInviteModal.hidden) {
     closeContactInviteModal();
     return;
   }
   if (sosModal && !sosModal.hidden) closeSosModal();
 });
-authSignupTab.addEventListener('click', () => setAuthMode('signup'));
-authLoginTab.addEventListener('click', () => setAuthMode('login'));
-authForgotPasswordButton.addEventListener('click', sendPasswordResetEmail);
-authPasswordToggle.addEventListener('click', togglePasswordVisibility);
-authForm.addEventListener('submit', handleAuthSubmit);
-passwordResetForm.addEventListener('submit', handlePasswordResetSubmit);
-authLogoutButton.addEventListener('click', logout);
-authIndicator.addEventListener('click', openProfileAuthCard);
-onlineStatusPill.addEventListener('click', handleOnlineStatusClick);
-contactsForm.addEventListener('submit', addContact);
-contactsList.addEventListener('click', handleContactsListClick);
-clearContactsButton.addEventListener('click', clearTrustedContacts);
-profileForm.addEventListener('submit', saveProfile);
-clearDataButton.addEventListener('click', clearSafeMeData);
-settingsOpenProfileButton.addEventListener('click', openSettingsProfile);
-settingsOpenContactsButton.addEventListener('click', openSettingsContacts);
-settingsRefreshLocationButton.addEventListener('click', refreshLocationFromSettings);
-settingsRefreshAppButton.addEventListener('click', () => refreshAppSafely());
+authSignupTab?.addEventListener('click', () => setAuthMode('signup'));
+authLoginTab?.addEventListener('click', () => setAuthMode('login'));
+authForgotPasswordButton?.addEventListener('click', sendPasswordResetEmail);
+authPasswordToggle?.addEventListener('click', togglePasswordVisibility);
+authForm?.addEventListener('submit', handleAuthSubmit);
+passwordResetForm?.addEventListener('submit', handlePasswordResetSubmit);
+authLogoutButton?.addEventListener('click', logout);
+authIndicator?.addEventListener('click', openProfileAuthCard);
+onlineStatusPill?.addEventListener('click', handleOnlineStatusClick);
+contactsForm?.addEventListener('submit', addContact);
+contactsList?.addEventListener('click', handleContactsListClick);
+clearContactsButton?.addEventListener('click', clearTrustedContacts);
+profileForm?.addEventListener('submit', saveProfile);
+clearDataButton?.addEventListener('click', clearSafeMeData);
+settingsOpenProfileButton?.addEventListener('click', openSettingsProfile);
+settingsOpenContactsButton?.addEventListener('click', openSettingsContacts);
+settingsRefreshLocationButton?.addEventListener('click', refreshLocationFromSettings);
+settingsRefreshAppButton?.addEventListener('click', () => refreshAppSafely());
 appUpdateRefreshButton?.addEventListener('click', () => refreshAppSafely());
 pullRefreshManualButton?.addEventListener('click', () => refreshAppSafely());
-settingsClearDataButton.addEventListener('click', clearSafeMeData);
+settingsClearDataButton?.addEventListener('click', clearSafeMeData);
 settingsLogoutButton?.addEventListener('click', logout);
 localImportButton?.addEventListener('click', importLocalEmergencyInfo);
 localImportSkipButton?.addEventListener('click', skipLocalEmergencyImport);
-healthOpenProfileButton.addEventListener('click', () => handleHealthAction('profile'));
-healthOpenContactsButton.addEventListener('click', () => handleHealthAction('contacts'));
-healthCheckLocationButton.addEventListener('click', () => handleHealthAction('location'));
-healthTestSosButton.addEventListener('click', () => handleHealthAction('test-sos'));
-healthTestCheckInButton.addEventListener('click', () => handleHealthAction('checkin'));
-healthTestSafeWalkButton.addEventListener('click', () => handleHealthAction('safe-walk'));
-healthCopyReportButton.addEventListener('click', copyHealthReport);
-healthChecklist.addEventListener('click', (event) => {
+healthOpenProfileButton?.addEventListener('click', () => handleHealthAction('profile'));
+healthOpenContactsButton?.addEventListener('click', () => handleHealthAction('contacts'));
+healthCheckLocationButton?.addEventListener('click', () => handleHealthAction('location'));
+healthTestSosButton?.addEventListener('click', () => handleHealthAction('test-sos'));
+healthTestCheckInButton?.addEventListener('click', () => handleHealthAction('checkin'));
+healthTestSafeWalkButton?.addEventListener('click', () => handleHealthAction('safe-walk'));
+healthCopyReportButton?.addEventListener('click', copyHealthReport);
+healthChecklist?.addEventListener('click', (event) => {
   const actionButton = event.target.closest('[data-health-action]');
   if (actionButton) handleHealthAction(actionButton.dataset.healthAction);
 });
-refreshLocationButton.addEventListener('click', refreshLocation);
+refreshLocationButton?.addEventListener('click', refreshLocation);
 setupChecklist?.addEventListener('click', handleSetupChecklistAction);
-shareLocationButton.addEventListener('click', shareLocation);
-testActiveSosLiveSyncButton.addEventListener('click', testActiveSosLiveSyncNow);
-refreshActiveSosGpsButton.addEventListener('click', refreshActiveSosGpsNow);
-updateActiveSosLocationButton.addEventListener('click', updateActiveSosLocation);
-copyActiveSosTrackingButton.addEventListener('click', copyActiveSosTrackingLink);
-disableActiveSosTrackingButton.addEventListener('click', disableActiveSosTrackingLink);
+shareLocationButton?.addEventListener('click', shareLocation);
+testActiveSosLiveSyncButton?.addEventListener('click', testActiveSosLiveSyncNow);
+refreshActiveSosGpsButton?.addEventListener('click', refreshActiveSosGpsNow);
+updateActiveSosLocationButton?.addEventListener('click', updateActiveSosLocation);
+copyActiveSosTrackingButton?.addEventListener('click', copyActiveSosTrackingLink);
+disableActiveSosTrackingButton?.addEventListener('click', disableActiveSosTrackingLink);
 notifyAllSosContactsActionButton?.addEventListener('click', notifyAllSosContacts);
-endActiveSosButton.addEventListener('click', endActiveSosSession);
-safeWalkPresetButtons.forEach((button) => {
+endActiveSosButton?.addEventListener('click', endActiveSosSession);
+safeWalkPresetButtons?.forEach((button) => {
   button.addEventListener('click', () => {
     selectedSafeWalkMinutes = Number(button.dataset.minutes);
-    safeWalkCustomMinutes.value = '';
+    if (safeWalkCustomMinutes) safeWalkCustomMinutes.value = '';
     renderSafeWalk();
   });
 });
-safeWalkCustomMinutes.addEventListener('input', renderSafeWalk);
-safeWalkStartButton.addEventListener('click', startSafeWalk);
-safeWalkSafeButton.addEventListener('click', completeSafeWalkSafely);
-safeWalkRefreshLocationButton.addEventListener('click', refreshSafeWalkLocation);
-safeWalkCancelButton.addEventListener('click', cancelSafeWalk);
-checkInPresetButtons.forEach((button) => {
+safeWalkCustomMinutes?.addEventListener('input', renderSafeWalk);
+safeWalkStartButton?.addEventListener('click', startSafeWalk);
+safeWalkSafeButton?.addEventListener('click', completeSafeWalkSafely);
+safeWalkRefreshLocationButton?.addEventListener('click', refreshSafeWalkLocation);
+safeWalkCancelButton?.addEventListener('click', cancelSafeWalk);
+checkInPresetButtons?.forEach((button) => {
   button.addEventListener('click', () => {
     selectedCheckInMinutes = Number(button.dataset.minutes);
-    checkInCustomMinutes.value = '';
+    if (checkInCustomMinutes) checkInCustomMinutes.value = '';
     renderCheckIn();
   });
 });
-checkInCustomMinutes.addEventListener('input', renderCheckIn);
-checkInStartButton.addEventListener('click', startCheckIn);
-checkInSafeButton.addEventListener('click', completeCheckInSafely);
-checkInCancelButton.addEventListener('click', cancelCheckIn);
+checkInCustomMinutes?.addEventListener('input', renderCheckIn);
+checkInStartButton?.addEventListener('click', startCheckIn);
+checkInSafeButton?.addEventListener('click', completeCheckInSafely);
+checkInCancelButton?.addEventListener('click', cancelCheckIn);
 notifyAllSosContactsButton?.addEventListener('click', notifyAllSosContacts);
 sosContactList?.addEventListener('click', async (event) => {
   const disabledAction = event.target.closest('[aria-disabled="true"]');
