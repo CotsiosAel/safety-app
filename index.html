@@ -83,7 +83,7 @@
                 <small>Πατήστε</small>
               </button>
             </div>
-            <p class="sos-status" id="sos-status">Πάτησε SOS όταν χρειάζεσαι άμεση βοήθεια.</p>
+            <p class="sos-status" id="sos-status">Πάτησε SOS μία φορά για άμεση ενεργοποίηση.</p>
 
             <label class="sos-test-toggle">
               <input id="sos-test-mode" type="checkbox" />
@@ -98,6 +98,7 @@
                 </div>
                 <p class="active-sos-live-status" id="active-sos-live-status">Live ενημέρωση ενεργή</p>
               </div>
+              <p class="active-sos-intro" id="active-sos-intro">Το SOS ενεργοποιήθηκε<br />Ετοιμάσαμε μήνυμα βοήθειας με την τοποθεσία σου.</p>
               <dl class="active-sos-details">
                 <div><dt>Status</dt><dd id="active-sos-status">active</dd></div>
                 <div><dt>Started time</dt><dd id="active-sos-started">—</dd></div>
@@ -126,7 +127,7 @@
                     <h4 id="sos-contact-notify-title">Ειδοποίηση επαφών έκτακτης ανάγκης</h4>
                     <p>Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται.</p>
                   </div>
-                  <button class="danger-button compact-danger-button" id="notify-all-sos-contacts" type="button">Ειδοποίηση όλων των επαφών</button>
+                  <button class="danger-button sos-notify-primary" id="notify-all-sos-contacts" type="button">Ειδοποίηση όλων των επαφών</button>
                 </div>
                 <p class="sos-contact-warning" id="sos-contact-warning" aria-live="polite"></p>
                 <div class="sos-contact-list" id="sos-contact-list" aria-live="polite"></div>
@@ -136,15 +137,15 @@
                 </section>
               </section>
               <div class="active-sos-actions">
+                <button class="danger-button active-sos-primary-action" id="notify-all-sos-contacts-action" type="button">Ειδοποίηση όλων των επαφών</button>
                 <button class="ghost-button" id="copy-active-sos-tracking" type="button">Αντιγραφή tracking link</button>
                 <button class="ghost-button" id="update-active-sos-location" type="button">Ενημέρωση τοποθεσίας τώρα</button>
-                <button class="ghost-button" id="test-active-sos-live-sync" type="button">Δοκιμή live sync τώρα</button>
-                <button class="ghost-button" id="refresh-active-sos-gps" type="button">Ανανέωση GPS τώρα</button>
-                <button class="danger-outline-button" id="disable-active-sos-tracking" type="button">Απενεργοποίηση tracking link</button>
-                <button class="danger-button" id="notify-all-sos-contacts-action" type="button">Ειδοποίηση όλων των επαφών</button>
-                <button class="danger-outline-button" id="end-active-sos" type="button">Τερματισμός SOS</button>
                 <a class="emergency-action-button" href="tel:112">Κλήση 112</a>
                 <a class="emergency-action-button" href="tel:199">Κλήση 199</a>
+                <button class="danger-outline-button" id="end-active-sos" type="button">Τερματισμός SOS</button>
+                <button class="ghost-button" id="test-active-sos-live-sync" type="button" hidden>Δοκιμή live sync τώρα</button>
+                <button class="ghost-button" id="refresh-active-sos-gps" type="button" hidden>Ανανέωση GPS τώρα</button>
+                <button class="danger-outline-button" id="disable-active-sos-tracking" type="button" hidden>Απενεργοποίηση tracking link</button>
               </div>
             </section>
 
@@ -622,31 +623,15 @@
       </div>
     </div>
 
-    <div class="modal-backdrop" id="sos-modal" role="dialog" aria-modal="true" aria-labelledby="sos-modal-title" hidden>
+    <div class="modal-backdrop" id="sos-modal" role="dialog" aria-modal="true" aria-labelledby="sos-action-title" hidden>
       <div class="modal-card">
-        <button class="modal-close" type="button" data-close-sos aria-label="Ακύρωση SOS">×</button>
-        <div class="sos-countdown-step" id="sos-confirmation-step">
-          <span class="modal-icon">⚡</span>
-          <p class="sos-test-mode-label" id="sos-countdown-test-label" hidden>Λειτουργία δοκιμής SOS</p>
-          <p class="eyebrow">SafeMe SOS</p>
-          <h2 id="sos-modal-title">Ενεργοποίηση SOS</h2>
-          <p>Η ειδοποίηση θα ετοιμαστεί για τις επαφές έκτακτης ανάγκης.</p>
-          <output class="sos-countdown-number" id="sos-countdown-number" aria-live="assertive">5</output>
-          <div class="sos-countdown-progress" id="sos-countdown-progress" aria-hidden="true">
-            <span></span>
-          </div>
-          <p class="sos-countdown-debug" id="sos-countdown-debug">timer: scheduled / 5</p>
-          <div class="modal-actions sos-countdown-actions">
-            <button class="danger-outline-button sos-cancel-button" type="button" data-close-sos>Ακύρωση</button>
-            <button class="danger-button visually-hidden" id="sos-confirm" type="button" tabindex="-1">Ενεργοποίηση τώρα</button>
-          </div>
-        </div>
+        <button class="modal-close" type="button" data-close-sos aria-label="Κλείσιμο SOS">×</button>
         <div class="sos-action-panel" id="sos-action-panel" hidden>
           <span class="modal-icon">🆘</span>
           <p class="eyebrow">SafeMe SOS</p>
           <h2 id="sos-action-title">Το SOS ενεργοποιήθηκε</h2>
           <p class="sos-test-mode-label" id="sos-test-mode-label" hidden>Λειτουργία δοκιμής SOS</p>
-          <p id="sos-action-description">Διάλεξε τρόπο αποστολής προς την κύρια έμπιστη επαφή ή αντιγραφή για χειροκίνητη χρήση.</p>
+          <p id="sos-action-description">Ετοιμάσαμε μήνυμα βοήθειας με την τοποθεσία σου.</p>
           <section class="emergency-call-section modal-emergency-calls" aria-labelledby="sos-emergency-call-title">
             <h3 id="sos-emergency-call-title">Άμεση κλήση έκτακτης ανάγκης</h3>
             <div class="emergency-call-buttons">
@@ -663,6 +648,7 @@
             <button class="ghost-button" id="sos-copy-tracking" type="button" hidden>Αντιγραφή tracking link</button>
             <button class="ghost-button" id="sos-copy-message" type="button">Αντιγραφή μήνυμα SOS</button>
             <button class="ghost-button" id="sos-native-share" type="button">Κοινή χρήση</button>
+            <button class="ghost-button" type="button" data-close-sos>Κλείσιμο</button>
           </div>
         </div>
       </div>
