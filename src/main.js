@@ -5,8 +5,73 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const SOS_TRACKING_BASE_URL = 'https://cotsiosael.github.io/safety-app/';
-const APP_VERSION = '2026-07-02-no-update-banner';
+const APP_VERSION = 'no-banner-final';
 const APP_VERSION_URL = './version.json';
+const EMERGENCY_PWA_RESET_VERSION = 'no-banner-final';
+const UPDATE_STORAGE_KEYS = [
+  'updateAvailable',
+  'pwaUpdateAvailable',
+  'needRefresh',
+  'offlineReady',
+  'app-update-available',
+  'safeme-app-update-available',
+  'safeme-update-available',
+  'safety-app-update-available',
+  'safeme-waiting-service-worker',
+];
+
+function clearStoredAppUpdateFlags() {
+  UPDATE_STORAGE_KEYS.forEach((key) => {
+    try { localStorage.removeItem(key); } catch {}
+    try { sessionStorage.removeItem(key); } catch {}
+  });
+}
+
+clearStoredAppUpdateFlags();
+
+async function runEmergencyPwaResetIfRequested() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('resetPwa') !== '1') return false;
+
+  const resetKey = `pwa-reset-complete-${EMERGENCY_PWA_RESET_VERSION}`;
+  if (sessionStorage.getItem(resetKey) === '1') {
+    params.delete('resetPwa');
+    params.set('v', EMERGENCY_PWA_RESET_VERSION);
+    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}${window.location.hash}`);
+    return false;
+  }
+
+  sessionStorage.setItem(resetKey, '1');
+  clearStoredAppUpdateFlags();
+
+  try {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+    }
+  } catch (error) {
+    console.warn('[SafeMe] Emergency service worker reset failed', error);
+  }
+
+  try {
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+    }
+  } catch (error) {
+    console.warn('[SafeMe] Emergency cache reset failed', error);
+  }
+
+  clearStoredAppUpdateFlags();
+  const cleanParams = new URLSearchParams(window.location.search);
+  cleanParams.delete('resetPwa');
+  cleanParams.set('v', EMERGENCY_PWA_RESET_VERSION);
+  window.location.replace(`${window.location.pathname}?${cleanParams.toString()}${window.location.hash}`);
+  return true;
+}
+
+runEmergencyPwaResetIfRequested();
+
 const trackingParams = new URLSearchParams(window.location.search);
 const hasTrackingTokenParam = trackingParams.has('track');
 const trackingToken = (trackingParams.get('track') || '').trim();
@@ -427,23 +492,6 @@ function isActiveSosInProgress() {
   return activeSosSession?.status === 'active';
 }
 
-function clearStoredAppUpdateFlags() {
-  const legacyUpdateKeys = [
-    'updateAvailable',
-    'pwaUpdateAvailable',
-    'app-update-available',
-    'safeme-app-update-available',
-    'safeme-update-available',
-    'safety-app-update-available',
-    'safeme-waiting-service-worker',
-  ];
-
-  legacyUpdateKeys.forEach((key) => {
-    try { localStorage.removeItem(key); } catch {}
-    try { sessionStorage.removeItem(key); } catch {}
-  });
-}
-
 function hideAppUpdateBanner() {
   hasAppUpdateAvailable = false;
   waitingServiceWorker = null;
@@ -472,25 +520,8 @@ async function refreshAppSafely({ requireConfirmationForActiveSos = true } = {})
   return true;
 }
 
-async function checkForAppUpdate({ force = false } = {}) {
-  const now = Date.now();
-  if (!force && now - lastVersionCheckAt < 30000) return;
-  lastVersionCheckAt = now;
-
-  try {
-    await fetch(`${APP_VERSION_URL}?t=${now}`, { cache: 'no-store' });
-  } catch {}
-
-  if (navigator.serviceWorker?.getRegistration) {
-    const registration = await navigator.serviceWorker.getRegistration();
-    if (!registration) {
-      hideAppUpdateBanner();
-      return;
-    }
-
-    await registration.update();
-    hideAppUpdateBanner();
-  }
+async function checkForAppUpdate() {
+  hideAppUpdateBanner();
 }
 
 function registerServiceWorker() {

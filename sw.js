@@ -1,10 +1,10 @@
-const CACHE_NAME = 'safeme-shell-2026-07-02-no-update-banner';
+const CACHE_NAME = 'safeme-shell-no-banner-final';
 const SHELL_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css?v=2026-07-02-no-update-banner',
-  './src/main.js?v=2026-07-02-no-update-banner',
+  './src/styles.css?v=no-banner-final',
+  './src/main.js?v=no-banner-final',
   './assets/icon.png',
   './version.json',
 ];
