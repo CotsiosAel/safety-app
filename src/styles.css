@@ -2219,7 +2219,7 @@ body.tracking-mode .modal-backdrop {
     position: relative;
     top: auto;
     z-index: 1;
-    padding: 12px 14px;
+    padding: 10px 14px;
   }
   .brand-mark {
     width: 42px;
@@ -2230,11 +2230,11 @@ body.tracking-mode .modal-backdrop {
   .nav-list {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
-    margin-top: 12px;
+    margin-top: 10px;
   }
   .nav-item {
-    min-height: 54px;
-    padding: 8px 6px;
+    min-height: 50px;
+    padding: 7px 6px;
     border-radius: 14px;
     font-size: 0.78rem;
     line-height: 1.15;
@@ -2245,15 +2245,15 @@ body.tracking-mode .modal-backdrop {
     border-radius: 8px;
   }
   .content {
-    padding-top: 18px;
+    padding-top: 16px;
   }
 }
 
 @media (max-width: 640px) {
-  .content { padding: 14px 12px 30px; }
+  .content { padding: 12px 12px 30px; }
   .topbar {
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 8px;
+    margin-bottom: 12px;
   }
   .topbar > div:first-child {
     display: none;
@@ -2336,9 +2336,10 @@ body.tracking-mode .modal-backdrop {
   }
   .home-readiness-summary .readiness-card {
     display: grid;
-    gap: 8px;
-    padding: 12px;
+    gap: 6px;
+    padding: 11px;
     border-radius: 18px;
+    align-content: start;
   }
   .home-readiness-summary .card-icon {
     width: 34px;
@@ -2351,7 +2352,9 @@ body.tracking-mode .modal-backdrop {
     letter-spacing: -0.02em;
   }
   .home-readiness-summary p {
+    margin-top: 3px;
     font-size: 0.74rem;
+    line-height: 1.25;
   }
   .home-quick-actions {
     margin-top: 14px;
