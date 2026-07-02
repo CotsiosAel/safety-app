@@ -833,7 +833,12 @@ function isLegacyDemoContact(contact) {
 function sanitizeContacts(savedContacts) {
   if (!Array.isArray(savedContacts)) return [];
 
-  return savedContacts.filter((contact) => !isLegacyDemoContact(contact));
+  return savedContacts
+    .filter((contact) => !isLegacyDemoContact(contact))
+    .map((contact) => ({
+      ...contact,
+      id: contact.id || createLocalContactId(),
+    }));
 }
 
 function ensureSinglePrimaryContact(contactList) {
@@ -3060,6 +3065,20 @@ function renderContacts() {
   contactCount.textContent = contacts.length;
 }
 
+
+function createLocalContactId() {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+  return `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function updateContacts(nextContacts) {
+  contacts = ensureSinglePrimaryContact(typeof nextContacts === 'function' ? nextContacts(contacts) : nextContacts);
+  saveJson(storageKeys.contacts, contacts);
+  renderContacts();
+  renderSetupChecklist();
+  renderHealthPage();
+}
+
 function ensurePrimaryContact() {
   contacts = ensureSinglePrimaryContact(contacts);
 }
@@ -3071,23 +3090,18 @@ async function deleteContact(index) {
 
   if (!confirmed) return;
 
+  const contactToDelete = contacts[index];
+  if (!contactToDelete) return;
+
   const previousContacts = contacts;
   isContactsMutationInProgress = true;
-  contacts = contacts.filter((_, contactIndex) => contactIndex !== index);
-  ensurePrimaryContact();
-  saveJson(storageKeys.contacts, contacts);
   renderContacts();
-  renderSetupChecklist();
-  renderHealthPage();
 
   try {
-    await persistContacts();
+    await deleteContactFromSupabase(contactToDelete);
+    updateContacts((currentContacts) => currentContacts.filter((contact) => contact.id !== contactToDelete.id));
   } catch (error) {
-    contacts = previousContacts;
-    saveJson(storageKeys.contacts, contacts);
-    renderContacts();
-    renderSetupChecklist();
-    renderHealthPage();
+    updateContacts(previousContacts);
     window.alert('Δεν μπόρεσα να διαγράψω την επαφή. Δοκίμασε ξανά.');
   } finally {
     isContactsMutationInProgress = false;
@@ -3225,6 +3239,7 @@ async function addContact(event) {
 
   const formData = new FormData(contactsForm);
   const newContact = {
+    id: createLocalContactId(),
     name: formData.get('name').trim(),
     relationship: formData.get('relationship').trim(),
     phone: formData.get('phone').trim(),
@@ -3234,21 +3249,14 @@ async function addContact(event) {
 
   const previousContacts = contacts;
   isContactsMutationInProgress = true;
-  contacts = [...contacts, newContact];
-  saveJson(storageKeys.contacts, contacts);
-  contactsForm.reset();
   renderContacts();
-  renderSetupChecklist();
-  renderHealthPage();
 
   try {
-    await persistContacts();
+    const savedContact = await saveContactToSupabase(newContact);
+    updateContacts((currentContacts) => [...currentContacts, savedContact]);
+    contactsForm.reset();
   } catch (error) {
-    contacts = previousContacts;
-    saveJson(storageKeys.contacts, contacts);
-    renderContacts();
-    renderSetupChecklist();
-    renderHealthPage();
+    updateContacts(previousContacts);
     window.alert('Δεν μπόρεσα να αποθηκεύσω την επαφή. Δοκίμασε ξανά.');
   } finally {
     isContactsMutationInProgress = false;
@@ -3525,6 +3533,31 @@ async function saveProfileToSupabase() {
   const { error } = await supabase
     .from('profiles')
     .upsert(mapProfileToSupabase(profile), { onConflict: 'id' });
+
+  if (error) throw error;
+}
+
+async function saveContactToSupabase(contact) {
+  if (!currentUser || isRemoteSyncing) return contact;
+
+  const { data, error } = await supabase
+    .from('trusted_contacts')
+    .insert(mapContactToSupabase(contact))
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  return mapContactFromSupabase(data);
+}
+
+async function deleteContactFromSupabase(contact) {
+  if (!currentUser || isRemoteSyncing || !contact?.id) return;
+
+  const { error } = await supabase
+    .from('trusted_contacts')
+    .delete()
+    .eq('user_id', currentUser.id)
+    .eq('id', contact.id);
 
   if (error) throw error;
 }
