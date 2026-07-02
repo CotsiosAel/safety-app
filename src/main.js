@@ -5,7 +5,7 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const SOS_TRACKING_BASE_URL = 'https://cotsiosael.github.io/safety-app/';
-const APP_VERSION = '2026-07-02-contacts-state-fix';
+const APP_VERSION = '2026-07-02-no-update-banner';
 const APP_VERSION_URL = './version.json';
 const trackingParams = new URLSearchParams(window.location.search);
 const hasTrackingTokenParam = trackingParams.has('track');
@@ -265,9 +265,6 @@ const settingsOpenProfileButton = document.querySelector('#settings-open-profile
 const settingsOpenContactsButton = document.querySelector('#settings-open-contacts');
 const settingsRefreshLocationButton = document.querySelector('#settings-refresh-location');
 const settingsRefreshAppButton = document.querySelector('#settings-refresh-app');
-const appUpdateBanner = document.querySelector('#app-update-banner');
-const appUpdateMessage = document.querySelector('#app-update-message');
-const appUpdateRefreshButton = document.querySelector('#app-update-refresh');
 const pullRefreshIndicator = document.querySelector('#pull-refresh-indicator');
 const pullRefreshMessage = document.querySelector('#pull-refresh-message');
 const pullRefreshManualButton = document.querySelector('#pull-refresh-manual');
@@ -432,6 +429,8 @@ function isActiveSosInProgress() {
 
 function clearStoredAppUpdateFlags() {
   const legacyUpdateKeys = [
+    'updateAvailable',
+    'pwaUpdateAvailable',
     'app-update-available',
     'safeme-app-update-available',
     'safeme-update-available',
@@ -449,32 +448,6 @@ function hideAppUpdateBanner() {
   hasAppUpdateAvailable = false;
   waitingServiceWorker = null;
   clearStoredAppUpdateFlags();
-  if (appUpdateBanner) appUpdateBanner.hidden = true;
-}
-
-function showAppUpdateBanner(message = 'Update available / Νέα έκδοση διαθέσιμη.') {
-  if (!waitingServiceWorker) {
-    hideAppUpdateBanner();
-    return;
-  }
-
-  hasAppUpdateAvailable = true;
-  clearStoredAppUpdateFlags();
-  if (!appUpdateBanner) return;
-  appUpdateMessage.textContent = message;
-  appUpdateBanner.hidden = false;
-}
-
-function setWaitingServiceWorker(worker) {
-  if (!worker || !navigator.serviceWorker.controller) {
-    hideAppUpdateBanner();
-    return;
-  }
-
-  waitingServiceWorker = worker;
-  showAppUpdateBanner(isActiveSosInProgress()
-    ? 'Νέα έκδοση διαθέσιμη. Το SOS είναι ενεργό — κάνε refresh όταν είναι ασφαλές.'
-    : 'Update available / Νέα έκδοση διαθέσιμη.');
 }
 
 async function refreshAppSafely({ requireConfirmationForActiveSos = true } = {}) {
@@ -495,8 +468,6 @@ async function refreshAppSafely({ requireConfirmationForActiveSos = true } = {})
 
   if (isReloadingForServiceWorkerUpdate) return true;
   isReloadingForServiceWorkerUpdate = true;
-  if (appUpdateRefreshButton) appUpdateRefreshButton.disabled = true;
-  if (appUpdateMessage) appUpdateMessage.textContent = 'Updating… / Γίνεται ενημέρωση…';
   worker.postMessage({ type: 'SKIP_WAITING' });
   return true;
 }
@@ -518,8 +489,7 @@ async function checkForAppUpdate({ force = false } = {}) {
     }
 
     await registration.update();
-    if (registration.waiting) setWaitingServiceWorker(registration.waiting);
-    else if (!waitingServiceWorker) hideAppUpdateBanner();
+    hideAppUpdateBanner();
   }
 }
 
@@ -529,16 +499,14 @@ function registerServiceWorker() {
   clearStoredAppUpdateFlags();
 
   navigator.serviceWorker.register('./sw.js').then((registration) => {
-    if (registration.waiting) setWaitingServiceWorker(registration.waiting);
-    else hideAppUpdateBanner();
+    hideAppUpdateBanner();
 
     registration.addEventListener('updatefound', () => {
       const worker = registration.installing;
       if (!worker) return;
       worker.addEventListener('statechange', () => {
         if (worker.state === 'installed') {
-          if (navigator.serviceWorker.controller) setWaitingServiceWorker(worker);
-          else hideAppUpdateBanner();
+          hideAppUpdateBanner();
         }
       });
     });
@@ -556,6 +524,8 @@ function registerServiceWorker() {
 }
 
 function setupAppFreshnessChecks() {
+  clearStoredAppUpdateFlags();
+  hideAppUpdateBanner();
   registerServiceWorker();
   checkForAppUpdate({ force: true });
   document.addEventListener('visibilitychange', () => {
@@ -646,7 +616,7 @@ function setupPullToRefresh() {
     setPullRefreshState('refreshing', 'Refreshing', { offset: 18 });
     try {
       await refreshAppDataForPull();
-      setPullRefreshState('done', hasAppUpdateAvailable ? 'Update ready — tap Refresh app' : 'App refreshed / Up to date', { offset: 18 });
+      setPullRefreshState('done', 'App refreshed / Up to date', { offset: 18 });
     } catch {
       setPullRefreshState('done', 'Could not refresh. Check connection.', { offset: 18 });
     } finally {
@@ -3958,7 +3928,6 @@ settingsOpenProfileButton?.addEventListener('click', openSettingsProfile);
 settingsOpenContactsButton?.addEventListener('click', openSettingsContacts);
 settingsRefreshLocationButton?.addEventListener('click', refreshLocationFromSettings);
 settingsRefreshAppButton?.addEventListener('click', () => refreshAppSafely());
-appUpdateRefreshButton?.addEventListener('click', () => refreshAppSafely());
 pullRefreshManualButton?.addEventListener('click', () => refreshAppSafely());
 settingsClearDataButton?.addEventListener('click', clearSafeMeData);
 settingsLogoutButton?.addEventListener('click', logout);
