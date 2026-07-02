@@ -2066,3 +2066,97 @@ body.tracking-mode .modal-backdrop {
 @media (hover: hover) and (pointer: fine) {
   .pull-refresh-indicator { display: none; }
 }
+
+.home-quick-actions {
+  position: relative;
+  margin: 26px auto 0;
+  max-width: 720px;
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+}
+
+.home-quick-actions .compact-heading { margin-bottom: 14px; }
+.home-quick-actions h3 { margin: 0; color: var(--ink); letter-spacing: -0.03em; }
+
+.home-quick-action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.home-quick-action {
+  min-height: 54px;
+  padding: 12px 14px;
+  color: #172554;
+  background: #eaf2ff;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.home-quick-action:hover,
+.home-quick-action:focus-visible {
+  border-color: rgba(37, 99, 235, 0.28);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.12);
+  transform: translateY(-2px);
+}
+
+.readiness-card .card-icon { background: linear-gradient(135deg, var(--green), var(--cyan)); }
+
+.safety-tools-page {
+  gap: 22px;
+  max-width: 1180px;
+}
+
+.safety-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.safety-tool-card {
+  padding: 24px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.safety-tool-card h3 {
+  margin: 18px 0 8px;
+  color: var(--ink);
+  letter-spacing: -0.03em;
+}
+
+.safety-tool-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.58;
+}
+
+.tool-card-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  text-decoration: none;
+}
+
+.safety-tools-page .safe-walk-card,
+.safety-tools-page .checkin-card,
+.safety-tools-page #current-location-card {
+  max-width: none;
+}
+
+@media (max-width: 760px) {
+  .home-quick-action-grid,
+  .safety-tools-grid {
+    grid-template-columns: 1fr;
+  }
+}

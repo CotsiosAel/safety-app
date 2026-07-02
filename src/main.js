@@ -14,6 +14,7 @@ const trackingToken = (trackingParams.get('track') || '').trim();
 const pageTitles = {
   home: 'Αρχική σελίδα',
   contacts: 'Έμπιστες επαφές',
+  'safety-tools': 'Εργαλεία Ασφάλειας',
   profile: 'Προφίλ χρήστη',
   health: 'Έλεγχος εφαρμογής',
   settings: 'Ρυθμίσεις & ασφάλεια',
@@ -320,6 +321,10 @@ const storageMode = document.querySelector('#storage-mode');
 const locationText = document.querySelector('#location-text');
 const refreshLocationButton = document.querySelector('#refresh-location-button');
 const shareLocationButton = document.querySelector('#share-location-button');
+const homeQuickActionButtons = document.querySelectorAll('[data-open-tool]');
+const safetyToolsTestSosButton = document.querySelector('#safety-tools-test-sos');
+const contactsReadinessText = document.querySelector('#contacts-readiness-text');
+const locationReadinessText = document.querySelector('#location-readiness-text');
 const sosHistoryList = document.querySelector('#sos-history-list');
 const activeSosSection = document.querySelector('#active-sos-section');
 const activeSosStarted = document.querySelector('#active-sos-started');
@@ -888,6 +893,7 @@ function normalizePhone(phone) {
 
 
 function showPage(nextPage) {
+  if (!pageTitles[nextPage]) nextPage = 'home';
   navButtons.forEach((item) => {
     const isActive = item.dataset.page === nextPage;
     item.classList.toggle('active', isActive);
@@ -940,12 +946,12 @@ function focusSosButton() {
 
 
 function focusCheckInSection() {
-  showPage('home');
+  showPage('safety-tools');
   focusElementAfterScroll(document.querySelector('#checkin-section'));
 }
 
 function focusSafeWalkSection() {
-  showPage('home');
+  showPage('safety-tools');
   focusElementAfterScroll(document.querySelector('#safe-walk-section'));
 }
 
@@ -1033,7 +1039,7 @@ function getHealthChecks() {
       label: 'Check-in Timer',
       status: checkInFeatureReady ? 'OK' : 'Προσοχή',
       explanation: checkInFeatureReady
-        ? 'Η λειτουργία Check-in υπάρχει και είναι έτοιμη για δοκιμή από την Αρχική.'
+        ? 'Η λειτουργία Check-in υπάρχει και είναι έτοιμη για δοκιμή από τα Εργαλεία Ασφάλειας.'
         : 'Δεν εντοπίστηκαν όλα τα στοιχεία του Check-in Timer στη σελίδα.',
       actionLabel: 'Δοκιμή Check-in',
       action: 'checkin',
@@ -1044,7 +1050,7 @@ function getHealthChecks() {
       label: 'Safe Walk',
       status: safeWalkFeatureReady ? 'OK' : 'Προσοχή',
       explanation: safeWalkFeatureReady
-        ? 'Η λειτουργία Safe Walk υπάρχει και είναι έτοιμη για δοκιμή από την Αρχική.'
+        ? 'Η λειτουργία Safe Walk υπάρχει και είναι έτοιμη για δοκιμή από τα Εργαλεία Ασφάλειας.'
         : 'Δεν εντοπίστηκαν όλα τα στοιχεία του Safe Walk στη σελίδα.',
       actionLabel: 'Δοκιμή Safe Walk',
       action: 'safe-walk',
@@ -1247,7 +1253,7 @@ function handleSetupChecklistAction(event) {
 }
 
 function handleOnlineStatusClick() {
-  showPage('home');
+  showPage('safety-tools');
   showLocationMessage('Η εφαρμογή είναι online. Για συγχρονισμό λογαριασμού, συνδέσου από το Προφίλ.');
   focusElementAfterScroll(currentLocationCard || locationText);
 }
@@ -1261,9 +1267,11 @@ function formatLocation(location) {
 }
 
 function setLocationButtonsLoading(isLoading) {
-  refreshLocationButton.disabled = isLoading;
-  shareLocationButton.disabled = isLoading;
-  refreshLocationButton.textContent = isLoading ? 'Εντοπισμός...' : 'Ανανέωση';
+  if (refreshLocationButton) {
+    refreshLocationButton.disabled = isLoading;
+    refreshLocationButton.textContent = isLoading ? 'Εντοπισμός...' : 'Ανανέωση';
+  }
+  if (shareLocationButton) shareLocationButton.disabled = isLoading;
 }
 
 function setSosConfirmLoading(isLoading) {
@@ -1272,17 +1280,19 @@ function setSosConfirmLoading(isLoading) {
 }
 
 function showLocationMessage(message) {
-  locationText.textContent = message;
+  if (locationText) locationText.textContent = message;
 }
 
 function renderLocation() {
   if (!currentLocation) {
     showLocationMessage('Πάτησε ανανέωση για να βρεθεί η θέση σου.');
+    renderHomeReadinessCards();
     return;
   }
 
   const accuracyText = currentLocation.accuracy ? ` • ακρίβεια περίπου ${Math.round(currentLocation.accuracy)}μ.` : '';
   showLocationMessage(`${formatLocation(currentLocation)}${accuracyText}`);
+  renderHomeReadinessCards();
 }
 
 function getGeolocationErrorMessage(error) {
@@ -1672,6 +1682,20 @@ function getActiveSosLocationUrl(session) {
   return `https://maps.google.com/?q=${session.latestLatitude},${session.latestLongitude}`;
 }
 
+function renderHomeReadinessCards() {
+  if (contactsReadinessText) {
+    contactsReadinessText.textContent = contacts.length > 0
+      ? `${contacts.length} έμπιστες επαφές είναι έτοιμες για SOS ειδοποιήσεις.`
+      : 'Πρόσθεσε έμπιστες επαφές για SOS ειδοποιήσεις.';
+  }
+
+  if (locationReadinessText) {
+    locationReadinessText.textContent = currentLocation
+      ? `Η τοποθεσία είναι ενεργή: ${formatLocation(currentLocation)}.`
+      : 'Ενεργοποίησε την τοποθεσία για πιο χρήσιμο SOS.';
+  }
+}
+
 function renderSafetyStatusCard() {
   if (!safetyStatusCard || !safetyStatusTitle || !safetyStatusDescription) return;
 
@@ -1707,6 +1731,7 @@ function renderSafetyStatusCard() {
   if (safetyStatusIcon) safetyStatusIcon.textContent = copy.icon;
   safetyStatusTitle.textContent = copy.title;
   safetyStatusDescription.textContent = copy.description;
+  renderHomeReadinessCards();
 }
 
 function renderActiveSosSession(message = '') {
@@ -3613,6 +3638,20 @@ function clearSafeMeData() {
 navButtons.forEach((button) => {
   button.addEventListener('click', () => showPage(button.dataset.page));
 });
+
+homeQuickActionButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    const action = button.dataset.openTool;
+    if (action === 'contacts') {
+      focusContactForm();
+      return;
+    }
+    if (action === 'checkin') focusCheckInSection();
+    if (action === 'safe-walk') focusSafeWalkSection();
+  });
+});
+
+safetyToolsTestSosButton?.addEventListener('click', () => handleHealthAction('test-sos'));
 
 sosButton.addEventListener('click', openSosModal);
 sosTestModeToggle.addEventListener('change', handleSosTestModeChange);
