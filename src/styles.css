@@ -2389,6 +2389,11 @@ body.tracking-mode .modal-backdrop {
   display: grid;
   gap: 16px;
 }
+.sos-countdown-debug {
+  margin: -8px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
 .sos-countdown-number {
   display: grid;
   place-items: center;

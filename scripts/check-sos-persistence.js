@@ -39,16 +39,24 @@ for (const pattern of ['markSosSessionEnded(endingSession', 'stopActiveSosLocati
 }
 
 
-const countdownStart = source.indexOf('function completeSosCountdown()');
+const countdownStart = source.indexOf('function stopSosCountdown()');
 const countdownEnd = source.indexOf('function openSosModal()', countdownStart);
 const countdownBody = source.slice(countdownStart, countdownEnd);
 
 const countdownRequirements = [
-  ['countdown starts at 5', 'sosCountdownRemaining = 5'],
-  ['countdown reaches 1 before activation', 'if (sosCountdownRemaining <= 1)'],
-  ['countdown activates SOS automatically', 'window.setTimeout(completeSosCountdown, 1000)'],
-  ['countdown clears existing timer before starting', 'stopSosCountdown()'],
-  ['countdown uses one active timeout handle', 'sosCountdownTimer = window.setTimeout'],
+  ['countdown uses interval cleanup', 'window.clearInterval(sosCountdownTimer)'],
+  ['countdown stores deadline start timestamp', 'sosCountdownStartedAt = Date.now()'],
+  ['countdown stores deadline end timestamp', 'sosCountdownEndsAt = sosCountdownStartedAt + 5000'],
+  ['countdown renders an immediate 5', 'renderSosCountdown(5)'],
+  ['countdown uses one active interval handle', 'sosCountdownTimer = window.setInterval(tickSosCountdown, 250)'],
+  ['countdown derives remaining seconds from deadline', 'Math.ceil((sosCountdownEndsAt - Date.now()) / 1000)'],
+  ['countdown completes from deadline', 'Date.now() >= sosCountdownEndsAt'],
+  ['countdown marks running debug state', "setSosCountdownTimerState('running')"],
+  ['countdown marks completed debug state', "setSosCountdownTimerState('completed')"],
+  ['countdown activates SOS automatically', 'confirmSos()'],
+  ['countdown logs start', "console.log('[SafeMe SOS] countdown start')"],
+  ['countdown logs tick', "console.log('[SafeMe SOS] countdown tick'"],
+  ['countdown logs complete', "console.log('[SafeMe SOS] countdown complete')"],
 ];
 
 for (const [label, pattern] of countdownRequirements) {
@@ -62,7 +70,7 @@ const closeSosStart = source.indexOf('function closeSosModal()');
 const closeSosEnd = source.indexOf('async function confirmSos()', closeSosStart);
 const closeSosBody = source.slice(closeSosStart, closeSosEnd);
 
-for (const pattern of ['stopSosCountdown()', "sosModal.hidden = true", "Το SOS ακυρώθηκε πριν ενεργοποιηθεί."]) {
+for (const pattern of ['stopSosCountdown()', "setSosCountdownTimerState('cancelled')", "console.log('[SafeMe SOS] countdown cancelled')", "sosModal.hidden = true", "Το SOS ακυρώθηκε πριν ενεργοποιηθεί."]) {
   if (!closeSosBody.includes(pattern)) {
     console.error(`Cancel flow is missing countdown cleanup/feedback: ${pattern}`);
     process.exit(1);
