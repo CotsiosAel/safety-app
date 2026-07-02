@@ -933,8 +933,12 @@ function focusProfileForm() {
 
 function focusContactForm() {
   showPage('contacts');
-  const contactTarget = contactsList?.children?.length ? contactsList : contactsForm;
-  focusElementAfterScroll(contactTarget, contactsForm?.elements?.name || contactTarget);
+  window.requestAnimationFrame(() => {
+    window.setTimeout(() => {
+      const contactTarget = contactsForm || contactsList;
+      focusElementAfterScroll(contactTarget, contactsForm?.elements?.name || contactTarget);
+    }, 0);
+  });
 }
 
 function openSettingsProfile() {
@@ -953,14 +957,22 @@ function focusSosButton() {
 
 function focusCheckInSection() {
   showPage('safety-tools');
-  const checkInSection = document.querySelector('#checkin-section');
-  focusElementAfterScroll(checkInSection, checkInStartButton || checkInSection);
+  window.requestAnimationFrame(() => {
+    window.setTimeout(() => {
+      const checkInSection = document.querySelector('#checkin-section');
+      focusElementAfterScroll(checkInSection, checkInStartButton || checkInSection);
+    }, 0);
+  });
 }
 
 function focusSafeWalkSection() {
   showPage('safety-tools');
-  const safeWalkSection = document.querySelector('#safe-walk-section');
-  focusElementAfterScroll(safeWalkSection, safeWalkDestination || safeWalkStartButton || safeWalkSection);
+  window.requestAnimationFrame(() => {
+    window.setTimeout(() => {
+      const safeWalkSection = document.querySelector('#safe-walk-section');
+      focusElementAfterScroll(safeWalkSection, safeWalkStartButton || safeWalkSection);
+    }, 0);
+  });
 }
 
 function setHomeQuickActionStatus(message) {
@@ -3702,9 +3714,9 @@ navButtons.forEach((button) => {
   button.addEventListener('click', () => showPage(button.dataset.page));
 });
 
-homeQuickActions?.addEventListener('click', (event) => {
+document.addEventListener('click', (event) => {
   const button = event.target.closest('[data-open-tool]');
-  if (!button || !homeQuickActions.contains(button)) return;
+  if (!button || !homeQuickActions?.contains(button)) return;
 
   event.preventDefault();
   handleHomeQuickAction(button.dataset.openTool);

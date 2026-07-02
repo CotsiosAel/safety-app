@@ -17,9 +17,11 @@ for (const [label, pattern] of buttonRequirements) {
 }
 
 const sourceRequirements = [
-  ['delegated home quick action listener', "homeQuickActions?.addEventListener('click'"],
+  ['document delegated quick action listener', "document.addEventListener('click'"],
   ['delegated data-open-tool lookup', "event.target.closest('[data-open-tool]')"],
   ['tap default prevention', 'event.preventDefault()'],
+  ['requestAnimationFrame deferral', 'window.requestAnimationFrame'],
+  ['zero-delay focus deferral', 'window.setTimeout(() => {'],
   ['dataset openTool read', 'button.dataset.openTool'],
   ['checkin handler branch', "if (action === 'checkin')"],
   ['safe-walk handler branch', "if (action === 'safe-walk')"],
