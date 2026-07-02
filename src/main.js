@@ -273,7 +273,7 @@ function initializePublicTrackingMode() {
   fetchPublicTrackingSession();
 }
 
-function initializeSafeMeApp() {
+function initializeSafeMeAppUnsafe() {
 const PASSWORD_RESET_REDIRECT_URL = 'https://cotsiosael.github.io/safety-app/';
 
 const authStatusMessages = {
@@ -555,6 +555,8 @@ function registerServiceWorker() {
 }
 
 function setupAppFreshnessChecks() {
+  if (window.__safeMeFreshnessChecksBound) return;
+  window.__safeMeFreshnessChecksBound = true;
   clearStoredAppUpdateFlags();
   hideAppUpdateBanner();
   registerServiceWorker();
@@ -562,7 +564,7 @@ function setupAppFreshnessChecks() {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       checkForAppUpdate({ force: true });
-      if (currentUser) loadSupabaseData();
+      if (currentUser) loadSupabaseData().catch((error) => console.warn('[SafeMe] Background account refresh failed', error));
     }
   });
   window.addEventListener('pageshow', (event) => {
@@ -570,7 +572,7 @@ function setupAppFreshnessChecks() {
   });
   window.addEventListener('online', () => {
     checkForAppUpdate({ force: true });
-    if (currentUser) loadSupabaseData();
+    if (currentUser) loadSupabaseData().catch((error) => console.warn('[SafeMe] Online account refresh failed', error));
     if (hasRequestedLocationPermission) refreshLocation();
   });
 }
@@ -596,7 +598,9 @@ async function refreshAppDataForPull() {
 }
 
 function setupPullToRefresh() {
+  if (window.__safeMePullToRefreshBound) return;
   if (!pullRefreshIndicator || !window.matchMedia('(pointer: coarse)').matches) return;
+  window.__safeMePullToRefreshBound = true;
 
   const threshold = 78;
   const maxPull = 128;
@@ -754,23 +758,36 @@ function loadJson(key, fallback) {
 }
 
 function saveJson(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.warn('[SafeMe] Could not save local data', { key, error });
+  }
 }
 
-let contacts = ensureSinglePrimaryContact(sanitizeContacts(loadJson(storageKeys.contacts, defaultContacts)));
+function safeStartupValue(label, factory, fallback) {
+  try {
+    return factory();
+  } catch (error) {
+    console.warn(`[SafeMe] Could not load ${label}; using safe fallback`, error);
+    return fallback;
+  }
+}
+
+let contacts = safeStartupValue('contacts', () => ensureSinglePrimaryContact(sanitizeContacts(loadJson(storageKeys.contacts, defaultContacts))), defaultContacts);
 let isContactsMutationInProgress = false;
-let profile = sanitizeProfile(loadJson(storageKeys.profile, defaultProfile));
-let currentLocation = loadJson(storageKeys.location, null);
-let isSosTestMode = loadJson(storageKeys.sosTestMode, false) === true;
-let hasCompletedTestSos = loadJson(storageKeys.testSosCompleted, false) === true;
-let hasRequestedLocationPermission = loadJson(storageKeys.locationPermissionRequested, false) === true;
-let isSetupChecklistCollapsed = loadJson(storageKeys.setupChecklistCollapsed, true) === true;
-let activeSafeWalk = loadJson(storageKeys.safeWalk, null);
+let profile = safeStartupValue('profile', () => sanitizeProfile(loadJson(storageKeys.profile, defaultProfile)), defaultProfile);
+let currentLocation = safeStartupValue('location', () => loadJson(storageKeys.location, null), null);
+let isSosTestMode = safeStartupValue('SOS test mode', () => loadJson(storageKeys.sosTestMode, false) === true, false);
+let hasCompletedTestSos = safeStartupValue('test SOS status', () => loadJson(storageKeys.testSosCompleted, false) === true, false);
+let hasRequestedLocationPermission = safeStartupValue('location permission status', () => loadJson(storageKeys.locationPermissionRequested, false) === true, false);
+let isSetupChecklistCollapsed = safeStartupValue('setup checklist state', () => loadJson(storageKeys.setupChecklistCollapsed, true) === true, true);
+let activeSafeWalk = safeStartupValue('safe walk', () => loadJson(storageKeys.safeWalk, null), null);
 let selectedSafeWalkMinutes = 10;
-let lastSafeWalkOutcome = loadJson(storageKeys.safeWalkOutcome, null);
+let lastSafeWalkOutcome = safeStartupValue('safe walk outcome', () => loadJson(storageKeys.safeWalkOutcome, null), null);
 let safeWalkTimer = null;
 let safeWalkExpiryInProgress = false;
-let activeCheckIn = loadJson(storageKeys.checkIn, null);
+let activeCheckIn = safeStartupValue('check-in', () => loadJson(storageKeys.checkIn, null), null);
 let selectedCheckInMinutes = 5;
 let checkInTimer = null;
 let checkInExpiryInProgress = false;
@@ -3841,7 +3858,11 @@ async function initializeAuth() {
   if (currentUser) authEmail.value = currentUser.email || '';
   renderAuth();
   if (shouldOpenRecoveryForm) activatePasswordRecoveryMode();
-  await loadSupabaseData();
+  try {
+    await loadSupabaseData();
+  } catch (error) {
+    console.warn('[SafeMe] Initial account data load failed', error);
+  }
 
   supabase.auth.onAuthStateChange((event, session) => {
     currentUser = session?.user || null;
@@ -3860,7 +3881,7 @@ async function initializeAuth() {
         showAuthMessage(authStatusMessages.signedOut);
       }
     } else {
-      loadSupabaseData();
+      loadSupabaseData().catch((error) => console.warn('[SafeMe] Auth account data refresh failed', error));
     }
     renderAuth();
     renderSetupChecklist();
@@ -3872,7 +3893,7 @@ function clearSafeMeData() {
 
   if (!confirmed) return;
 
-  Object.values(storageKeys).forEach((key) => localStorage.removeItem(key));
+  Object.values(storageKeys).forEach((key) => { try { localStorage.removeItem(key); } catch (error) { console.warn('[SafeMe] Could not clear local data', { key, error }); } });
   contacts = [];
   profile = null;
   currentLocation = null;
@@ -3900,6 +3921,9 @@ function clearSafeMeData() {
     settingsStatus.classList.remove('error');
   }
 }
+
+if (!window.__safeMeUiEventsBound) {
+window.__safeMeUiEventsBound = true;
 
 navButtons.forEach((button) => {
   button.addEventListener('click', () => showPage(button.dataset.page));
@@ -4029,6 +4053,7 @@ sosContactList?.addEventListener('click', async (event) => {
     logSosNotification(contact, action.dataset.sosMethod, 'Opened');
   }
 });
+}
 
 clearLegacyActiveSosStorage();
 syncSosTestModeToggle();
@@ -4044,11 +4069,63 @@ restoreCheckInOnLoad();
 refreshLocationPermissionStatus();
 setupAppFreshnessChecks();
 setupPullToRefresh();
-initializeAuth();
+initializeAuth().catch((error) => console.warn('[SafeMe] Auth startup failed', error));
 }
 
-if (hasTrackingTokenParam) {
-  initializePublicTrackingMode();
-} else {
-  initializeSafeMeApp();
+function clearStartupBlockingState() {
+  document.body?.classList.remove('loading', 'app-loading', 'is-loading');
+  document.documentElement?.classList.remove('loading', 'app-loading', 'is-loading');
+  document.querySelectorAll('[aria-busy="true"]').forEach((element) => element.setAttribute('aria-busy', 'false'));
+  document.querySelectorAll('[data-startup-disabled]').forEach((element) => {
+    element.disabled = false;
+    element.removeAttribute('data-startup-disabled');
+  });
 }
+
+let isSafeMeAppInitialized = false;
+
+function initializeSafeMeApp() {
+  if (isSafeMeAppInitialized) {
+    clearStartupBlockingState();
+    return;
+  }
+
+  try {
+    initializeSafeMeAppUnsafe();
+    isSafeMeAppInitialized = true;
+  } catch (error) {
+    console.warn('[SafeMe] Startup failed before full app initialization', error);
+    clearStartupBlockingState();
+  } finally {
+    clearStartupBlockingState();
+  }
+}
+
+function startSafeMeWhenDomReady() {
+  const start = () => {
+    if (hasTrackingTokenParam) {
+      try {
+        initializePublicTrackingMode();
+      } catch (error) {
+        console.warn('[SafeMe] Public tracking startup failed', error);
+        clearStartupBlockingState();
+      } finally {
+        clearStartupBlockingState();
+      }
+    } else {
+      initializeSafeMeApp();
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
+
+  window.addEventListener('pageshow', () => {
+    if (!hasTrackingTokenParam) initializeSafeMeApp();
+  });
+}
+
+startSafeMeWhenDomReady();
