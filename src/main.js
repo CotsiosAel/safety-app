@@ -765,8 +765,18 @@ function loadJson(key, fallback) {
 function saveJson(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
+    return true;
   } catch (error) {
     console.warn('[SafeMe] Could not save local data', { key, error });
+    return false;
+  }
+}
+
+function saveJsonOrThrow(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    throw new Error('localStorage save failed', { cause: error });
   }
 }
 
@@ -779,7 +789,7 @@ function safeStartupValue(label, factory, fallback) {
   }
 }
 
-let contacts = safeStartupValue('contacts', () => ensureSinglePrimaryContact(sanitizeContacts(loadJson(storageKeys.contacts, defaultContacts))), defaultContacts);
+let contacts = safeStartupValue('contacts', () => normalizeContactsForStorage(loadJson(storageKeys.contacts, defaultContacts)), defaultContacts);
 let isContactsMutationInProgress = false;
 let profile = safeStartupValue('profile', () => sanitizeProfile(loadJson(storageKeys.profile, defaultProfile)), defaultProfile);
 let currentLocation = safeStartupValue('location', () => loadJson(storageKeys.location, null), null);
@@ -908,22 +918,68 @@ function isLegacyDemoContact(contact) {
 function sanitizeContacts(savedContacts) {
   if (!Array.isArray(savedContacts)) return [];
 
+  const usedIds = new Set();
+
   return savedContacts
-    .filter((contact) => !isLegacyDemoContact(contact))
-    .map((contact) => ({
-      ...contact,
-      id: contact.id || createLocalContactId(),
-    }));
+    .filter((contact) => contact && typeof contact === 'object' && !isLegacyDemoContact(contact))
+    .map((contact) => {
+      let id = typeof contact.id === 'string' && contact.id.trim() ? contact.id.trim() : createLocalContactId();
+      while (usedIds.has(id)) id = createLocalContactId();
+      usedIds.add(id);
+
+      return {
+        id,
+        name: typeof contact.name === 'string' ? contact.name.trim() : '',
+        relationship: typeof contact.relationship === 'string' ? contact.relationship.trim() : '',
+        phone: typeof contact.phone === 'string' ? contact.phone.trim() : '',
+        email: typeof contact.email === 'string' ? contact.email.trim() : '',
+        tone: contact.tone === 'primary' ? 'primary' : 'default',
+      };
+    })
+    .filter((contact) => contact.name || contact.relationship || contact.phone || contact.email);
 }
 
 function ensureSinglePrimaryContact(contactList) {
-  const primaryIndex = contactList.findIndex((contact) => contact.tone === 'primary');
+  if (!Array.isArray(contactList) || contactList.length === 0) return [];
+
+  const primaryIndex = contactList.findIndex((contact) => contact?.tone === 'primary');
   const activePrimaryIndex = primaryIndex >= 0 ? primaryIndex : 0;
 
   return contactList.map((contact, index) => ({
     ...contact,
     tone: index === activePrimaryIndex ? 'primary' : 'default',
   }));
+}
+
+function normalizeContactsForStorage(contactList) {
+  return ensureSinglePrimaryContact(sanitizeContacts(contactList));
+}
+
+function recoverContactsStorage() {
+  contacts = normalizeContactsForStorage(loadJson(storageKeys.contacts, []));
+  saveJson(storageKeys.contacts, contacts);
+  return contacts;
+}
+
+function validateContactFields(contact) {
+  const name = contact?.name?.trim() || '';
+  const relationship = contact?.relationship?.trim() || '';
+  const phone = contact?.phone?.trim() || '';
+  const email = contact?.email?.trim() || '';
+  const normalizedPhone = normalizePhone(phone);
+  const phoneDigits = normalizedPhone.replace(/\D/g, '');
+
+  if (!name) return 'Συμπλήρωσε όνομα επαφής.';
+  if (!relationship) return 'Συμπλήρωσε τη σχέση της επαφής.';
+  if (!phone && !email) return 'Συμπλήρωσε τηλέφωνο ή email για την επαφή.';
+  if (phone && phoneDigits.length < 10) return 'Συμπλήρωσε έγκυρο τηλέφωνο με τουλάχιστον 10 ψηφία.';
+  if (email && !/^\S+@\S+\.\S+$/.test(email)) return 'Συμπλήρωσε έγκυρο email ή άφησέ το κενό.';
+
+  return '';
+}
+
+function showContactValidationMessage(message) {
+  window.alert(message);
 }
 
 function mapContactFromSupabase(contact) {
@@ -973,13 +1029,24 @@ function mapProfileToSupabase(savedProfile) {
   };
 }
 
-async function persistContacts() {
-  contacts = ensureSinglePrimaryContact(contacts);
-  saveJson(storageKeys.contacts, contacts);
+function persistContactsLocally() {
+  contacts = normalizeContactsForStorage(contacts);
+  saveJsonOrThrow(storageKeys.contacts, contacts);
+}
 
-  if (currentUser && !isRemoteSyncing) {
+async function syncContactsToSupabaseBestEffort(context) {
+  if (!currentUser || isRemoteSyncing) return;
+
+  try {
     await saveContactsToSupabase();
+  } catch (error) {
+    console.warn(`[SafeMe] Contact ${context} saved locally but did not sync`, error);
   }
+}
+
+async function persistContacts() {
+  persistContactsLocally();
+  await syncContactsToSupabaseBestEffort('list');
 }
 
 function sanitizeProfile(savedProfile) {
@@ -3147,8 +3214,8 @@ function createLocalContactId() {
 }
 
 function updateContacts(nextContacts) {
-  contacts = ensureSinglePrimaryContact(typeof nextContacts === 'function' ? nextContacts(contacts) : nextContacts);
-  saveJson(storageKeys.contacts, contacts);
+  contacts = normalizeContactsForStorage(typeof nextContacts === 'function' ? nextContacts(contacts) : nextContacts);
+  saveJsonOrThrow(storageKeys.contacts, contacts);
   renderContacts();
   renderSetupChecklist();
   renderHealthPage();
@@ -3170,11 +3237,13 @@ async function deleteContact(index) {
 
   const previousContacts = contacts;
   isContactsMutationInProgress = true;
-  updateContacts((currentContacts) => currentContacts.filter((contact) => contact.id !== contactToDelete.id));
 
   try {
-    await deleteContactFromSupabase(contactToDelete);
+    updateContacts((currentContacts) => currentContacts.filter((contact) => contact.id !== contactToDelete.id));
+    persistContactsLocally();
+    await syncContactsToSupabaseBestEffort('delete');
   } catch (error) {
+    console.warn('[SafeMe] Contact delete failed', error);
     updateContacts(previousContacts);
     window.alert('Δεν μπόρεσα να διαγράψω την επαφή. Δοκίμασε ξανά.');
   } finally {
@@ -3188,6 +3257,8 @@ async function editContact(index) {
 
   if (!contact) return;
 
+  recoverContactsStorage();
+
   const name = window.prompt('Όνομα επαφής', contact.name);
   if (name === null) return;
 
@@ -3200,29 +3271,47 @@ async function editContact(index) {
   const email = window.prompt('Email (προαιρετικό)', contact.email || '');
   if (email === null) return;
 
-  contacts = contacts.map((savedContact, contactIndex) => (
-    contactIndex === index
-      ? {
-          ...savedContact,
-          name: name.trim() || savedContact.name,
-          relationship: relationship.trim() || savedContact.relationship,
-          phone: phone.trim(),
-          email: email.trim(),
-        }
-      : savedContact
-  ));
+  const updatedContact = {
+    ...contact,
+    name: name.trim(),
+    relationship: relationship.trim(),
+    phone: phone.trim(),
+    email: email.trim(),
+  };
+  const validationMessage = validateContactFields(updatedContact);
+  if (validationMessage) {
+    showContactValidationMessage(validationMessage);
+    return;
+  }
 
-  await persistContacts();
-  renderContacts();
+  const previousContacts = contacts;
+  try {
+    contacts = contacts.map((savedContact, contactIndex) => (contactIndex === index ? updatedContact : savedContact));
+    persistContactsLocally();
+    await syncContactsToSupabaseBestEffort('update');
+    renderContacts();
+  } catch (error) {
+    console.warn('[SafeMe] Contact update failed', error);
+    contacts = previousContacts;
+    saveJson(storageKeys.contacts, contacts);
+    window.alert('Δεν μπόρεσα να αποθηκεύσω την επαφή. Δοκίμασε ξανά.');
+  }
 }
 
 async function setPrimaryContact(index) {
+  recoverContactsStorage();
   contacts = contacts.map((contact, contactIndex) => ({
     ...contact,
     tone: contactIndex === index ? 'primary' : 'default',
   }));
 
-  await persistContacts();
+  try {
+    persistContactsLocally();
+    await syncContactsToSupabaseBestEffort('primary update');
+  } catch (error) {
+    console.warn('[SafeMe] Contact primary update failed', error);
+    window.alert('Δεν μπόρεσα να ορίσω κύρια επαφή SOS. Δοκίμασε ξανά.');
+  }
   renderContacts();
   renderSetupChecklist();
 }
@@ -3311,29 +3400,45 @@ async function addContact(event) {
   event.preventDefault();
   if (isContactsMutationInProgress) return;
 
+  recoverContactsStorage();
   const formData = new FormData(contactsForm);
   const newContact = {
     id: createLocalContactId(),
-    name: formData.get('name').trim(),
-    relationship: formData.get('relationship').trim(),
-    phone: formData.get('phone').trim(),
-    email: formData.get('email').trim(),
+    name: (formData.get('name') || '').trim(),
+    relationship: (formData.get('relationship') || '').trim(),
+    phone: (formData.get('phone') || '').trim(),
+    email: (formData.get('email') || '').trim(),
     tone: contacts.length === 0 ? 'primary' : 'default',
   };
 
+  const validationMessage = validateContactFields(newContact);
+  if (validationMessage) {
+    showContactValidationMessage(validationMessage);
+    return;
+  }
+
   const previousContacts = contacts;
+  let savedLocally = false;
   isContactsMutationInProgress = true;
-  updateContacts((currentContacts) => [...currentContacts, newContact]);
-  contactsForm.reset();
 
   try {
-    const savedContact = await saveContactToSupabase(newContact);
-    updateContacts((currentContacts) => currentContacts.map((contact) => (
-      contact.id === newContact.id ? savedContact : contact
-    )));
+    updateContacts((currentContacts) => [...currentContacts, newContact]);
+    savedLocally = true;
+    contactsForm.reset();
+    if (currentUser && !isRemoteSyncing) {
+      const savedContact = await saveContactToSupabase(newContact);
+      updateContacts((currentContacts) => currentContacts.map((contact) => (
+        contact.id === newContact.id ? savedContact : contact
+      )));
+    }
   } catch (error) {
-    updateContacts(previousContacts);
-    window.alert('Δεν μπόρεσα να αποθηκεύσω την επαφή. Δοκίμασε ξανά.');
+    if (savedLocally) {
+      console.warn('[SafeMe] Contact save synced locally only', error);
+    } else {
+      console.warn('[SafeMe] Contact save failed', error);
+      updateContacts(previousContacts);
+      window.alert('Δεν μπόρεσα να αποθηκεύσω την επαφή. Δοκίμασε ξανά.');
+    }
   } finally {
     isContactsMutationInProgress = false;
     renderContacts();
@@ -3660,7 +3765,7 @@ async function saveContactsToSupabase() {
 
 function getLocalImportCandidate() {
   const localProfile = sanitizeProfile(loadJson(storageKeys.profile, null));
-  const localContacts = ensureSinglePrimaryContact(sanitizeContacts(loadJson(storageKeys.contacts, [])));
+  const localContacts = normalizeContactsForStorage(loadJson(storageKeys.contacts, []));
   if (!localProfile && localContacts.length === 0) return null;
   return { profile: localProfile, contacts: localContacts };
 }
