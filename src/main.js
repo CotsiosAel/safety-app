@@ -1,9 +1,49 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
 const SUPABASE_URL = 'https://tkzgaejomyyrhbvfksas.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let supabase = createOfflineSupabaseClient();
+let isSupabaseReady = false;
+
+function createOfflineSupabaseClient() {
+  const offlineError = { message: 'Supabase is unavailable; SafeMe is running in local demo mode.' };
+  const offlineQuery = {
+    select() { return this; },
+    eq() { return this; },
+    order() { return this; },
+    limit() { return this; },
+    insert() { return this; },
+    upsert() { return this; },
+    delete() { return this; },
+    single: async () => ({ data: null, error: offlineError }),
+    maybeSingle: async () => ({ data: null, error: null }),
+    then(resolve) { return Promise.resolve({ data: [], error: null }).then(resolve); },
+  };
+
+  return {
+    from: () => ({ ...offlineQuery }),
+    auth: {
+      getSession: async () => ({ data: { session: null }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+      signInWithPassword: async () => ({ data: null, error: offlineError }),
+      signUp: async () => ({ data: null, error: offlineError }),
+      signOut: async () => ({ error: null }),
+      resetPasswordForEmail: async () => ({ error: offlineError }),
+      updateUser: async () => ({ error: offlineError }),
+    },
+  };
+}
+
+async function initializeSupabaseClient() {
+  try {
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    isSupabaseReady = true;
+  } catch (error) {
+    isSupabaseReady = false;
+    console.warn('[SafeMe] Supabase SDK unavailable; continuing with local demo profile only', error);
+  }
+}
+
 const SOS_TRACKING_BASE_URL = 'https://cotsiosael.github.io/safety-app/';
 const APP_VERSION = 'startup-reliability-2026-07-03';
 const APP_VERSION_URL = './version.json';
@@ -1050,11 +1090,29 @@ async function persistContacts() {
 }
 
 function sanitizeProfile(savedProfile) {
-  if (!savedProfile) return null;
+  if (!savedProfile || typeof savedProfile !== 'object') return null;
 
   if (savedProfile.phone === legacyDemoProfilePhone) return null;
-  return { preferredLanguage: 'el', ...savedProfile };
+  const name = String(savedProfile.name || '').trim();
+  const phone = String(savedProfile.phone || '').trim();
+  const medicalNotes = String(savedProfile.medicalNotes || savedProfile.medical_note || savedProfile.medical_notes || '').trim();
+  const preferredLanguage = savedProfile.preferredLanguage === 'en' ? 'en' : 'el';
+  if (!name && !phone && !medicalNotes) return null;
+
+  return {
+    name,
+    phone,
+    medicalNotes,
+    preferredLanguage,
+    createdAt: savedProfile.createdAt || savedProfile.created_at || null,
+    updatedAt: savedProfile.updatedAt || savedProfile.updated_at || null,
+  };
 }
+
+function hasCompleteLocalProfile() {
+  return Boolean(profile?.name?.trim() && profile?.phone?.trim());
+}
+
 
 function getProfileValue(field, fallback) {
   return profile?.[field] || fallback;
@@ -3313,8 +3371,10 @@ async function setPrimaryContact(index) {
     window.alert('Δεν μπόρεσα να ορίσω κύρια επαφή SOS. Δοκίμασε ξανά.');
   }
   renderContacts();
+  renderAuth();
   renderSetupChecklist();
 }
+
 
 async function clearTrustedContacts() {
   if (isContactsMutationInProgress) return;
@@ -3446,7 +3506,16 @@ async function addContact(event) {
 }
 
 function renderProfile() {
+  const hasProfile = hasCompleteLocalProfile();
   const displayName = getProfileValue('name', 'Συμπλήρωσε το προφίλ σου');
+
+  document.querySelector('#profile-local-status')?.classList.toggle('signed-in', hasProfile);
+  const localStatusText = document.querySelector('#profile-local-status-text');
+  if (localStatusText) localStatusText.textContent = hasProfile ? 'Συνδεδεμένος' : 'Χωρίς σύνδεση';
+  const localStatusHint = document.querySelector('#profile-local-status-hint');
+  if (localStatusHint) localStatusHint.textContent = hasProfile
+    ? 'Το τοπικό demo προφίλ είναι αποθηκευμένο σε αυτή τη συσκευή.'
+    : 'Δημιούργησε ένα τοπικό demo προφίλ για να εμφανίζεταις ως συνδεδεμένος.';
 
   profileName.textContent = displayName;
   profilePhone.textContent = getProfileValue('phone', 'Δεν έχει προστεθεί τηλέφωνο');
@@ -3467,13 +3536,13 @@ async function saveProfile(event) {
   profile = {
     name: formData.get('name').trim(),
     phone: formData.get('phone').trim(),
-    medicalNotes: formData.get('medicalNotes').trim(),
+    medicalNotes: formData.get('medicalNotes')?.trim() || '',
     preferredLanguage: formData.get('preferredLanguage') || 'el',
     createdAt: profile?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 
-  saveJson(storageKeys.profile, profile);
+  const savedLocally = saveJson(storageKeys.profile, profile);
 
   try {
     if (currentUser) {
@@ -3482,12 +3551,13 @@ async function saveProfile(event) {
 
     profileStatus.textContent = currentUser
       ? 'Τα στοιχεία αποθηκεύτηκαν και συγχρονίστηκαν στο Supabase.'
-      : 'Τα στοιχεία αποθηκεύτηκαν τοπικά στη συσκευή σου.';
+      : (savedLocally ? 'Τα στοιχεία αποθηκεύτηκαν τοπικά στη συσκευή σου.' : 'Το προφίλ ενημερώθηκε για αυτή τη συνεδρία, αλλά ο browser δεν επέτρεψε localStorage.');
   } catch (error) {
     profileStatus.textContent = `Αποθηκεύτηκε τοπικά, αλλά απέτυχε ο συγχρονισμός Supabase: ${error.message}`;
   }
 
   renderProfile();
+  renderAuth();
   renderSetupChecklist();
 }
 
@@ -3577,6 +3647,8 @@ function clearPasswordRecoveryMode() {
 
 function renderAuth() {
   const signedIn = Boolean(currentUser);
+  const hasLocalDemoProfile = hasCompleteLocalProfile();
+  const indicatorSignedIn = signedIn || hasLocalDemoProfile;
   const isSignup = authMode === 'signup';
   const userEmail = currentUser?.email || '';
   const hideSignupFields = signedIn || !isSignup;
@@ -3614,13 +3686,13 @@ function renderAuth() {
   authSignupTab.classList.toggle('active', isSignup);
   authLoginTab.setAttribute('aria-selected', String(!isSignup));
   authSignupTab.setAttribute('aria-selected', String(isSignup));
-  authIndicator.textContent = signedIn ? 'Συνδεδεμένος' : 'Χωρίς σύνδεση';
-  authIndicator.setAttribute('aria-label', signedIn
-    ? 'Συνδεδεμένος. Άνοιγμα λογαριασμού στο Προφίλ'
+  authIndicator.textContent = indicatorSignedIn ? 'Συνδεδεμένος' : 'Χωρίς σύνδεση';
+  authIndicator.setAttribute('aria-label', indicatorSignedIn
+    ? (signedIn ? 'Συνδεδεμένος. Άνοιγμα λογαριασμού στο Προφίλ' : 'Συνδεδεμένος με τοπικό demo προφίλ. Άνοιγμα Προφίλ')
     : 'Χωρίς σύνδεση. Άνοιγμα σύνδεσης στο Προφίλ');
-  authIndicator.classList.toggle('signed-in', signedIn);
-  authIndicator.classList.toggle('signed-out', !signedIn);
-  storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικά, χωρίς backend';
+  authIndicator.classList.toggle('signed-in', indicatorSignedIn);
+  authIndicator.classList.toggle('signed-out', !indicatorSignedIn);
+  storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικό demo προφίλ σε localStorage';
   passwordResetForm.hidden = !isPasswordRecoveryMode;
   passwordResetNew.required = isPasswordRecoveryMode;
   passwordResetRepeat.required = isPasswordRecoveryMode;
@@ -3963,6 +4035,7 @@ async function logout() {
 
 async function initializeAuth() {
   const shouldOpenRecoveryForm = hasPasswordRecoveryUrlParams();
+  await initializeSupabaseClient();
   const { data } = await supabase.auth.getSession();
   currentUser = data.session?.user || null;
   if (currentUser) authEmail.value = currentUser.email || '';
