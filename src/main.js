@@ -278,7 +278,6 @@ function initializePublicTrackingMode() {
 }
 
 function initializeSafeMeAppUnsafe() {
-console.info('[SafeMe] App startup: reading DOM and local state');
 const PASSWORD_RESET_REDIRECT_URL = 'https://cotsiosael.github.io/safety-app/';
 
 const authStatusMessages = {
@@ -3759,8 +3758,8 @@ async function loadSupabaseData() {
       : (restoredActiveSosSession ? 'Το προηγούμενο SOS είχε τερματιστεί και δεν αποκαταστάθηκε.' : ''));
     syncActiveSosLocationAutoUpdate();
     if (isActiveSosSessionRestored) {
-      sosButton.classList.add('activated');
-      sosButton.setAttribute('aria-pressed', 'true');
+      sosButton?.classList.add('activated');
+      sosButton?.setAttribute('aria-pressed', 'true');
       sosStatus.textContent = 'Αποκαταστάθηκε ενεργό SOS από προηγούμενη χρήση.';
       showPage('home');
     }
@@ -3929,7 +3928,6 @@ function clearSafeMeData() {
 }
 
 if (!window.__safeMeUiEventsBound) {
-console.info('[SafeMe] App startup: binding UI events');
 
 navButtons.forEach((button) => {
   button.addEventListener('click', () => showPage(button.dataset.page));
@@ -4060,10 +4058,8 @@ sosContactList?.addEventListener('click', async (event) => {
   }
 });
 window.__safeMeUiEventsBound = true;
-console.info('[SafeMe] App startup: UI events bound');
 }
 
-console.info('[SafeMe] App startup: rendering initial state');
 clearLegacyActiveSosStorage();
 syncSosTestModeToggle();
 renderContacts();
@@ -4097,7 +4093,6 @@ function showPageFallback(nextPage) {
 function bindStartupNavigationFallback() {
   if (window.__safeMeStartupNavigationBound) return;
   window.__safeMeStartupNavigationBound = true;
-  console.info('[SafeMe] App startup: binding navigation fallback');
   document.addEventListener('click', (event) => {
     const navButton = event.target.closest('.nav-item[data-page]');
     if (navButton) {
@@ -4143,7 +4138,6 @@ function initializeSafeMeApp() {
   try {
     initializeSafeMeAppUnsafe();
     isSafeMeAppInitialized = true;
-    console.info('[SafeMe] App startup: complete');
   } catch (error) {
     console.warn('[SafeMe] Startup failed before full app initialization', error);
     clearStartupBlockingState();
