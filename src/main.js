@@ -1808,7 +1808,7 @@ const trustedContactInviteMessage = [
 function getSosMessageIntro() {
   return isSosTestMode
     ? 'ΔΟΚΙΜΗ SOS - Δεν πρόκειται για πραγματική ανάγκη.'
-    : 'Χρειάζομαι βοήθεια. Αυτή είναι η τοποθεσία μου:';
+    : 'ΕΠΕΙΓΟΝ SOS: Χρειάζομαι άμεση βοήθεια.';
 }
 
 function getSosTrackingUrl(shareToken) {
@@ -1820,19 +1820,43 @@ function getSosTrackingUrl(shareToken) {
 }
 
 function buildSosMessage(location = currentLocation, shareToken = activeSosSession?.shareToken) {
-  const locationText = location
-    ? getLocationUrl(location)
-    : 'Δεν μπόρεσα να πάρω τοποθεσία από τη συσκευή μου.';
+  const latitude = Number(location?.latitude);
+  const longitude = Number(location?.longitude);
+  const hasLocation = Number.isFinite(latitude) && Number.isFinite(longitude);
+  const locationUrl = hasLocation ? getLocationUrl({ latitude, longitude }) : '';
+  const coordinatesText = hasLocation
+    ? `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+    : '';
+  const locationUpdatedAt = location?.updatedAt
+    ? new Intl.DateTimeFormat('el-GR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(location.updatedAt))
+    : '';
   const trackingUrl = getSosTrackingUrl(shareToken);
-  const trackingText = trackingUrl || 'Δεν είναι διαθέσιμο χωρίς σύνδεση στο SafeMe.';
   const sentAt = new Intl.DateTimeFormat('el-GR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
   const lines = [];
-  if (isSosTestMode) lines.push('Λειτουργία δοκιμής SOS - Δεν πρόκειται για πραγματική ανάγκη.', '');
-  lines.push(`${getSosMessageIntro()} ${trackingUrl || locationText}`);
-  if (profile?.name) lines.push(`Όνομα: ${profile.name}`);
-  lines.push(`Ώρα: ${sentAt}`);
-  lines.push(`Τοποθεσία: ${locationText}`);
-  if (trackingUrl) lines.push(`Tracking link: ${trackingText}`);
+
+  if (isSosTestMode) {
+    lines.push('ΔΟΚΙΜΗ SOS - Δεν πρόκειται για πραγματική ανάγκη.', '');
+  }
+
+  lines.push(getSosMessageIntro());
+  if (!isSosTestMode) {
+    lines.push('Παρακαλώ επικοινώνησε μαζί μου άμεσα. Αν δεν απαντώ και πιστεύεις ότι κινδυνεύω, κάλεσε το 112.');
+  }
+
+  if (profile?.name?.trim()) lines.push(`Όνομα: ${profile.name.trim()}`);
+  if (profile?.phone?.trim()) lines.push(`Τηλέφωνο: ${profile.phone.trim()}`);
+  lines.push(`Ώρα αποστολής: ${sentAt}`);
+
+  if (hasLocation) {
+    lines.push(`Τελευταίες συντεταγμένες: ${coordinatesText}`);
+    if (locationUpdatedAt) lines.push(`Ώρα τελευταίας τοποθεσίας: ${locationUpdatedAt}`);
+    lines.push(`Google Maps: ${locationUrl}`);
+  } else {
+    lines.push('Τοποθεσία: Δεν είναι διαθέσιμη από τη συσκευή αυτή τη στιγμή.');
+  }
+
+  if (trackingUrl) lines.push(`SafeMe live tracking: ${trackingUrl}`);
+
   return lines.join('\n');
 }
 
