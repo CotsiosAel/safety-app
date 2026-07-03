@@ -24,6 +24,8 @@ npm run start
 npm run build
 ```
 
+<!-- Deployment trigger: refresh GitHub Pages workflow without app changes. -->
+
 ## Έλεγχος PR
 
 Το repository κρατά μόνο text/code αλλαγές ώστε το Create PR να μη μπλοκάρεται από binary εικόνες ή άλλα binary assets.
