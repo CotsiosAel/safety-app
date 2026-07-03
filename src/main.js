@@ -50,7 +50,7 @@ async function initializeSupabaseClient() {
   }
 }
 
-const SOS_TRACKING_BASE_URL = 'https://cotsiosael.github.io/safety-app/';
+const SOS_TRACKING_BASE_URL = 'https://safety-app-vert.vercel.app/';
 const APP_VERSION = 'startup-reliability-2026-07-03';
 const APP_VERSION_URL = './version.json';
 const EMERGENCY_PWA_RESET_VERSION = APP_VERSION;
@@ -327,7 +327,7 @@ function initializePublicTrackingMode() {
 }
 
 function initializeSafeMeAppUnsafe() {
-const PASSWORD_RESET_REDIRECT_URL = 'https://cotsiosael.github.io/safety-app/';
+const PASSWORD_RESET_REDIRECT_URL = 'https://safety-app-vert.vercel.app/';
 
 const authStatusMessages = {
   signedOut: 'Χωρίς σύνδεση. Τα στοιχεία αποθηκεύονται με ασφάλεια μόνο σε αυτή τη συσκευή.',
@@ -452,6 +452,11 @@ const safetyToolsTestSosButton = document.querySelector('#safety-tools-test-sos'
 const contactsReadinessText = document.querySelector('#contacts-readiness-text');
 const locationReadinessText = document.querySelector('#location-readiness-text');
 const sosHistoryList = document.querySelector('#sos-history-list');
+const sosHistoryLast = document.querySelector('#sos-history-last');
+const sosHistoryCount = document.querySelector('#sos-history-count');
+const sosHistoryToggleButton = document.querySelector('#sos-history-toggle');
+const sosHistoryShowAllButton = document.querySelector('#sos-history-show-all');
+const sosHistoryCollapseButton = document.querySelector('#sos-history-collapse');
 const activeSosSection = document.querySelector('#active-sos-section');
 const activeSosStarted = document.querySelector('#active-sos-started');
 const activeSosStatus = document.querySelector('#active-sos-status');
@@ -906,6 +911,8 @@ let hasPendingLogoutMessage = false;
 let isRemoteSyncing = false;
 let sosHistoryEvents = [];
 let sosHistoryStatus = '';
+let isSosHistoryExpanded = false;
+let isSosHistoryShowingAll = false;
 let activeSosSession = null;
 let isActiveSosSessionRestored = false;
 let activeSosLocationUpdateTimer = null;
@@ -3043,21 +3050,41 @@ function formatSosEventTime(value) {
   }).format(new Date(value));
 }
 
-function getMessagePreview(message) {
-  return message.length > 92 ? `${message.slice(0, 92).trim()}…` : message;
+function getMessagePreview(message = '') {
+  const text = String(message || 'SOS');
+  return text.length > 92 ? `${text.slice(0, 92).trim()}…` : text;
+}
+
+function updateSosHistorySummary() {
+  if (sosHistoryLast) {
+    sosHistoryLast.textContent = sosHistoryEvents.length > 0
+      ? formatSosEventDate(sosHistoryEvents[0].createdAt)
+      : '—';
+  }
+
+  if (sosHistoryCount) sosHistoryCount.textContent = String(sosHistoryEvents.length);
 }
 
 function renderSosHistory() {
   if (!sosHistoryList) return;
 
+  updateSosHistorySummary();
+  sosHistoryList.hidden = !isSosHistoryExpanded;
+  if (sosHistoryToggleButton) sosHistoryToggleButton.hidden = isSosHistoryExpanded;
+  if (sosHistoryCollapseButton) sosHistoryCollapseButton.hidden = !isSosHistoryExpanded;
+
+  const hasMoreThanThree = sosHistoryEvents.length > 3;
+  if (sosHistoryShowAllButton) {
+    sosHistoryShowAllButton.hidden = !isSosHistoryExpanded || !hasMoreThanThree || isSosHistoryShowingAll;
+  }
+
+  if (!isSosHistoryExpanded) {
+    sosHistoryList.innerHTML = '';
+    return;
+  }
+
   if (!currentUser) {
-    sosHistoryList.innerHTML = `
-      <article class="empty-state compact-empty">
-        <div class="empty-icon" aria-hidden="true">🕘</div>
-        <h3>Συνδέσου για ιστορικό SOS</h3>
-        <p>Χωρίς σύνδεση, το SOS λειτουργεί τοπικά και δεν αποθηκεύεται στο ιστορικό.</p>
-      </article>
-    `;
+    sosHistoryList.innerHTML = '<p class="sos-history-empty">Δεν υπάρχει ακόμα ιστορικό SOS.</p>';
     return;
   }
 
@@ -3067,17 +3094,12 @@ function renderSosHistory() {
   }
 
   if (sosHistoryEvents.length === 0) {
-    sosHistoryList.innerHTML = `
-      <article class="empty-state compact-empty">
-        <div class="empty-icon" aria-hidden="true">🆘</div>
-        <h3>Δεν υπάρχει ιστορικό SOS</h3>
-        <p>Τα νέα SOS που επιβεβαιώνεις θα εμφανίζονται εδώ.</p>
-      </article>
-    `;
+    sosHistoryList.innerHTML = '<p class="sos-history-empty">Δεν υπάρχει ακόμα ιστορικό SOS.</p>';
     return;
   }
 
-  sosHistoryList.innerHTML = sosHistoryEvents
+  const visibleEvents = isSosHistoryShowingAll ? sosHistoryEvents : sosHistoryEvents.slice(0, 3);
+  sosHistoryList.innerHTML = visibleEvents
     .map((event) => {
       const hasLocation = event.latitude !== null && event.latitude !== undefined && event.longitude !== null && event.longitude !== undefined;
       const locationUrl = hasLocation ? getLocationUrl(event) : '';
@@ -4495,6 +4517,21 @@ authForm?.addEventListener('submit', handleAuthSubmit);
 passwordResetForm?.addEventListener('submit', handlePasswordResetSubmit);
 authLogoutButton?.addEventListener('click', logout);
 authIndicator?.addEventListener('click', openProfileAuthCard);
+sosHistoryToggleButton?.addEventListener('click', () => {
+  isSosHistoryExpanded = true;
+  isSosHistoryShowingAll = false;
+  renderSosHistory();
+});
+sosHistoryShowAllButton?.addEventListener('click', () => {
+  isSosHistoryExpanded = true;
+  isSosHistoryShowingAll = true;
+  renderSosHistory();
+});
+sosHistoryCollapseButton?.addEventListener('click', () => {
+  isSosHistoryExpanded = false;
+  isSosHistoryShowingAll = false;
+  renderSosHistory();
+});
 onlineStatusPill?.addEventListener('click', handleOnlineStatusClick);
 contactsForm?.addEventListener('submit', addContact);
 contactsList?.addEventListener('click', handleContactsListClick);

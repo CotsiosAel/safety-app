@@ -16,6 +16,10 @@ const requiredPatterns = [
   ['test mode creates active test SOS', "createLocalActiveSosSession(currentLocation, { testMode: true })"],
   ['active screen notification primary action', 'id="notify-all-sos-contacts-action"'],
   ['honest PWA send limitation text', 'Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται.'],
+  ['SOS tracking base uses Vercel production URL', "const SOS_TRACKING_BASE_URL = 'https://safety-app-vert.vercel.app/'"],
+  ['compact SOS history summary card', 'class="sos-history-card sos-history-summary-card"'],
+  ['SOS history collapsed by default', 'id="sos-history-list" aria-live="polite" hidden'],
+  ['SOS history view button', 'id="sos-history-toggle" type="button">Προβολή ιστορικού</button>'],
 ];
 
 for (const [label, pattern] of requiredPatterns) {
@@ -41,6 +45,18 @@ const endFlowBody = source.slice(endFlowStart, endFlowEnd);
 for (const pattern of ['window.confirm', 'markSosSessionEnded(endingSession', 'stopActiveSosLocationAutoUpdate()', 'clearActiveSosRuntimeState({']) {
   if (!endFlowBody.includes(pattern)) {
     console.error(`End SOS flow is missing required cleanup/confirmation call: ${pattern}`);
+    process.exit(1);
+  }
+}
+
+
+const oldGithubPagesSosBase = `https://${['cotsios', 'ael'].join('')}.github.${'io'}/safety-app/`;
+
+for (const [label, pattern] of [
+  ['old GitHub Pages SOS tracking base', `const SOS_TRACKING_BASE_URL = '${oldGithubPagesSosBase}'`],
+]) {
+  if (source.includes(pattern) || markup.includes(pattern)) {
+    console.error(`Forbidden SOS persistence regression found: ${label}`);
     process.exit(1);
   }
 }
