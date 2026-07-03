@@ -1,10 +1,10 @@
-const CACHE_NAME = 'safeme-shell-no-banner-final';
+const CACHE_NAME = 'safeme-shell-startup-reliability-2026-07-03';
 const SHELL_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css?v=no-banner-final',
-  './src/main.js?v=no-banner-final',
+  './src/styles.css?v=startup-reliability-2026-07-03',
+  './src/main.js?v=startup-reliability-2026-07-03',
   './assets/icon.png',
   './version.json',
 ];
@@ -27,7 +27,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (request.mode === 'navigate' || url.pathname.endsWith('/index.html') || url.pathname.endsWith('/version.json')) {
+  if (request.mode === 'navigate' || url.pathname.endsWith('/index.html') || url.pathname.endsWith('/version.json') || url.pathname.endsWith('/src/main.js') || url.pathname.endsWith('/src/styles.css')) {
     event.respondWith(fetch(request, { cache: 'no-store' }).then((response) => {
       const copy = response.clone();
       caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
