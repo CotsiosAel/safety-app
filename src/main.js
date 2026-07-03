@@ -133,6 +133,8 @@ const defaultContacts = [];
 
 const defaultProfile = null;
 
+const phoneValidationMessage = 'Συμπλήρωσε έγκυρο τηλέφωνο, π.χ. 99878765 ή +35799878765.';
+
 const legacyDemoContactPhones = new Set([
   ['+30690', '1234567'].join(''),
   ['+30691', '2345678'].join(''),
@@ -1006,13 +1008,10 @@ function validateContactFields(contact) {
   const relationship = contact?.relationship?.trim() || '';
   const phone = contact?.phone?.trim() || '';
   const email = contact?.email?.trim() || '';
-  const normalizedPhone = normalizePhone(phone);
-  const phoneDigits = normalizedPhone.replace(/\D/g, '');
-
   if (!name) return 'Συμπλήρωσε όνομα επαφής.';
   if (!relationship) return 'Συμπλήρωσε τη σχέση της επαφής.';
   if (!phone && !email) return 'Συμπλήρωσε τηλέφωνο ή email για την επαφή.';
-  if (phone && phoneDigits.length < 10) return 'Συμπλήρωσε έγκυρο τηλέφωνο με τουλάχιστον 10 ψηφία.';
+  if (phone && !isValidPhoneNumber(phone)) return phoneValidationMessage;
   if (email && !/^\S+@\S+\.\S+$/.test(email)) return 'Συμπλήρωσε έγκυρο email ή άφησέ το κενό.';
 
   return '';
@@ -1135,6 +1134,25 @@ function formatPhone(phone) {
 
 function normalizePhone(phone) {
   return phone.replace(/[^\d+]/g, '');
+}
+
+function isValidPhoneNumber(phone) {
+  const normalizedPhone = normalizePhone(String(phone || ''));
+  const phoneDigits = normalizedPhone.replace(/\D/g, '');
+
+  if (phoneDigits.length === 8) return true;
+  if (/^(?:357\d{8}|00357\d{8})$/.test(phoneDigits)) return true;
+  if (/^(?:\d{10,15}|00\d{10,15})$/.test(phoneDigits)) return true;
+
+  return false;
+}
+
+function validateProfileFields(savedProfile) {
+  if (!savedProfile?.name?.trim()) return 'Συμπλήρωσε όνομα προφίλ.';
+  if (!savedProfile?.phone?.trim()) return 'Συμπλήρωσε τηλέφωνο προφίλ.';
+  if (!isValidPhoneNumber(savedProfile.phone)) return phoneValidationMessage;
+
+  return '';
 }
 
 
@@ -3541,6 +3559,12 @@ async function saveProfile(event) {
     createdAt: profile?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
+
+  const validationMessage = validateProfileFields(profile);
+  if (validationMessage) {
+    profileStatus.textContent = validationMessage;
+    return;
+  }
 
   const savedLocally = saveJson(storageKeys.profile, profile);
 
