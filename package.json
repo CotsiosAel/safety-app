@@ -13,6 +13,7 @@
     "check:text-only": "node scripts/check-text-only.js",
     "check:sos-persistence": "node scripts/check-sos-persistence.js",
     "check:home-quick-actions": "node scripts/check-home-quick-actions.js",
-    "check:auth-session-ui": "node scripts/check-auth-session-ui.js"
+    "check:auth-session-ui": "node scripts/check-auth-session-ui.js",
+    "check:contacts-sync": "node scripts/check-contacts-sync.js"
   }
 }

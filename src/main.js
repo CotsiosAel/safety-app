@@ -354,6 +354,9 @@ const sosCancelButtons = document.querySelectorAll('[data-close-sos]');
 const contactsList = document.querySelector('#contacts-list');
 const contactsForm = document.querySelector('#contact-form');
 const contactsSyncStatus = document.querySelector('#contacts-sync-status');
+const contactsSyncDiagnostics = document.querySelector('#contacts-sync-diagnostics');
+const refreshAccountContactsButton = document.querySelector('#refresh-account-contacts');
+const uploadLocalContactsButton = document.querySelector('#upload-local-contacts');
 const contactCount = document.querySelector('#contact-count');
 const clearContactsButton = document.querySelector('#clear-contacts-button');
 const contactInviteModal = document.querySelector('#contact-invite-modal');
@@ -854,6 +857,13 @@ let contacts = safeStartupValue('contacts', () => normalizeContactsForStorage(lo
 let isContactsMutationInProgress = false;
 let isContactsRefreshInProgress = false;
 let contactsSyncState = 'local';
+let contactsSyncDiagnosticsState = {
+  lastLoadAt: null,
+  lastSaveAt: null,
+  remoteCount: null,
+  lastError: '',
+  message: '',
+};
 let profile = safeStartupValue('profile', () => sanitizeProfile(loadJson(storageKeys.profile, defaultProfile)), defaultProfile);
 let currentLocation = safeStartupValue('location', () => loadJson(storageKeys.location, null), null);
 let isSosTestMode = safeStartupValue('SOS test mode', () => loadJson(storageKeys.sosTestMode, false) === true, false);
@@ -1096,46 +1106,71 @@ function persistContactsLocally() {
   saveJsonOrThrow(storageKeys.contacts, contacts);
 }
 
-function setContactsSyncState(state) {
+function formatContactsSyncTime(value) {
+  if (!value) return '—';
+  return new Date(value).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function getSupabaseErrorMessage(error) {
+  return error?.message || error?.error_description || String(error || 'Άγνωστο σφάλμα Supabase');
+}
+
+function setContactsSyncState(state, details = {}) {
   contactsSyncState = state;
+  contactsSyncDiagnosticsState = { ...contactsSyncDiagnosticsState, ...details };
   renderContactsSyncStatus();
 }
 
 function renderContactsSyncStatus() {
-  if (!contactsSyncStatus) return;
   const messages = {
-    synced: 'Οι επαφές συγχρονίστηκαν με τον λογαριασμό.',
-    local: 'Οι επαφές είναι μόνο τοπικές σε αυτή τη συσκευή. Συνδέσου για συγχρονισμό Supabase.',
-    error: 'Δεν έγινε συγχρονισμός επαφών. Έλεγξε τη σύνδεση και δοκίμασε ξανά.',
-    syncing: 'Συγχρονίζω τις επαφές με τον λογαριασμό...',
+    synced: contactsSyncDiagnosticsState.message || 'Οι επαφές συγχρονίστηκαν με τον λογαριασμό.',
+    local: 'Τοπική λειτουργία: οι επαφές μένουν μόνο σε αυτή τη συσκευή. Οι επαφές είναι μόνο τοπικές σε αυτή τη συσκευή. Συνδέσου για συγχρονισμό Supabase.',
+    error: contactsSyncDiagnosticsState.lastError
+      ? `Σφάλμα Supabase: ${contactsSyncDiagnosticsState.lastError}`
+      : 'Δεν έγινε συγχρονισμός επαφών. Έλεγξε τη σύνδεση και δοκίμασε ξανά.',
+    syncing: contactsSyncDiagnosticsState.message || 'Συγχρονίζω τις επαφές με τον λογαριασμό...',
   };
-  if (!currentUser) {
-    contactsSyncStatus.textContent = messages.local;
-    contactsSyncStatus.classList.remove('error', 'signed-in');
-    return;
+
+  if (contactsSyncStatus) {
+    contactsSyncStatus.textContent = currentUser ? (messages[contactsSyncState] || messages.syncing) : messages.local;
+    if (!currentUser) {
+      contactsSyncStatus.classList.remove('error', 'signed-in');
+    } else {
+      contactsSyncStatus.classList.toggle('error', contactsSyncState === 'error');
+      contactsSyncStatus.classList.toggle('signed-in', contactsSyncState === 'synced');
+    }
   }
 
-  contactsSyncStatus.textContent = messages[contactsSyncState] || messages.syncing;
-  contactsSyncStatus.classList.toggle('error', contactsSyncState === 'error');
-  contactsSyncStatus.classList.toggle('signed-in', contactsSyncState === 'synced');
+  if (refreshAccountContactsButton) refreshAccountContactsButton.disabled = !currentUser || isContactsRefreshInProgress || isContactsMutationInProgress;
+  if (uploadLocalContactsButton) uploadLocalContactsButton.disabled = !currentUser || contacts.length === 0 || isContactsMutationInProgress || isContactsRefreshInProgress;
+
+  if (!contactsSyncDiagnostics) return;
+  const accountLines = currentUser
+    ? [
+        `Συνδεδεμένος ως: ${escapeHtml(currentUser.email || 'χωρίς email')}`,
+        `User ID: ${escapeHtml(shortenId(currentUser.id || '—'))}`,
+        'Κατάσταση: Supabase-backed',
+      ]
+    : ['Τοπική λειτουργία: οι επαφές μένουν μόνο σε αυτή τη συσκευή.'];
+  const remoteCount = contactsSyncDiagnosticsState.remoteCount === null ? '—' : contactsSyncDiagnosticsState.remoteCount;
+  contactsSyncDiagnostics.innerHTML = `
+    <ul>
+      ${accountLines.map((line) => `<li>${line}</li>`).join('')}
+      <li>Remote contacts: ${escapeHtml(String(remoteCount))}</li>
+      <li>Τελευταία φόρτωση από λογαριασμό: ${escapeHtml(formatContactsSyncTime(contactsSyncDiagnosticsState.lastLoadAt))}</li>
+      <li>Τελευταία αποθήκευση στον λογαριασμό: ${escapeHtml(formatContactsSyncTime(contactsSyncDiagnosticsState.lastSaveAt))}</li>
+      ${contactsSyncDiagnosticsState.lastError ? `<li class="error">Σφάλμα Supabase: ${escapeHtml(contactsSyncDiagnosticsState.lastError)}</li>` : ''}
+    </ul>
+  `;
 }
 
-async function syncContactsToSupabaseBestEffort(context) {
-  if (!currentUser || isRemoteSyncing) return;
-
-  try {
-    setContactsSyncState('syncing');
-    await saveContactsToSupabase();
-    await refreshAccountContactsFromSupabase();
-  } catch (error) {
-    setContactsSyncState('error');
-    console.warn(`[SafeMe] Contact ${context} saved locally but did not sync`, error);
-  }
+function shortenId(id) {
+  const value = String(id || '');
+  return value.length > 18 ? `${value.slice(0, 8)}…${value.slice(-6)}` : value;
 }
 
 async function persistContacts() {
   persistContactsLocally();
-  await syncContactsToSupabaseBestEffort('list');
 }
 
 function sanitizeProfile(savedProfile) {
@@ -3395,11 +3430,13 @@ async function deleteContact(index) {
   isContactsMutationInProgress = true;
 
   try {
+    if (currentUser) await deleteContactFromSupabase(contactToDelete);
     updateContacts((currentContacts) => currentContacts.filter((contact) => contact.id !== contactToDelete.id));
     persistContactsLocally();
-    await syncContactsToSupabaseBestEffort('delete');
+    if (currentUser) await refreshAccountContactsFromSupabase({ silent: true });
   } catch (error) {
     console.warn('[SafeMe] Contact delete failed', error);
+    setContactsSyncState('error', { lastError: getSupabaseErrorMessage(error), message: '' });
     updateContacts(previousContacts);
     window.alert('Δεν μπόρεσα να διαγράψω την επαφή. Δοκίμασε ξανά.');
   } finally {
@@ -3442,15 +3479,20 @@ async function editContact(index) {
 
   const previousContacts = contacts;
   try {
-    contacts = contacts.map((savedContact, contactIndex) => (contactIndex === index ? updatedContact : savedContact));
-    persistContactsLocally();
-    await syncContactsToSupabaseBestEffort('update');
+    if (currentUser) {
+      await upsertContactToSupabase(updatedContact);
+      await refreshAccountContactsFromSupabase({ silent: true });
+    } else {
+      contacts = contacts.map((savedContact, contactIndex) => (contactIndex === index ? updatedContact : savedContact));
+      persistContactsLocally();
+    }
     renderContacts();
     renderSetupChecklist();
     renderHealthPage();
     renderSosContactNotifications();
   } catch (error) {
     console.warn('[SafeMe] Contact update failed', error);
+    setContactsSyncState('error', { lastError: getSupabaseErrorMessage(error), message: '' });
     contacts = previousContacts;
     saveJson(storageKeys.contacts, contacts);
     window.alert('Δεν μπόρεσα να αποθηκεύσω την επαφή. Δοκίμασε ξανά.');
@@ -3459,16 +3501,21 @@ async function editContact(index) {
 
 async function setPrimaryContact(index) {
   if (!currentUser) recoverContactsStorage();
-  contacts = contacts.map((contact, contactIndex) => ({
+  const nextContacts = contacts.map((contact, contactIndex) => ({
     ...contact,
     tone: contactIndex === index ? 'primary' : 'default',
   }));
 
   try {
+    contacts = nextContacts;
     persistContactsLocally();
-    await syncContactsToSupabaseBestEffort('primary update');
+    if (currentUser) {
+      await upsertContactsToSupabase(nextContacts);
+      await refreshAccountContactsFromSupabase({ silent: true });
+    }
   } catch (error) {
     console.warn('[SafeMe] Contact primary update failed', error);
+    setContactsSyncState('error', { lastError: getSupabaseErrorMessage(error), message: '' });
     window.alert('Δεν μπόρεσα να ορίσω κύρια επαφή SOS. Δοκίμασε ξανά.');
   }
   renderContacts();
@@ -3489,11 +3536,15 @@ async function clearTrustedContacts() {
   isContactsMutationInProgress = true;
   try {
     contacts = [];
-    await persistContacts();
+    persistContactsLocally();
+    if (currentUser) await deleteAllContactsFromSupabase();
     renderContacts();
     renderSetupChecklist();
     renderHealthPage();
     renderSosContactNotifications();
+  } catch (error) {
+    setContactsSyncState('error', { lastError: getSupabaseErrorMessage(error), message: '' });
+    console.warn('[SafeMe] Clear trusted contacts failed', error);
   } finally {
     isContactsMutationInProgress = false;
     renderContacts();
@@ -3598,11 +3649,12 @@ async function addContact(event) {
     contactsForm.reset();
     if (currentUser && !isRemoteSyncing) {
       await saveContactToSupabase(newContact);
-      await refreshAccountContactsFromSupabase();
+      await refreshAccountContactsFromSupabase({ silent: true });
+      setContactsSyncState('synced', { message: 'Η επαφή αποθηκεύτηκε στον λογαριασμό.' });
     }
   } catch (error) {
     if (savedLocally) {
-      if (currentUser) setContactsSyncState('error');
+      if (currentUser) setContactsSyncState('error', { lastError: getSupabaseErrorMessage(error), message: '' });
       console.warn('[SafeMe] Contact save synced locally only', error);
     } else {
       console.warn('[SafeMe] Contact save failed', error);
@@ -3920,12 +3972,37 @@ async function saveContactToSupabase(contact) {
 
   const { data, error } = await supabase
     .from('trusted_contacts')
-    .insert(mapContactToSupabase(contact))
+    .insert(mapContactToSupabase({ ...contact, id: undefined }))
     .select('*')
     .single();
 
   if (error) throw error;
+  setContactsSyncState('synced', { lastSaveAt: new Date().toISOString(), lastError: '' });
   return mapContactFromSupabase(data);
+}
+
+async function upsertContactToSupabase(contact) {
+  if (!currentUser || isRemoteSyncing) return contact;
+
+  const payload = mapContactToSupabase(contact);
+  const hasRemoteId = Boolean(payload.id);
+  const query = hasRemoteId
+    ? supabase.from('trusted_contacts').upsert(payload, { onConflict: 'id' })
+    : supabase.from('trusted_contacts').insert(payload);
+  const { data, error } = await query.select('*').single();
+
+  if (error) throw error;
+  setContactsSyncState('synced', { lastSaveAt: new Date().toISOString(), lastError: '' });
+  return mapContactFromSupabase(data);
+}
+
+async function upsertContactsToSupabase(contactList) {
+  if (!currentUser || isRemoteSyncing || !Array.isArray(contactList)) return [];
+  const savedContacts = [];
+  for (const contact of contactList) {
+    savedContacts.push(await upsertContactToSupabase(contact));
+  }
+  return savedContacts;
 }
 
 async function deleteContactFromSupabase(contact) {
@@ -3938,34 +4015,29 @@ async function deleteContactFromSupabase(contact) {
     .eq('id', contact.id);
 
   if (error) throw error;
+  setContactsSyncState('synced', { lastSaveAt: new Date().toISOString(), lastError: '' });
+}
+
+async function deleteAllContactsFromSupabase() {
+  if (!currentUser || isRemoteSyncing) return;
+  const { error } = await supabase
+    .from('trusted_contacts')
+    .delete()
+    .eq('user_id', currentUser.id);
+  if (error) throw error;
+  setContactsSyncState('synced', { lastSaveAt: new Date().toISOString(), remoteCount: 0, lastError: '' });
 }
 
 async function saveContactsToSupabase() {
   if (!currentUser) return;
-
-  const { error: deleteError } = await supabase
-    .from('trusted_contacts')
-    .delete()
-    .eq('user_id', currentUser.id);
-
-  if (deleteError) throw deleteError;
-
-  if (contacts.length === 0) return;
-
-  const { error: insertError } = await supabase
-    .from('trusted_contacts')
-    .insert(contacts.map(mapContactToSupabase));
-
-  if (insertError) throw insertError;
+  await upsertContactsToSupabase(contacts);
 }
-
-
 
 async function refreshAccountContactsFromSupabase({ silent = true } = {}) {
   if (!currentUser || isContactsRefreshInProgress) return contacts;
 
   isContactsRefreshInProgress = true;
-  if (!silent) setContactsSyncState('syncing');
+  if (!silent) setContactsSyncState('syncing', { message: 'Φορτώνω επαφές από τον λογαριασμό...', lastError: '' });
 
   try {
     const { data, error } = await supabase
@@ -3977,20 +4049,53 @@ async function refreshAccountContactsFromSupabase({ silent = true } = {}) {
     if (error) throw error;
 
     contacts = ensureSinglePrimaryContact(sanitizeContacts((data || []).map(mapContactFromSupabase)));
+    saveJson(storageKeys.contacts, contacts);
     if (contacts.length === 0 && !pendingLocalImport) pendingLocalImport = getLocalImportCandidate();
-    if (contacts.length > 0 || !pendingLocalImport?.contacts?.length) saveJson(storageKeys.contacts, contacts);
-    setContactsSyncState('synced');
+    setContactsSyncState('synced', {
+      lastLoadAt: new Date().toISOString(),
+      remoteCount: contacts.length,
+      lastError: '',
+      message: silent ? '' : 'Οι επαφές φορτώθηκαν από τον λογαριασμό.',
+    });
     renderContacts();
     renderSetupChecklist();
     renderHealthPage();
     renderSosContactNotifications();
     return contacts;
   } catch (error) {
-    setContactsSyncState('error');
-    if (!silent) showAuthMessage('Δεν έγινε συγχρονισμός επαφών. Έλεγξε τη σύνδεση και δοκίμασε ξανά.', true);
+    const message = getSupabaseErrorMessage(error);
+    setContactsSyncState('error', { lastError: message, message: '' });
+    if (!silent) showAuthMessage(`Σφάλμα Supabase: ${message}`, true);
+    renderContacts();
     throw error;
   } finally {
     isContactsRefreshInProgress = false;
+    renderContactsSyncStatus();
+  }
+}
+
+async function manuallyRefreshAccountContacts() {
+  try {
+    await refreshAccountContactsFromSupabase({ silent: false });
+  } catch (error) {
+    console.warn('[SafeMe] Manual contacts refresh failed', error);
+  }
+}
+
+async function uploadLocalContactsToAccount() {
+  if (!currentUser || contacts.length === 0 || isContactsMutationInProgress) return;
+  isContactsMutationInProgress = true;
+  setContactsSyncState('syncing', { message: 'Αποθηκεύω τις τοπικές επαφές στον λογαριασμό...', lastError: '' });
+  try {
+    await upsertContactsToSupabase(contacts);
+    await refreshAccountContactsFromSupabase({ silent: true });
+    setContactsSyncState('synced', { message: 'Οι τοπικές επαφές αποθηκεύτηκαν στον λογαριασμό.' });
+  } catch (error) {
+    setContactsSyncState('error', { lastError: getSupabaseErrorMessage(error), message: '' });
+    console.warn('[SafeMe] Manual local contacts upload failed', error);
+  } finally {
+    isContactsMutationInProgress = false;
+    renderContacts();
   }
 }
 
@@ -4023,8 +4128,8 @@ async function importLocalEmergencyInfo() {
     }
     if (pendingLocalImport.contacts.length > 0) {
       contacts = ensureSinglePrimaryContact(pendingLocalImport.contacts);
-      await saveContactsToSupabase();
-      await refreshAccountContactsFromSupabase();
+      await upsertContactsToSupabase(contacts);
+      await refreshAccountContactsFromSupabase({ silent: true });
     }
     saveJson(storageKeys.profile, profile);
     if (contacts.length > 0 || !pendingLocalImport?.contacts?.length) saveJson(storageKeys.contacts, contacts);
@@ -4076,7 +4181,7 @@ async function loadSupabaseData() {
     profile = mapProfileFromSupabase(remoteProfile) || null;
     contacts = remoteContactList;
     if (!remoteProfile && !pendingLocalImport) profile = savedLocalProfile;
-    setContactsSyncState('synced');
+    setContactsSyncState('synced', { lastLoadAt: new Date().toISOString(), remoteCount: contacts.length, lastError: '', message: '' });
     sosHistoryEvents = (remoteSosEvents || []).map(mapSosEventFromSupabase);
     const restoredActiveSosSession = mapActiveSosSessionFromSupabase(remoteActiveSos);
     activeSosSession = shouldRestoreActiveSosSession(restoredActiveSosSession) ? restoredActiveSosSession : null;
@@ -4109,7 +4214,7 @@ async function loadSupabaseData() {
     syncActiveSosLocationAutoUpdate();
     sosHistoryStatus = `Δεν φορτώθηκε το ιστορικό SOS: ${error.message}`;
     renderSosHistory();
-    setContactsSyncState('error');
+    setContactsSyncState('error', { lastError: getSupabaseErrorMessage(error), message: '' });
     showAuthMessage('Δεν έγινε συγχρονισμός λογαριασμού. Το SOS παραμένει διαθέσιμο τοπικά και μπορείς να δοκιμάσεις ξανά.', true);
   } finally {
     isRemoteSyncing = false;
@@ -4321,6 +4426,8 @@ onlineStatusPill?.addEventListener('click', handleOnlineStatusClick);
 contactsForm?.addEventListener('submit', addContact);
 contactsList?.addEventListener('click', handleContactsListClick);
 clearContactsButton?.addEventListener('click', clearTrustedContacts);
+refreshAccountContactsButton?.addEventListener('click', manuallyRefreshAccountContacts);
+uploadLocalContactsButton?.addEventListener('click', uploadLocalContactsToAccount);
 profileForm?.addEventListener('submit', saveProfile);
 clearDataButton?.addEventListener('click', clearSafeMeData);
 settingsOpenProfileButton?.addEventListener('click', openSettingsProfile);
