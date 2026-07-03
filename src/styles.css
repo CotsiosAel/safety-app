@@ -2586,3 +2586,52 @@ body.tracking-mode .modal-backdrop {
 }
 .local-profile-status h3 { margin: 2px 0 4px; color: var(--ink); font-size: 1.2rem; letter-spacing: -0.03em; }
 .local-profile-status p:last-child { margin: 0; color: var(--muted); line-height: 1.5; }
+
+.account-sync-banner,
+.sos-account-status {
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: #fffbeb;
+  color: #92400e;
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+}
+
+.account-sync-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 16px 18px;
+}
+
+.account-sync-banner strong { display: block; color: #78350f; font-weight: 900; }
+.account-sync-banner p { margin: 4px 0 0; line-height: 1.5; font-weight: 700; }
+.account-sync-banner.signed-in { border-color: rgba(22, 163, 74, 0.25); background: #f0fdf4; color: #166534; }
+.account-sync-banner.signed-in strong { color: #14532d; }
+
+.sos-account-status {
+  display: inline-block;
+  margin: 18px auto 0;
+  padding: 10px 14px;
+  font-weight: 900;
+  line-height: 1.4;
+}
+
+.sos-account-status.signed-in { border-color: rgba(22, 163, 74, 0.25); background: #f0fdf4; color: #166534; }
+
+.remember-email-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.remember-email-option input { width: 18px; height: 18px; accent-color: var(--primary); }
+.remember-email-helper { margin-top: -8px; }
+
+@media (max-width: 720px) {
+  .account-sync-banner { align-items: stretch; flex-direction: column; }
+  .account-sync-banner .inline-button { width: 100%; }
+}
