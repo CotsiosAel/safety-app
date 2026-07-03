@@ -415,6 +415,14 @@
             </div>
           </div>
 
+          <section class="local-profile-status" id="profile-local-status" aria-live="polite">
+            <div>
+              <p class="eyebrow">Local demo account</p>
+              <h3 id="profile-local-status-text">Χωρίς σύνδεση</h3>
+              <p id="profile-local-status-hint">Δημιούργησε ένα τοπικό demo προφίλ για να εμφανίζεταις ως συνδεδεμένος.</p>
+            </div>
+          </section>
+
           <div class="profile-details">
             <div><span>Ιατρικές σημειώσεις</span><strong id="profile-notes">Δεν έχουν προστεθεί ιατρικές σημειώσεις</strong></div>
             <div><span>Γλώσσα</span><strong id="profile-language">Ελληνικά</strong></div>
@@ -525,7 +533,7 @@
               </label>
               <label class="full-field">
                 <span>Σημείωση έκτακτης ανάγκης / ιατρικές σημειώσεις</span>
-                <textarea name="medicalNotes" rows="4" required></textarea>
+                <textarea name="medicalNotes" rows="4" placeholder="Προαιρετικό: αλλεργίες, φάρμακα ή άλλο σημαντικό στοιχείο"></textarea>
               </label>
             </div>
             <button class="primary-button inline-button" type="submit">Αποθήκευση προφίλ</button>

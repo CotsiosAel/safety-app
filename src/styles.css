@@ -2550,3 +2550,34 @@ body.tracking-mode .modal-backdrop {
   .active-sos-compact-actions { grid-template-columns: 1fr; }
   .emergency-action-button { min-height: 60px; }
 }
+
+.local-profile-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 22px 0 6px;
+  padding: 18px 20px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.92), rgba(239, 246, 255, 0.84));
+}
+.local-profile-status::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #94a3b8;
+  box-shadow: 0 0 0 8px rgba(148, 163, 184, 0.12);
+}
+.local-profile-status.signed-in {
+  border-color: rgba(16, 185, 129, 0.25);
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.94), rgba(240, 253, 250, 0.86));
+}
+.local-profile-status.signed-in::before {
+  background: var(--green);
+  box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.13);
+}
+.local-profile-status h3 { margin: 2px 0 4px; color: var(--ink); font-size: 1.2rem; letter-spacing: -0.03em; }
+.local-profile-status p:last-child { margin: 0; color: var(--muted); line-height: 1.5; }
