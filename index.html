@@ -62,6 +62,14 @@
           </div>
         </header>
 
+        <section class="account-sync-banner signed-out" id="account-sync-banner" aria-live="polite">
+          <div>
+            <strong id="account-sync-title">Δεν είσαι συνδεδεμένος.</strong>
+            <p id="account-sync-message">Το SOS μπορεί να λειτουργήσει τοπικά σε αυτή τη συσκευή, αλλά οι επαφές και το ιστορικό δεν συγχρονίζονται με τον λογαριασμό σου.</p>
+          </div>
+          <button class="primary-button inline-button" id="account-sync-login-button" type="button">Σύνδεση για συγχρονισμό</button>
+        </section>
+
         <section class="page page-grid active" id="home" aria-labelledby="page-title">
           <article class="hero-card">
             <div class="hero-copy home-emergency-intro">
@@ -79,6 +87,7 @@
                 <small>Πατήστε</small>
               </button>
             </div>
+            <p class="sos-account-status" id="sos-account-status" aria-live="polite">Λειτουργία χωρίς σύνδεση: το SOS θα χρησιμοποιήσει μόνο τα στοιχεία αυτής της συσκευής.</p>
             <p class="sos-status" id="sos-status">Πάτησε SOS μία φορά για άμεση ενεργοποίηση.</p>
 
             <label class="sos-test-toggle">
@@ -477,6 +486,11 @@
                   <input id="auth-repeat-password" name="repeat-password" type="password" autocomplete="new-password" minlength="6" />
                 </span>
               </label>
+              <label class="remember-email-option" id="remember-email-option">
+                <input id="remember-email" name="remember-email" type="checkbox" />
+                <span>Να θυμάσαι το email μου</span>
+              </label>
+              <small class="field-helper remember-email-helper" id="remember-email-helper">Αποθηκεύεται μόνο το email σε αυτή τη συσκευή.</small>
               <p class="auth-signup-note" id="auth-signup-note" hidden>Στο επόμενο στάδιο θα προστεθεί σύνδεση με τηλέφωνο/SMS.</p>
             </div>
             <div class="auth-actions">

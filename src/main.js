@@ -36,7 +36,13 @@ function createOfflineSupabaseClient() {
 async function initializeSupabaseClient() {
   try {
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-    supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    });
     isSupabaseReady = true;
   } catch (error) {
     isSupabaseReady = false;
@@ -156,6 +162,7 @@ const storageKeys = {
   safeWalkOutcome: 'safety-app-last-safe-walk-outcome',
   notificationHistory: 'safety-app-sos-notification-history',
   endedSosSession: 'safety-app-ended-sos-session',
+  rememberedEmail: 'safeme_remembered_email',
 };
 
 
@@ -338,6 +345,11 @@ const pages = document.querySelectorAll('.page');
 const pageTitle = document.querySelector('#page-title');
 const sosButton = document.querySelector('#sos-button');
 const sosStatus = document.querySelector('#sos-status');
+const sosAccountStatus = document.querySelector('#sos-account-status');
+const accountSyncBanner = document.querySelector('#account-sync-banner');
+const accountSyncTitle = document.querySelector('#account-sync-title');
+const accountSyncMessage = document.querySelector('#account-sync-message');
+const accountSyncLoginButton = document.querySelector('#account-sync-login-button');
 const sosTestModeToggle = document.querySelector('#sos-test-mode');
 const sosModal = document.querySelector('#sos-modal');
 const sosActionPanel = document.querySelector('#sos-action-panel');
@@ -399,6 +411,9 @@ const healthTestSafeWalkButton = document.querySelector('#health-test-safe-walk'
 const authForm = document.querySelector('#auth-form');
 const authEmail = document.querySelector('#auth-email');
 const authPassword = document.querySelector('#auth-password');
+const rememberEmailCheckbox = document.querySelector('#remember-email');
+const rememberEmailOption = document.querySelector('#remember-email-option');
+const rememberEmailHelper = document.querySelector('#remember-email-helper');
 const authRepeatPassword = document.querySelector('#auth-repeat-password');
 const authModeTabs = document.querySelector('#auth-mode-tabs');
 const authLoginTab = document.querySelector('#auth-login-tab');
@@ -1123,7 +1138,7 @@ function setContactsSyncState(state, details = {}) {
 function renderContactsSyncStatus() {
   const messages = {
     synced: contactsSyncDiagnosticsState.message || 'Οι επαφές συγχρονίστηκαν με τον λογαριασμό.',
-    local: 'Τοπική λειτουργία: οι επαφές μένουν μόνο σε αυτή τη συσκευή. Οι επαφές είναι μόνο τοπικές σε αυτή τη συσκευή. Συνδέσου για συγχρονισμό Supabase.',
+    local: 'Τοπική λειτουργία: οι επαφές μένουν μόνο σε αυτή τη συσκευή. Οι επαφές είναι μόνο τοπικές σε αυτή τη συσκευή. Συνδέσου για συγχρονισμό Supabase. Συνδέσου για συγχρονισμό επαφών.',
     error: contactsSyncDiagnosticsState.lastError
       ? `Σφάλμα Supabase: ${contactsSyncDiagnosticsState.lastError}`
       : 'Δεν έγινε συγχρονισμός επαφών. Έλεγξε τη σύνδεση και δοκίμασε ξανά.',
@@ -1144,6 +1159,16 @@ function renderContactsSyncStatus() {
   if (uploadLocalContactsButton) uploadLocalContactsButton.disabled = !currentUser || contacts.length === 0 || isContactsMutationInProgress || isContactsRefreshInProgress;
 
   if (!contactsSyncDiagnostics) return;
+  if (!currentUser) {
+    contactsSyncDiagnostics.innerHTML = `
+      <ul>
+        <li>Τοπική λειτουργία: οι επαφές μένουν μόνο σε αυτή τη συσκευή.</li>
+        <li>Οι ενέργειες συγχρονισμού λογαριασμού είναι απενεργοποιημένες.</li>
+        <li><strong>Συνδέσου για συγχρονισμό επαφών</strong></li>
+      </ul>
+    `;
+    return;
+  }
   const accountLines = currentUser
     ? [
         `Συνδεδεμένος ως: ${escapeHtml(currentUser.email || 'χωρίς email')}`,
@@ -1266,6 +1291,7 @@ function focusElementAfterScroll(element, fallbackElement = null) {
 
 function openProfileAuthCard() {
   showPage('profile');
+  if (!currentUser) setAuthMode('login');
 
   const signedIn = Boolean(currentUser);
   const focusTarget = isPasswordRecoveryMode ? passwordResetForm : (signedIn ? authSignedIn : authEmail);
@@ -3808,6 +3834,43 @@ function activatePasswordRecoveryMode() {
   focusElementAfterScroll(passwordResetNew || passwordResetForm);
 }
 
+function readRememberedEmail() {
+  try { return localStorage.getItem(storageKeys.rememberedEmail) || ''; } catch { return ''; }
+}
+
+function applyRememberedEmail({ overwrite = false } = {}) {
+  if (!authEmail || !rememberEmailCheckbox || currentUser) return;
+  const rememberedEmail = readRememberedEmail();
+  rememberEmailCheckbox.checked = Boolean(rememberedEmail);
+  if (rememberedEmail && (overwrite || !authEmail.value)) authEmail.value = rememberedEmail;
+  if (authPassword) authPassword.value = '';
+}
+
+function syncRememberedEmailPreference(email) {
+  try {
+    if (rememberEmailCheckbox?.checked) localStorage.setItem(storageKeys.rememberedEmail, email);
+    else localStorage.removeItem(storageKeys.rememberedEmail);
+  } catch (error) {
+    console.warn('[SafeMe] Remember email preference could not be saved', error);
+  }
+}
+
+function renderAccountSyncStatus() {
+  const signedIn = Boolean(currentUser);
+  if (accountSyncBanner) accountSyncBanner.classList.toggle('signed-in', signedIn), accountSyncBanner.classList.toggle('signed-out', !signedIn);
+  if (accountSyncTitle) accountSyncTitle.textContent = signedIn ? `Συνδεδεμένος ως: ${currentUser.email || 'χωρίς email'}` : 'Δεν είσαι συνδεδεμένος.';
+  if (accountSyncMessage) accountSyncMessage.textContent = signedIn
+    ? 'Οι επαφές και το ιστορικό συγχρονίζονται με τον λογαριασμό σου.'
+    : 'Το SOS μπορεί να λειτουργήσει τοπικά σε αυτή τη συσκευή, αλλά οι επαφές και το ιστορικό δεν συγχρονίζονται με τον λογαριασμό σου.';
+  if (accountSyncLoginButton) accountSyncLoginButton.hidden = signedIn;
+  if (sosAccountStatus) {
+    sosAccountStatus.textContent = signedIn
+      ? 'Λογαριασμός ενεργός: τα στοιχεία SOS συγχρονίζονται.'
+      : 'Λειτουργία χωρίς σύνδεση: το SOS θα χρησιμοποιήσει μόνο τα στοιχεία αυτής της συσκευής.';
+    sosAccountStatus.classList.toggle('signed-in', signedIn);
+  }
+}
+
 function clearPasswordRecoveryMode() {
   isPasswordRecoveryMode = false;
   passwordResetForm.reset();
@@ -3821,6 +3884,8 @@ function renderAuth() {
   const isSignup = authMode === 'signup';
   const userEmail = currentUser?.email || '';
   const hideSignupFields = signedIn || !isSignup;
+
+  if (!signedIn) applyRememberedEmail();
 
   if (signedIn) {
     authPassword.value = '';
@@ -3836,6 +3901,8 @@ function renderAuth() {
   authPasswordToggle.hidden = signedIn;
   authRepeatPasswordField.hidden = signedIn || !isSignup;
   authSignupNote.hidden = signedIn || !isSignup;
+  if (rememberEmailOption) rememberEmailOption.hidden = signedIn || isSignup;
+  if (rememberEmailHelper) rememberEmailHelper.hidden = signedIn || isSignup;
   authSubmitButton.hidden = signedIn;
   authForgotPasswordButton.hidden = signedIn || isSignup;
   authModeTabs.hidden = signedIn;
@@ -3872,6 +3939,8 @@ function renderAuth() {
     authStatus.textContent = authStatusMessages.signedOut;
     authStatus.classList.remove('error');
   }
+
+  renderAccountSyncStatus();
 
   if (!authStatus.textContent) {
     authStatus.textContent = signedIn ? authStatusMessages.signedIn : authStatusMessages.signedOut;
@@ -4255,6 +4324,7 @@ async function handleAuthSubmit(event) {
 
     const isSignup = authMode === 'signup';
     currentUser = isSignup ? (data.session?.user || currentUser) : (data.user || currentUser);
+    if (!isSignup) syncRememberedEmailPreference(email);
     authPassword.value = '';
     authRepeatPassword.value = '';
     showAuthMessage(isSignup
@@ -4278,7 +4348,7 @@ async function logout() {
     if (error) throw error;
 
     currentUser = null;
-    authEmail.value = '';
+    applyRememberedEmail({ overwrite: true });
     authPassword.value = '';
     authRepeatPassword.value = '';
     showAuthMessage(authStatusMessages.logoutSuccess);
@@ -4305,6 +4375,7 @@ async function initializeAuth() {
   const { data } = await supabase.auth.getSession();
   currentUser = data.session?.user || null;
   if (currentUser) authEmail.value = currentUser.email || '';
+  else applyRememberedEmail({ overwrite: true });
   renderAuth();
   if (shouldOpenRecoveryForm) activatePasswordRecoveryMode();
   try {
@@ -4316,6 +4387,7 @@ async function initializeAuth() {
   supabase.auth.onAuthStateChange((event, session) => {
     currentUser = session?.user || null;
     if (currentUser) authEmail.value = currentUser.email || '';
+    else applyRememberedEmail({ overwrite: true });
     if (event === 'PASSWORD_RECOVERY') activatePasswordRecoveryMode();
     if (!currentUser) {
       sosHistoryEvents = [];
@@ -4323,6 +4395,7 @@ async function initializeAuth() {
       clearActiveSosRuntimeState({ message: '', endedSession: activeSosSession, status: 'ended' });
       renderSosHistory();
       renderSetupChecklist();
+      renderContactsSyncStatus();
       if (hasPendingLogoutMessage) {
         showAuthMessage(authStatusMessages.logoutSuccess);
         hasPendingLogoutMessage = false;
@@ -4414,6 +4487,7 @@ document.addEventListener('keydown', (event) => {
   if (sosModal && !sosModal.hidden) closeSosModal();
 });
 authSignupTab?.addEventListener('click', () => setAuthMode('signup'));
+accountSyncLoginButton?.addEventListener('click', openProfileAuthCard);
 authLoginTab?.addEventListener('click', () => setAuthMode('login'));
 authForgotPasswordButton?.addEventListener('click', sendPasswordResetEmail);
 authPasswordToggle?.addEventListener('click', togglePasswordVisibility);
