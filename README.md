@@ -42,3 +42,5 @@ The app uses Supabase Auth (email/password) with Postgres tables for user profil
 ### Environment/configuration
 
 This static app currently has no build-time environment variable injection. To point to another backend, update `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SOS_TRACKING_BASE_URL`, and `PASSWORD_RESET_REDIRECT_URL` in `src/main.js`.
+
+For Vercel production deployments, add the production app URL (for example `https://<project>.vercel.app`) to Supabase Auth URL configuration: set it as the Site URL when appropriate and include it in the allowed redirect URLs for email confirmation and password recovery. Email/password sign-in should create a real Supabase session; local profile data alone must remain device-only and must not be treated as an authenticated account.
