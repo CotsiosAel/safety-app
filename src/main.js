@@ -1105,13 +1105,19 @@ function renderContactsSyncStatus() {
   if (!contactsSyncStatus) return;
   const messages = {
     synced: 'Οι επαφές συγχρονίστηκαν με τον λογαριασμό.',
-    local: 'Οι επαφές αποθηκεύτηκαν τοπικά. Συνδέσου για συγχρονισμό.',
+    local: 'Οι επαφές είναι μόνο τοπικές σε αυτή τη συσκευή. Συνδέσου για συγχρονισμό Supabase.',
     error: 'Δεν έγινε συγχρονισμός επαφών. Έλεγξε τη σύνδεση και δοκίμασε ξανά.',
     syncing: 'Συγχρονίζω τις επαφές με τον λογαριασμό...',
   };
-  contactsSyncStatus.textContent = currentUser ? (messages[contactsSyncState] || messages.syncing) : messages.local;
+  if (!currentUser) {
+    contactsSyncStatus.textContent = messages.local;
+    contactsSyncStatus.classList.remove('error', 'signed-in');
+    return;
+  }
+
+  contactsSyncStatus.textContent = messages[contactsSyncState] || messages.syncing;
   contactsSyncStatus.classList.toggle('error', contactsSyncState === 'error');
-  contactsSyncStatus.classList.toggle('signed-in', Boolean(currentUser) && contactsSyncState === 'synced');
+  contactsSyncStatus.classList.toggle('signed-in', contactsSyncState === 'synced');
 }
 
 async function syncContactsToSupabaseBestEffort(context) {
@@ -3618,11 +3624,11 @@ function renderProfile() {
 
   document.querySelector('#profile-local-status')?.classList.toggle('signed-in', hasProfile);
   const localStatusText = document.querySelector('#profile-local-status-text');
-  if (localStatusText) localStatusText.textContent = hasProfile ? 'Συνδεδεμένος' : 'Χωρίς σύνδεση';
+  if (localStatusText) localStatusText.textContent = hasProfile ? (currentUser ? 'Συνδεδεμένος' : 'Τοπικό προφίλ') : 'Χωρίς σύνδεση';
   const localStatusHint = document.querySelector('#profile-local-status-hint');
   if (localStatusHint) localStatusHint.textContent = hasProfile
-    ? 'Το τοπικό demo προφίλ είναι αποθηκευμένο σε αυτή τη συσκευή.'
-    : 'Δημιούργησε ένα τοπικό demo προφίλ για να εμφανίζεταις ως συνδεδεμένος.';
+    ? (currentUser ? 'Το προφίλ συγχρονίζεται με τον λογαριασμό Supabase και κρατά τοπικό αντίγραφο.' : 'Το τοπικό προφίλ είναι αποθηκευμένο μόνο σε αυτή τη συσκευή.')
+    : 'Δημιούργησε ένα τοπικό προφίλ ή συνδέσου με Supabase λογαριασμό για συγχρονισμό.';
 
   profileName.textContent = displayName;
   profilePhone.textContent = getProfileValue('phone', 'Δεν έχει προστεθεί τηλέφωνο');
@@ -3761,7 +3767,6 @@ function clearPasswordRecoveryMode() {
 function renderAuth() {
   const signedIn = Boolean(currentUser);
   const hasLocalDemoProfile = hasCompleteLocalProfile();
-  const indicatorSignedIn = signedIn || hasLocalDemoProfile;
   const isSignup = authMode === 'signup';
   const userEmail = currentUser?.email || '';
   const hideSignupFields = signedIn || !isSignup;
@@ -3799,16 +3804,23 @@ function renderAuth() {
   authSignupTab.classList.toggle('active', isSignup);
   authLoginTab.setAttribute('aria-selected', String(!isSignup));
   authSignupTab.setAttribute('aria-selected', String(isSignup));
-  authIndicator.textContent = indicatorSignedIn ? 'Συνδεδεμένος' : 'Χωρίς σύνδεση';
-  authIndicator.setAttribute('aria-label', indicatorSignedIn
-    ? (signedIn ? 'Συνδεδεμένος. Άνοιγμα λογαριασμού στο Προφίλ' : 'Συνδεδεμένος με τοπικό demo προφίλ. Άνοιγμα Προφίλ')
-    : 'Χωρίς σύνδεση. Άνοιγμα σύνδεσης στο Προφίλ');
-  authIndicator.classList.toggle('signed-in', indicatorSignedIn);
-  authIndicator.classList.toggle('signed-out', !indicatorSignedIn);
-  storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικό demo προφίλ σε localStorage';
+  authIndicator.textContent = signedIn ? 'Συνδεδεμένος' : (hasLocalDemoProfile ? 'Τοπικό προφίλ' : 'Χωρίς σύνδεση');
+  authIndicator.setAttribute('aria-label', signedIn
+    ? 'Συνδεδεμένος. Άνοιγμα λογαριασμού στο Προφίλ'
+    : (hasLocalDemoProfile
+      ? 'Τοπικό προφίλ μόνο σε αυτή τη συσκευή. Άνοιγμα σύνδεσης στο Προφίλ'
+      : 'Χωρίς σύνδεση. Άνοιγμα σύνδεσης στο Προφίλ'));
+  authIndicator.classList.toggle('signed-in', signedIn);
+  authIndicator.classList.toggle('signed-out', !signedIn);
+  storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικό προφίλ σε αυτή τη συσκευή';
   passwordResetForm.hidden = !isPasswordRecoveryMode;
   passwordResetNew.required = isPasswordRecoveryMode;
   passwordResetRepeat.required = isPasswordRecoveryMode;
+
+  if (!signedIn && authStatus.textContent === authStatusMessages.signedIn) {
+    authStatus.textContent = authStatusMessages.signedOut;
+    authStatus.classList.remove('error');
+  }
 
   if (!authStatus.textContent) {
     authStatus.textContent = signedIn ? authStatusMessages.signedIn : authStatusMessages.signedOut;
