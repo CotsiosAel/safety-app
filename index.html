@@ -446,13 +446,30 @@
             <div><span>Αποθήκευση</span><strong id="storage-mode">Τοπικά, χωρίς backend</strong></div>
           </div>
 
-          <section class="sos-history-card" aria-labelledby="sos-history-title">
-            <div class="section-heading compact-heading">
-              <p class="eyebrow">SOS log</p>
-              <h2 id="sos-history-title">Ιστορικό SOS</h2>
-              <p>Τα τελευταία SOS που αποθηκεύτηκαν στον λογαριασμό σου.</p>
+          <section class="sos-history-card sos-history-summary-card" aria-labelledby="sos-history-title">
+            <div class="sos-history-summary">
+              <div>
+                <p class="eyebrow">SOS log</p>
+                <h2 id="sos-history-title">Ιστορικό SOS</h2>
+                <p class="sos-history-status-line">Τα SOS αποθηκεύονται στον λογαριασμό σου και στο τοπικό αντίγραφο.</p>
+              </div>
+              <dl class="sos-history-metrics" aria-label="Σύνοψη ιστορικού SOS">
+                <div>
+                  <dt>Τελευταίο SOS</dt>
+                  <dd id="sos-history-last">—</dd>
+                </div>
+                <div>
+                  <dt>Σύνολο SOS</dt>
+                  <dd id="sos-history-count">0</dd>
+                </div>
+              </dl>
             </div>
-            <div class="sos-history-list" id="sos-history-list" aria-live="polite"></div>
+            <div class="sos-history-actions">
+              <button class="secondary-button" id="sos-history-toggle" type="button">Προβολή ιστορικού</button>
+              <button class="ghost-button" id="sos-history-show-all" type="button" hidden>Προβολή όλων</button>
+              <button class="ghost-button" id="sos-history-collapse" type="button" hidden>Απόκρυψη ιστορικού</button>
+            </div>
+            <div class="sos-history-list" id="sos-history-list" aria-live="polite" hidden></div>
           </section>
 
           <form class="auth-card" id="auth-form" tabindex="-1">

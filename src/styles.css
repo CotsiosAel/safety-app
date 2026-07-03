@@ -595,34 +595,74 @@ body.modal-open { overflow: hidden; }
 
 .sos-history-card {
   margin-top: 22px;
-  padding: clamp(22px, 4vw, 32px);
+  padding: clamp(16px, 3vw, 24px);
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 32px;
-  box-shadow: var(--shadow);
+  border-radius: 26px;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
   backdrop-filter: blur(16px);
 }
-.sos-history-list {
+.sos-history-summary {
   display: grid;
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
 }
-.sos-history-item {
+.sos-history-summary h2 { margin: 0; color: var(--ink); letter-spacing: -0.04em; }
+.sos-history-status-line { margin: 6px 0 0; color: var(--muted); line-height: 1.45; }
+.sos-history-metrics {
   display: grid;
-  gap: 8px;
-  padding: 16px;
+  grid-template-columns: repeat(2, minmax(110px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.sos-history-metrics div {
+  padding: 12px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 18px;
+  border-radius: 16px;
+}
+.sos-history-metrics dt {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sos-history-metrics dd { margin: 4px 0 0; color: var(--ink); font-weight: 900; }
+.sos-history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.sos-history-actions button { min-height: 44px; }
+.sos-history-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+.sos-history-list[hidden] { display: none; }
+.sos-history-item {
+  display: grid;
+  grid-template-columns: minmax(130px, auto) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
 }
 .sos-history-item time {
   color: #334155;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   font-weight: 900;
 }
 .sos-history-item p {
   margin: 0;
   color: var(--muted);
-  line-height: 1.5;
+  line-height: 1.35;
+  font-size: 0.92rem;
 }
 .sos-history-item a,
 .sos-history-item span {
@@ -630,15 +670,27 @@ body.modal-open { overflow: hidden; }
   color: #1d4ed8;
   font-weight: 900;
   text-decoration: none;
+  white-space: nowrap;
 }
 .sos-history-item span { color: #64748b; }
+.sos-history-empty { margin: 0; padding: 12px 14px; color: var(--muted); background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 16px; }
 .compact-empty {
   padding: 22px 18px;
   box-shadow: none;
 }
 
+@media (max-width: 760px) {
+  .sos-history-summary,
+  .sos-history-item { grid-template-columns: 1fr; }
+  .sos-history-metrics { grid-template-columns: 1fr 1fr; }
+  .sos-history-item a,
+  .sos-history-item span { white-space: normal; }
+}
+
 @media (max-width: 640px) {
-  .sos-history-card { border-radius: 24px; }
+  .sos-history-card { border-radius: 22px; }
+  .sos-history-actions { display: grid; grid-template-columns: 1fr; }
+  .sos-history-actions button { width: 100%; }
 }
 
 .active-sos-card {
