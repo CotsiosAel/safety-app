@@ -259,6 +259,11 @@ button { -webkit-tap-highlight-color: transparent; }
   font-weight: 800;
 }
 .contacts-note::before { content: "ℹ️"; margin-right: 8px; }
+.contacts-sync-diagnostics { width: min(100%, 680px); margin-top: 14px; padding: 14px 16px; color: #172554; background: #f8fbff; border: 1px solid rgba(37, 99, 235, 0.14); border-radius: 18px; font-weight: 800; }
+.contacts-sync-diagnostics ul { display: grid; gap: 6px; margin: 0; padding-left: 20px; }
+.contacts-sync-diagnostics .error { color: #be123c; }
+.contacts-sync-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.contacts-sync-actions .secondary-button { width: auto; margin-top: 0; }
 .card-list { display: grid; gap: 16px; }
 .contact-card { justify-content: space-between; gap: 18px; padding: 20px; }
 .contact-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
