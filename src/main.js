@@ -5,9 +5,9 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const SOS_TRACKING_BASE_URL = 'https://cotsiosael.github.io/safety-app/';
-const APP_VERSION = 'no-banner-final';
+const APP_VERSION = 'startup-reliability-2026-07-03';
 const APP_VERSION_URL = './version.json';
-const EMERGENCY_PWA_RESET_VERSION = 'no-banner-final';
+const EMERGENCY_PWA_RESET_VERSION = APP_VERSION;
 const UPDATE_STORAGE_KEYS = [
   'updateAvailable',
   'pwaUpdateAvailable',
@@ -27,7 +27,11 @@ function clearStoredAppUpdateFlags() {
   });
 }
 
-clearStoredAppUpdateFlags();
+try {
+  clearStoredAppUpdateFlags();
+} catch (error) {
+  console.warn('[SafeMe] Could not clear stale update flags during boot', error);
+}
 
 async function runEmergencyPwaResetIfRequested() {
   const params = new URLSearchParams(window.location.search);
@@ -274,6 +278,7 @@ function initializePublicTrackingMode() {
 }
 
 function initializeSafeMeAppUnsafe() {
+console.info('[SafeMe] App startup: reading DOM and local state');
 const PASSWORD_RESET_REDIRECT_URL = 'https://cotsiosael.github.io/safety-app/';
 
 const authStatusMessages = {
@@ -752,7 +757,8 @@ function loadJson(key, fallback) {
   try {
     const storedValue = localStorage.getItem(key);
     return storedValue ? JSON.parse(storedValue) : fallback;
-  } catch {
+  } catch (error) {
+    console.warn('[SafeMe] Could not parse local data; using safe fallback', { key, error });
     return fallback;
   }
 }
@@ -3923,7 +3929,7 @@ function clearSafeMeData() {
 }
 
 if (!window.__safeMeUiEventsBound) {
-window.__safeMeUiEventsBound = true;
+console.info('[SafeMe] App startup: binding UI events');
 
 navButtons.forEach((button) => {
   button.addEventListener('click', () => showPage(button.dataset.page));
@@ -4053,8 +4059,11 @@ sosContactList?.addEventListener('click', async (event) => {
     logSosNotification(contact, action.dataset.sosMethod, 'Opened');
   }
 });
+window.__safeMeUiEventsBound = true;
+console.info('[SafeMe] App startup: UI events bound');
 }
 
+console.info('[SafeMe] App startup: rendering initial state');
 clearLegacyActiveSosStorage();
 syncSosTestModeToggle();
 renderContacts();
@@ -4070,6 +4079,47 @@ refreshLocationPermissionStatus();
 setupAppFreshnessChecks();
 setupPullToRefresh();
 initializeAuth().catch((error) => console.warn('[SafeMe] Auth startup failed', error));
+}
+
+
+function showPageFallback(nextPage) {
+  const pageName = pageTitles[nextPage] ? nextPage : 'home';
+  document.querySelectorAll('.nav-item').forEach((item) => {
+    const isActive = item.dataset.page === pageName;
+    item.classList.toggle('active', isActive);
+    item.toggleAttribute('aria-current', isActive);
+  });
+  document.querySelectorAll('.page').forEach((page) => page.classList.toggle('active', page.id === pageName));
+  const title = document.querySelector('#page-title');
+  if (title) title.textContent = pageTitles[pageName];
+}
+
+function bindStartupNavigationFallback() {
+  if (window.__safeMeStartupNavigationBound) return;
+  window.__safeMeStartupNavigationBound = true;
+  console.info('[SafeMe] App startup: binding navigation fallback');
+  document.addEventListener('click', (event) => {
+    const navButton = event.target.closest('.nav-item[data-page]');
+    if (navButton) {
+      showPageFallback(navButton.dataset.page);
+      return;
+    }
+
+    const quickAction = event.target.closest('[data-open-tool]');
+    if (!quickAction) return;
+    const tool = quickAction.dataset.openTool;
+    if (tool === 'contacts') {
+      event.preventDefault();
+      showPageFallback('contacts');
+      document.querySelector('#contact-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (tool === 'checkin' || tool === 'safe-walk') {
+      event.preventDefault();
+      showPageFallback('safety-tools');
+      document.querySelector(`#${tool}-section`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, true);
 }
 
 function clearStartupBlockingState() {
@@ -4093,6 +4143,7 @@ function initializeSafeMeApp() {
   try {
     initializeSafeMeAppUnsafe();
     isSafeMeAppInitialized = true;
+    console.info('[SafeMe] App startup: complete');
   } catch (error) {
     console.warn('[SafeMe] Startup failed before full app initialization', error);
     clearStartupBlockingState();
@@ -4113,6 +4164,7 @@ function startSafeMeWhenDomReady() {
         clearStartupBlockingState();
       }
     } else {
+      bindStartupNavigationFallback();
       initializeSafeMeApp();
     }
   };
