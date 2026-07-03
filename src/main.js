@@ -1071,7 +1071,6 @@ function mapContactToSupabase(contact) {
     name: contact.name,
     relationship: contact.relationship,
     phone: contact.phone,
-    email: contact.email || '',
     tone: contact.tone || 'default',
   };
 }

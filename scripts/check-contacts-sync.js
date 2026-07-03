@@ -12,6 +12,8 @@ const checks = [
   ['refresh fetches by user_id ordered by created_at', main.includes(".eq('user_id', currentUser.id)\n      .order('created_at', { ascending: true })")],
   ['local mode diagnostic does not claim Supabase sync', main.includes('Τοπική λειτουργία: οι επαφές μένουν μόνο σε αυτή τη συσκευή.')],
   ['bulk delete is isolated to explicit deleteAllContactsFromSupabase', !/saveContactsToSupabase[\s\S]*?\.delete\(\)[\s\S]*?trusted_contacts/.test(main)],
+  ['trusted contacts payload does not send unsupported email column', /function mapContactToSupabase\(contact\) {[\s\S]*?return {[\s\S]*?phone: contact\.phone,[\s\S]*?tone: contact\.tone \|\| 'default',[\s\S]*?};/.test(main) && !/function mapContactToSupabase\(contact\) {[\s\S]*?return {[\s\S]*?email: contact\.email/.test(main)],
+  ['trusted contacts keeps optional email when reading from Supabase', main.includes("email: contact.email || '',")],
 ];
 
 const failed = checks.filter(([, ok]) => !ok);
