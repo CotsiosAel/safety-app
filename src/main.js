@@ -716,6 +716,18 @@ function getActiveSosEmergencyMessage() {
   return buildSosMessage(currentLocation, activeSosSession?.shareToken);
 }
 
+function getSmsCapableSosContacts() {
+  return contacts.filter((contact) => normalizePhone(contact.phone || ''));
+}
+
+function getGroupSmsLink(message) {
+  const recipients = getSmsCapableSosContacts()
+    .map((contact) => normalizePhone(contact.phone || ''))
+    .filter(Boolean);
+
+  return `sms:${recipients.join(',')}?&body=${encodeURIComponent(message)}`;
+}
+
 function logSosNotification(contact, method, status) {
   const entry = { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, contactName: contact?.name || 'Όλες οι επαφές', method, status, at: new Date().toISOString() };
   sosNotificationHistory = [entry, ...sosNotificationHistory].slice(0, 12);
@@ -745,15 +757,19 @@ function renderSosContactNotifications() {
   if (!hasActive) return;
 
   const trackingUrl = getSosTrackingUrl(activeSosSession?.shareToken);
-  notifyAllSosContactsButton.disabled = contacts.length === 0 || isSosTestMode;
-  if (notifyAllSosContactsActionButton) notifyAllSosContactsActionButton.disabled = contacts.length === 0 || isSosTestMode;
+  const smsCapableContacts = getSmsCapableSosContacts();
+  const hasSmsCapableContacts = smsCapableContacts.length > 0;
+  notifyAllSosContactsButton.disabled = !hasSmsCapableContacts || isSosTestMode;
+  if (notifyAllSosContactsActionButton) notifyAllSosContactsActionButton.disabled = !hasSmsCapableContacts || isSosTestMode;
   sosContactWarning.textContent = isSosTestMode
     ? 'Λειτουργία δοκιμής SOS: δεν ετοιμάζεται πραγματικό μήνυμα έκτακτης ανάγκης.'
     : !trackingUrl
       ? 'Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται. Δεν υπάρχει active tracking link.'
       : contacts.length === 0
         ? 'Δεν υπάρχουν emergency contacts. Πήγαινε στις Επαφές για setup.'
-        : 'Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται.';
+        : !hasSmsCapableContacts
+          ? 'Δεν υπάρχουν emergency contacts με αριθμό τηλεφώνου. Πρόσθεσε αριθμούς για να ετοιμαστεί SMS προς όλες τις επαφές.'
+          : 'Το SafeMe ετοιμάζει έτοιμο SMS προς όλες τις επαφές με αριθμό τηλεφώνου. Η αποστολή γίνεται από τη συσκευή σου.';
 
   if (contacts.length === 0) {
     sosContactList.innerHTML = '<article class="sos-contact-empty"><strong>Δεν υπάρχουν emergency contacts</strong><p>Άνοιξε τις Επαφές και πρόσθεσε τουλάχιστον ένα άτομο.</p><button class="ghost-button" type="button" data-sos-open-contacts>Άνοιγμα επαφών</button></article>';
@@ -784,14 +800,16 @@ function renderSosContactNotifications() {
 async function notifyAllSosContacts() {
   if (isSosTestMode) { renderActiveSosSession('Λειτουργία δοκιμής SOS: δεν ετοιμάστηκε πραγματικό μήνυμα έκτακτης ανάγκης.'); return; }
   const message = getActiveSosEmergencyMessage();
-  const trackingUrl = getSosTrackingUrl(activeSosSession?.shareToken);
-  if (navigator.share) {
-    try { await navigator.share({ title: 'SafeMe SOS', text: message, url: trackingUrl }); logSosNotification(null, 'Share', 'Opened'); return; }
-    catch (error) { if (error?.name === 'AbortError') return; }
+  const smsCapableContacts = getSmsCapableSosContacts();
+
+  if (smsCapableContacts.length === 0) {
+    renderActiveSosSession('Πρόσθεσε έμπιστες επαφές με αριθμό τηλεφώνου για να ετοιμαστεί SMS SOS.');
+    return;
   }
-  await copyTextToClipboard(message);
-  logSosNotification(null, 'Copy', 'Copied');
-  renderActiveSosSession('Το SOS μήνυμα αντιγράφηκε για αποστολή σε όλες τις επαφές.');
+
+  logSosNotification(null, 'SMS', 'Opened');
+  renderActiveSosSession('Άνοιξε έτοιμο SMS προς όλες τις επαφές. Πάτησε αποστολή για να φύγει το SOS.');
+  window.location.href = getGroupSmsLink(message);
 }
 
 function loadJson(key, fallback) {
