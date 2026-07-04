@@ -57,6 +57,7 @@ Privacy Policy draft: `docs/privacy-policy-draft.md`
 Terms of Use draft: `docs/terms-of-use-draft.md`
 Public Privacy Policy URL placeholder: `/privacy-policy.html`
 Public Terms of Use URL placeholder: `/terms-of-use.html`
+Support page: `/support.html`
 Store listing draft: `docs/store-listing-draft.md`
 
 
