@@ -1115,8 +1115,8 @@ function mapProfileToSupabase(savedProfile) {
     id: currentUser.id,
     name: savedProfile.name,
     phone: savedProfile.phone,
-    medical_note: savedProfile.medicalNotes,
-    medical_notes: savedProfile.medicalNotes,
+    medical_note: normalizeMedicalNotes(savedProfile.medicalNotes) || null,
+    medical_notes: normalizeMedicalNotes(savedProfile.medicalNotes) || null,
     preferred_language: savedProfile.preferredLanguage || 'el',
     updated_at: new Date().toISOString(),
   };
@@ -1210,7 +1210,7 @@ function sanitizeProfile(savedProfile) {
   if (savedProfile.phone === legacyDemoProfilePhone) return null;
   const name = String(savedProfile.name || '').trim();
   const phone = String(savedProfile.phone || '').trim();
-  const medicalNotes = String(savedProfile.medicalNotes || savedProfile.medical_note || savedProfile.medical_notes || '').trim();
+  const medicalNotes = normalizeMedicalNotes(savedProfile.medicalNotes || savedProfile.medical_note || savedProfile.medical_notes || '');
   const preferredLanguage = savedProfile.preferredLanguage === 'en' ? 'en' : 'el';
   if (!name && !phone && !medicalNotes) return null;
 
@@ -1231,6 +1231,15 @@ function hasCompleteLocalProfile() {
 
 function getProfileValue(field, fallback) {
   return profile?.[field] || fallback;
+}
+
+function normalizeMedicalNotes(value) {
+  const notes = String(value || '').trim();
+  return notes === '.' ? '' : notes;
+}
+
+function getProfileMedicalNotesDisplay() {
+  return normalizeMedicalNotes(profile?.medicalNotes) || 'Δεν έχουν συμπληρωθεί';
 }
 
 function getInitials(name) {
@@ -3721,17 +3730,19 @@ function renderProfile() {
   const hasProfile = hasCompleteLocalProfile();
   const displayName = getProfileValue('name', 'Συμπλήρωσε το προφίλ σου');
 
-  document.querySelector('#profile-local-status')?.classList.toggle('signed-in', hasProfile);
+  document.querySelector('#profile-local-status')?.classList.toggle('signed-in', Boolean(currentUser || hasProfile));
+  const accountStatusLabel = document.querySelector('#profile-account-label');
   const localStatusText = document.querySelector('#profile-local-status-text');
-  if (localStatusText) localStatusText.textContent = hasProfile ? (currentUser ? 'Συνδεδεμένος' : 'Τοπικό προφίλ') : 'Χωρίς σύνδεση';
   const localStatusHint = document.querySelector('#profile-local-status-hint');
-  if (localStatusHint) localStatusHint.textContent = hasProfile
-    ? (currentUser ? 'Το προφίλ συγχρονίζεται με τον λογαριασμό Supabase και κρατά τοπικό αντίγραφο.' : 'Το τοπικό προφίλ είναι αποθηκευμένο μόνο σε αυτή τη συσκευή.')
-    : 'Δημιούργησε ένα τοπικό προφίλ ή συνδέσου με Supabase λογαριασμό για συγχρονισμό.';
+  if (accountStatusLabel) accountStatusLabel.textContent = currentUser ? 'ΛΟΓΑΡΙΑΣΜΟΣ SAFEME' : 'ΤΟΠΙΚΟ ΠΡΟΦΙΛ';
+  if (localStatusText) localStatusText.textContent = currentUser ? 'Συνδεδεμένος' : 'Δεν είσαι συνδεδεμένος';
+  if (localStatusHint) localStatusHint.textContent = currentUser
+    ? 'Το προφίλ συγχρονίζεται με τον λογαριασμό Supabase και κρατά τοπικό αντίγραφο.'
+    : 'Τα στοιχεία αποθηκεύονται μόνο σε αυτή τη συσκευή.';
 
   profileName.textContent = displayName;
   profilePhone.textContent = getProfileValue('phone', 'Δεν έχει προστεθεί τηλέφωνο');
-  profileNotes.textContent = getProfileValue('medicalNotes', 'Δεν έχουν προστεθεί ιατρικές σημειώσεις');
+  profileNotes.textContent = getProfileMedicalNotesDisplay();
   profileLanguage.textContent = (profile?.preferredLanguage || 'el') === 'en' ? 'English' : 'Ελληνικά';
   profileCreatedAt.textContent = formatDiagnosticDateTime(profile?.createdAt);
   profileUpdatedAt.textContent = formatDiagnosticDateTime(profile?.updatedAt);
@@ -3748,7 +3759,7 @@ async function saveProfile(event) {
   profile = {
     name: formData.get('name').trim(),
     phone: formData.get('phone').trim(),
-    medicalNotes: formData.get('medicalNotes')?.trim() || '',
+    medicalNotes: normalizeMedicalNotes(formData.get('medicalNotes')),
     preferredLanguage: formData.get('preferredLanguage') || 'el',
     createdAt: profile?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
