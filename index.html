@@ -65,7 +65,7 @@
         <section class="account-sync-banner signed-out" id="account-sync-banner" aria-live="polite">
           <div>
             <strong id="account-sync-title">Δεν είσαι συνδεδεμένος.</strong>
-            <p id="account-sync-message">Το SOS μπορεί να λειτουργήσει τοπικά σε αυτή τη συσκευή, αλλά οι επαφές και το ιστορικό δεν συγχρονίζονται με τον λογαριασμό σου.</p>
+            <p id="account-sync-message">Το SOS λειτουργεί τοπικά, αλλά οι επαφές και το ιστορικό δεν συγχρονίζονται.</p>
           </div>
           <button class="primary-button inline-button" id="account-sync-login-button" type="button">Σύνδεση για συγχρονισμό</button>
         </section>
@@ -479,7 +479,7 @@
               <p class="eyebrow">Λογαριασμός</p>
               <h2 id="auth-title">Σύνδεση</h2>
               <p id="auth-helper">Συνδέσου για συγχρονισμό επαφών και ιστορικού SOS.</p>
-              <p class="auth-live-tracking-note">Χωρίς σύνδεση, το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό επαφών και ιστορικού.</p>
+              <p class="auth-live-tracking-note" hidden></p>
             </div>
             <p class="auth-signed-in" id="auth-signed-in" tabindex="-1" hidden><span>Συνδεδεμένος ως</span> <strong id="auth-user-email"></strong></p>
             <div class="auth-mode-tabs" id="auth-mode-tabs" role="tablist" aria-label="Επιλογή σύνδεσης ή δημιουργίας λογαριασμού">
@@ -508,7 +508,7 @@
                 <input id="remember-email" name="remember-email" type="checkbox" />
                 <span>Να θυμάσαι το email μου</span>
               </label>
-              <small class="field-helper remember-email-helper" id="remember-email-helper">Αποθηκεύεται μόνο το email σε αυτή τη συσκευή.</small>
+              <small class="field-helper remember-email-helper" id="remember-email-helper">Αποθηκεύεται μόνο το email.</small>
               <p class="auth-signup-note" id="auth-signup-note" hidden>Στο επόμενο στάδιο θα προστεθεί σύνδεση με τηλέφωνο/SMS.</p>
             </div>
             <div class="auth-actions">

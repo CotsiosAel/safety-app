@@ -19,8 +19,8 @@ const requiredPatterns = [
   ['signed-in auth card title is compact', "authTitle) authTitle.textContent = signedIn ? 'Λογαριασμός'"],
   ['signed-in account status is compact', "localStatusHint) localStatusHint.textContent = currentUser\n    ? 'Συγχρονισμός ενεργός'"],
   ['profile edit form expands from collapsed state', 'profileForm.hidden = !willOpen;'],
-  ['login mobile helper copy exists', "'Συνδέσου για συγχρονισμό επαφών και ιστορικού SOS.'"],
-  ['register mobile helper copy exists', "'Φτιάξε λογαριασμό για συγχρονισμό επαφών και ιστορικού SOS.'"],
+  ['login mobile helper copy is short', "'Συγχρόνισε επαφές και ιστορικό SOS.'"],
+  ['register mobile helper copy is short', "'Φτιάξε λογαριασμό για συγχρονισμό SOS.'"],
   ['login/register switch link is wired', "authSwitchModeButton?.addEventListener('click', () => setAuthMode(authMode === 'signup' ? 'login' : 'signup'));"],
   ['remember email remains login-only', 'if (rememberEmailOption) rememberEmailOption.hidden = signedIn || isSignup;'],
 ];
@@ -34,7 +34,7 @@ for (const [label, pattern] of requiredPatterns) {
 
 const markupPatterns = [
   ['remember email checkbox still exists', 'id="remember-email"'],
-  ['remember email only-email helper exists', 'Αποθηκεύεται μόνο το email σε αυτή τη συσκευή.'],
+  ['remember email only-email helper exists', 'Αποθηκεύεται μόνο το email.'],
   ['compact signed-out warning exists', 'Δεν είσαι συνδεδεμένος.'],
   ['signed-out sync button exists', 'Σύνδεση για συγχρονισμό'],
   ['profile edit form is collapsed by default', 'id="profile-form" hidden'],
@@ -58,6 +58,10 @@ const stylePatterns = [
   ['mobile signed-in account card is compact', '.account-sync-banner.signed-in {'],
   ['profile page hides duplicate global banner', '.profile-page-active .account-sync-banner {'],
   ['profile status email uses ellipsis', '.local-profile-status #profile-local-status-text {'],
+  ['signed-out profile warning uses grid layout', 'grid-template-columns: auto minmax(0, 1fr) auto;'],
+  ['signed-out profile sync button is not floating', '.local-profile-status .inline-button {\n  position: static;'],
+  ['mobile signed-out sync button is full width below copy', '.local-profile-status #profile-status-login-button {\n    grid-column: 1 / -1;'],
+  ['compact remember email checkbox size exists', '.remember-email-option input { flex: 0 0 auto; width: 15px; height: 15px;'],
 ];
 
 for (const [label, pattern] of stylePatterns) {
@@ -75,6 +79,7 @@ const forbiddenPatterns = [
   'Τοπικό demo προφίλ σε localStorage',
   'localStorage.setItem(storageKeys.password',
   'localStorage.setItem(storageKeys.token',
+  'authLiveTrackingNote.hidden = signedIn',
 ];
 
 for (const pattern of forbiddenPatterns) {
