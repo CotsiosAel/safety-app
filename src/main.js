@@ -1849,28 +1849,28 @@ function getSetupChecklistItems() {
   return [
     {
       id: 'profile',
-      label: '1. Προφίλ: όνομα και τηλέφωνο',
+      label: 'Συμπλήρωσε προφίλ',
       completed: hasRequiredProfileDetails(),
-      buttonLabel: hasRequiredProfileDetails() ? 'Επεξεργασία' : 'Συμπλήρωση',
+      buttonLabel: 'Άνοιγμα προφίλ',
       action: 'profile',
     },
     {
       id: 'contacts',
-      label: '2. Έμπιστη επαφή για SOS',
+      label: 'Πρόσθεσε έμπιστη επαφή',
       completed: contacts.length > 0,
-      buttonLabel: contacts.length > 0 ? 'Διαχείριση' : 'Προσθήκη',
+      buttonLabel: 'Άνοιγμα επαφών',
       action: 'contacts',
     },
     {
       id: 'location',
-      label: '3. Άδεια τοποθεσίας browser',
+      label: 'Ενεργοποίησε/έλεγξε GPS',
       completed: Boolean(currentLocation),
-      buttonLabel: 'Άδεια τοποθεσίας',
+      buttonLabel: 'Ενημέρωση GPS',
       action: 'location',
     },
     {
       id: 'test-sos',
-      label: '4. Δοκιμαστικό SOS σε test mode',
+      label: 'Κάνε δοκιμή SOS σε ασφαλές περιβάλλον',
       completed: hasCompletedTestSos,
       buttonLabel: 'Δοκιμή SOS',
       action: 'test-sos',
@@ -1908,8 +1908,8 @@ function renderSetupChecklist() {
     <div class="setup-checklist-header">
       <div>
         <p class="eyebrow">Ετοιμότητα SafeMe</p>
-        <h3 id="setup-checklist-title">Πρώτα βήματα ασφάλειας</h3>
-        <p>Για χρήση SOS ολοκλήρωσε πρώτα τα βήματα με τη σειρά. Μπορείς πάντα να επεξεργαστείς επαφές και προφίλ.</p>
+        <h3 id="setup-checklist-title">Πρώτη ρύθμιση SafeMe</h3>
+        <p>Για να είναι έτοιμο το SOS, συμπλήρωσε τα βασικά στοιχεία πριν το χρησιμοποιήσεις σε πραγματική ανάγκη.</p>
       </div>
       <div class="setup-checklist-header-actions">
         <span class="setup-checklist-progress" aria-live="polite">${completedCount}/${items.length}</span>
@@ -1925,7 +1925,7 @@ function renderSetupChecklist() {
         </li>
       `).join('')}
     </ul>
-    <p class="setup-checklist-summary">${allCompleted ? 'Το SafeMe είναι έτοιμο για χρήση.' : 'Το SOS ξεκλειδώνει όταν ολοκληρωθούν όλα τα βήματα.'}</p>
+    <p class="setup-checklist-summary">${allCompleted ? 'Το SafeMe είναι έτοιμο για χρήση.' : 'Τα βήματα είναι οδηγός προετοιμασίας και δεν μπλοκάρουν το SOS.'}</p>
   `;
 }
 
