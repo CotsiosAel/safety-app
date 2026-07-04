@@ -392,7 +392,6 @@ const profileDetailPhone = document.querySelector('#profile-detail-phone');
 const profileEditToggle = document.querySelector('#profile-edit-toggle');
 const profileStatusLoginButton = document.querySelector('#profile-status-login-button');
 const profileLanguage = document.querySelector('#profile-language');
-const preferredLanguageSelect = profileForm?.elements?.preferredLanguage;
 const profileCreatedAt = document.querySelector('#profile-created-at');
 const profileUpdatedAt = document.querySelector('#profile-updated-at');
 const profileAvatar = document.querySelector('#profile-avatar');
@@ -1501,7 +1500,7 @@ function openSettingsContacts() {
 
 
 function getSettingsLanguageLabel() {
-  return (profile?.preferredLanguage || 'el') === 'en' ? 'English' : 'Ελληνικά';
+  return 'Ελληνικά';
 }
 
 function formatSettingsLoadedAt(date) {
@@ -4121,7 +4120,7 @@ function renderProfile() {
   const displayPhone = getProfileValue('phone', 'Δεν έχει προστεθεί τηλέφωνο');
   if (profileDetailsSummary) profileDetailsSummary.textContent = `${displayName} • ${displayPhone}`;
   if (profileNotes) profileNotes.textContent = getProfileMedicalNotesDisplay();
-  if (profileLanguage) profileLanguage.textContent = (profile?.preferredLanguage || 'el') === 'en' ? 'English' : 'Ελληνικά';
+  if (profileLanguage) profileLanguage.textContent = 'Ελληνικά';
   renderSettingsSummary();
   if (profileCreatedAt) profileCreatedAt.textContent = formatDiagnosticDateTime(profile?.createdAt);
   if (profileUpdatedAt) profileUpdatedAt.textContent = formatDiagnosticDateTime(profile?.updatedAt);
@@ -4129,13 +4128,13 @@ function renderProfile() {
   profileForm.elements.name.value = profile?.name || '';
   profileForm.elements.phone.value = profile?.phone || '';
   profileForm.elements.medicalNotes.value = profile?.medicalNotes || '';
-  profileForm.elements.preferredLanguage.value = profile?.preferredLanguage || 'el';
 }
 
 async function saveProfile(event) {
   event.preventDefault();
   const formData = new FormData(profileForm);
-  const preferredLanguage = formData.get('preferredLanguage') === 'en' ? 'en' : 'el';
+  // TODO: Full Greek/English language switching requires a future i18n implementation.
+  const preferredLanguage = profile?.preferredLanguage || 'el';
   profile = {
     name: formData.get('name').trim(),
     phone: formData.get('phone').trim(),
@@ -4968,9 +4967,6 @@ clearContactsButton?.addEventListener('click', clearTrustedContacts);
 refreshAccountContactsButton?.addEventListener('click', manuallyRefreshAccountContacts);
 uploadLocalContactsButton?.addEventListener('click', uploadLocalContactsToAccount);
 profileForm?.addEventListener('submit', saveProfile);
-preferredLanguageSelect?.addEventListener('change', () => {
-  preferredLanguageSelect.blur();
-});
 clearDataButton?.addEventListener('click', clearSafeMeData);
 settingsOpenProfileButton?.addEventListener('click', openSettingsProfile);
 settingsOpenContactsButton?.addEventListener('click', openSettingsContacts);
