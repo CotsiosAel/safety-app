@@ -67,7 +67,7 @@ const sourceRequirements = [
   ['contacts CTA opens add form', 'focusContactForm()'],
   ['GPS refresh uses existing logic', 'refreshLocation()'],
   ['readiness ready message', 'Το SafeMe είναι έτοιμο για χρήση.'],
-  ['signed-out readiness message', 'Το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό.'],
+  ['signed-out readiness message', 'Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.'],
   ['no-contact readiness message', 'Πρόσθεσε έμπιστες επαφές.'],
   ['missing location readiness message', 'Ενημέρωσε GPS για τοποθεσία SOS.'],
 ];

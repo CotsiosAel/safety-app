@@ -2404,7 +2404,7 @@ function renderHomeReadinessCards() {
   const hasLocation = Boolean(currentLocation);
 
   if (homeOnlineStatus) {
-    homeOnlineStatus.textContent = isOnline ? 'Online' : 'Offline';
+    homeOnlineStatus.textContent = isOnline ? 'Σε σύνδεση' : 'Εκτός σύνδεσης';
     homeOnlineStatus.classList.toggle('warning', !isOnline);
   }
   if (homeAccountStatus) homeAccountStatus.textContent = hasAccount ? 'Συνδεδεμένος' : 'Τοπικό προφίλ';
@@ -2422,7 +2422,7 @@ function renderHomeReadinessCards() {
 
   if (homeReadinessMessage) {
     homeReadinessMessage.textContent = !hasAccount
-      ? 'Το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό.'
+      ? 'Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.'
       : !hasContacts
         ? 'Πρόσθεσε έμπιστες επαφές.'
         : !hasLocation
@@ -2459,7 +2459,7 @@ function renderSafetyStatusCard() {
     normal: {
       icon: '💗',
       title: 'Κατάσταση',
-      description: 'Ασφαλής και διαθέσιμη για check-in',
+      description: 'Το SOS είναι έτοιμο όταν το χρειαστείς',
     },
     'safe-walk': {
       icon: '🚶',
