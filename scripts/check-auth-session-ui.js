@@ -61,7 +61,7 @@ const stylePatterns = [
   ['signed-out profile warning uses grid layout', 'grid-template-columns: auto minmax(0, 1fr) auto;'],
   ['signed-out profile sync button is not floating', '.local-profile-status .inline-button {\n  position: static;'],
   ['mobile signed-out sync button is full width below copy', '.local-profile-status #profile-status-login-button {\n    grid-column: 1 / -1;'],
-  ['compact remember email checkbox size exists', '.remember-email-option input { flex: 0 0 auto; width: 15px; height: 15px;'],
+  ['compact remember email checkbox size exists', '.remember-email-option input { flex: 0 0 auto; width: 13px; height: 13px;'],
 ];
 
 for (const [label, pattern] of stylePatterns) {
