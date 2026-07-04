@@ -13,6 +13,49 @@ function requireIncludes(source, needle, label) {
   if (!source.includes(needle)) fail(`Missing ${label}: ${needle}`);
 }
 
+const criticalActions = [
+  'navigate-home',
+  'navigate-contacts',
+  'navigate-safety-tools',
+  'navigate-profile',
+  'navigate-settings',
+  'activate-sos',
+  'post-sos-primary-sms',
+  'terminate-sos',
+  'call-112',
+  'call-199',
+  'copy-sos-message',
+  'share-location',
+  'update-gps',
+  'open-add-contact',
+  'save-contact',
+  'edit-contact',
+  'delete-contact',
+  'set-primary-contact',
+  'toggle-contacts-section',
+  'toggle-profile-section',
+  'toggle-settings-section',
+  'open-login',
+  'login',
+  'logout',
+  'toggle-password-visibility',
+  'toggle-remember-email',
+  'toggle-sos-test-mode',
+];
+
+for (const action of criticalActions) {
+  requireIncludes(index + main, `data-action="${action}"`, `stable data-action ${action}`);
+  requireIncludes(main, `case '${action}'`, `delegated handler case ${action}`);
+}
+
+requireIncludes(main, 'document.addEventListener(\'click\', handleCriticalDelegatedClick, true)', 'document-level delegated critical click handler in capture phase');
+requireIncludes(main, 'CRITICAL_CLICK_ACTIONS', 'central critical action allow-list');
+requireIncludes(main, 'Tapped action:', 'debug tap log behind flag');
+requireIncludes(main, 'safeInitStep(\'central delegated critical click handler\'', 'safe init logging for delegated handler');
+requireIncludes(main, 'console.warn(`[SafeMe] Init step failed: ${label}`', 'exact init-step error logging');
+requireIncludes(main, 'contactsForm?.requestSubmit()', 'delegated save contact uses form submit path');
+requireIncludes(main, 'authForm?.requestSubmit()', 'delegated login uses form submit path');
+
 const requiredIds = [
   'sos-button',
   'notify-all-sos-contacts-action',
@@ -33,34 +76,22 @@ for (const id of requiredIds) {
   requireIncludes(index, `id="${id}"`, `critical button/control #${id}`);
 }
 
-const clickBindings = [
-  ['SOS main button', 'sosButton.addEventListener(\'click\'', 'activateSosFromMainButton'],
-  ['account sync login', 'accountSyncLoginButton?.addEventListener(\'click\'', 'openProfileAuthCard'],
-  ['share location', 'shareLocationButton?.addEventListener(\'click\'', 'shareLocation'],
-  ['refresh location', 'refreshLocationButton?.addEventListener(\'click\'', 'refreshLocation'],
-  ['contacts add CTA', 'contactsAddCta?.addEventListener(\'click\'', 'toggleContactsAddForm'],
-  ['contact list delegation', 'contactsList?.addEventListener(\'click\'', 'handleContactsListClick'],
-  ['profile save', 'profileForm?.addEventListener(\'submit\'', 'saveProfile'],
-  ['auth submit', 'authForm?.addEventListener(\'submit\'', 'handleAuthSubmit'],
-  ['auth logout', 'authLogoutButton?.addEventListener(\'click\'', 'logout'],
-  ['settings accordions', 'settingsAccordionButtons.forEach', 'toggleSettingsPanel'],
-  ['SOS notify all', 'notifyAllSosContactsActionButton?.addEventListener(\'click\'', 'notifyAllSosContacts'],
-  ['end active SOS', 'endActiveSosButton?.addEventListener(\'click\'', 'endActiveSosSession'],
-  ['home quick action delegation', "event.target.closest('[data-open-tool]')", 'handleHomeQuickAction'],
-];
-
-for (const [label, binding, handler] of clickBindings) {
-  requireIncludes(main, binding, `${label} binding`);
-  requireIncludes(main, handler, `${label} handler`);
-}
-
-const accordionButtons = index.match(/<button class="(?:profile-accordion-button|settings-panel-toggle)[^>]*>/g) || [];
+const accordionButtons = index.match(/<button[^>]*(?:profile-accordion-button|settings-panel-toggle)[^>]*>/g) || [];
 if (accordionButtons.length < 10) fail('Expected profile/contact/settings accordion headers to be real buttons.');
 for (const button of accordionButtons) {
-  if (!button.includes('type="button"') || !button.includes('aria-expanded=') || !button.includes('aria-controls=')) {
-    fail(`Accordion button missing type/aria attributes: ${button}`);
+  if (!button.includes('type="button"') || !button.includes('aria-expanded=') || !button.includes('aria-controls=') || !button.includes('data-action=')) {
+    fail(`Accordion button missing type/aria/data-action attributes: ${button}`);
   }
 }
+
+const renderContactCardStart = main.indexOf('contactsList.innerHTML = contacts');
+const renderContactCardEnd = main.indexOf('contactCount.textContent = contacts.length', renderContactCardStart);
+const renderContactCardBlock = main.slice(renderContactCardStart, renderContactCardEnd);
+for (const action of ['open-contact-invite', 'edit-contact', 'set-primary-contact', 'delete-contact']) {
+  requireIncludes(renderContactCardBlock, `data-action="${action}"`, `rendered contact cards keep delegated ${action} action`);
+}
+requireIncludes(renderContactCardBlock, 'title="Αυτή είναι ήδη η κύρια επαφή SOS"', 'disabled primary contact button explains disabled state');
+requireIncludes(renderContactCardBlock, 'title="Περίμενε να ολοκληρωθεί ο συγχρονισμός επαφών"', 'sync-disabled contact buttons explain disabled state');
 
 if ((index.match(/class="home-quick-action"/g) || []).length !== 4) fail('Home quick action buttons should not be duplicated or missing.');
 

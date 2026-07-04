@@ -499,6 +499,139 @@ const criticalButtonChecks = [
   ['Settings accordions', '.settings-panel-toggle'],
 ];
 
+
+const CRITICAL_CLICK_ACTIONS = new Set([
+  'navigate-home',
+  'navigate-contacts',
+  'navigate-safety-tools',
+  'navigate-profile',
+  'navigate-settings',
+  'activate-sos',
+  'post-sos-primary-sms',
+  'terminate-sos',
+  'call-112',
+  'call-199',
+  'copy-sos-message',
+  'copy-sos-tracking',
+  'share-location',
+  'share-sos-message',
+  'update-gps',
+  'open-add-contact',
+  'close-add-contact',
+  'save-contact',
+  'edit-contact',
+  'delete-contact',
+  'set-primary-contact',
+  'open-contact-invite',
+  'toggle-contacts-section',
+  'toggle-profile-section',
+  'toggle-settings-section',
+  'open-login',
+  'login',
+  'logout',
+  'toggle-password-visibility',
+  'toggle-remember-email',
+  'toggle-sos-test-mode',
+]);
+
+function isTapDebugEnabled() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.has('debugTaps') || localStorage.getItem('safeme-debug-taps') === '1';
+  } catch {
+    return false;
+  }
+}
+
+function logTappedAction(action) {
+  if (isTapDebugEnabled()) console.log(`Tapped action: ${action}`);
+}
+
+function getContactActionIndex(button) {
+  return Number(button.dataset.contactIndex ?? button.dataset.index);
+}
+
+function toggleContactsSectionButton(button) {
+  const card = button.closest('[data-contacts-accordion]');
+  if (!card) return;
+  const isOpen = button.getAttribute('aria-expanded') === 'true';
+  contactsAccordionCards.forEach((item) => setContactsAccordionOpen(item, false));
+  setContactsAccordionOpen(card, !isOpen);
+  updateContactsAddCtaLabel();
+}
+
+function toggleProfileSectionButton(button) {
+  const card = button.closest('[data-profile-accordion]');
+  if (!card) return;
+  const isOpen = button.getAttribute('aria-expanded') === 'true';
+  profileAccordionCards.forEach((item) => setProfileAccordionOpen(item, false));
+  setProfileAccordionOpen(card, !isOpen);
+}
+
+function handleCriticalDelegatedClick(event) {
+  const actionElement = event.target.closest('[data-action]');
+  if (!actionElement) return;
+  const action = actionElement.dataset.action;
+  if (!CRITICAL_CLICK_ACTIONS.has(action)) return;
+
+  logTappedAction(action);
+
+  if (actionElement.matches('[disabled], [aria-disabled="true"]')) {
+    event.preventDefault();
+    return;
+  }
+
+  const stopHandledClick = () => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+
+  switch (action) {
+    case 'navigate-home': stopHandledClick(); showPage('home'); break;
+    case 'navigate-contacts': stopHandledClick(); showPage('contacts'); break;
+    case 'navigate-safety-tools': stopHandledClick(); showPage('safety-tools'); break;
+    case 'navigate-profile': stopHandledClick(); showPage('profile'); break;
+    case 'navigate-settings': stopHandledClick(); showPage('settings'); break;
+    case 'activate-sos': stopHandledClick(); activateSosFromMainButton(); break;
+    case 'post-sos-primary-sms': stopHandledClick(); actionElement.id === 'sos-send-sms' ? sendPreparedSosSms() : notifyAllSosContacts(); break;
+    case 'terminate-sos': stopHandledClick(); endActiveSosSession(); break;
+    case 'copy-sos-message': stopHandledClick(); (preparedSosMessage ? copyPreparedSosMessage() : copyActiveSosMessage()); break;
+    case 'copy-sos-tracking': stopHandledClick(); (preparedSosTrackingUrl ? copyPreparedSosTrackingLink() : copyActiveSosTrackingLink()); break;
+    case 'share-location': stopHandledClick(); shareLocation(); break;
+    case 'share-sos-message': stopHandledClick(); sharePreparedSosMessage(); break;
+    case 'update-gps': stopHandledClick(); actionElement.id === 'settings-refresh-location' ? refreshLocationFromSettings() : (activeSosSession ? updateActiveSosLocation() : refreshLocation()); break;
+    case 'open-add-contact': stopHandledClick(); actionElement.closest('#contacts') ? toggleContactsAddForm() : focusContactForm(); break;
+    case 'close-add-contact': stopHandledClick(); closeContactsAddForm(); break;
+    case 'save-contact': stopHandledClick(); contactsForm?.requestSubmit(); break;
+    case 'open-contact-invite': stopHandledClick(); openContactInviteModal(getContactActionIndex(actionElement)); break;
+    case 'edit-contact': stopHandledClick(); editContact(getContactActionIndex(actionElement)); break;
+    case 'delete-contact': stopHandledClick(); deleteContact(getContactActionIndex(actionElement)); break;
+    case 'set-primary-contact': stopHandledClick(); setPrimaryContact(getContactActionIndex(actionElement)); break;
+    case 'toggle-contacts-section': stopHandledClick(); toggleContactsSectionButton(actionElement); break;
+    case 'toggle-profile-section': stopHandledClick(); toggleProfileSectionButton(actionElement); break;
+    case 'toggle-settings-section': stopHandledClick(); toggleSettingsPanel(actionElement); break;
+    case 'open-login': stopHandledClick(); openProfileAuthCard(); break;
+    case 'login': stopHandledClick(); authForm?.requestSubmit(); break;
+    case 'logout': stopHandledClick(); logout(); break;
+    case 'toggle-password-visibility': stopHandledClick(); togglePasswordVisibility(); break;
+    case 'toggle-remember-email': logTappedAction(action); break;
+    case 'toggle-sos-test-mode': logTappedAction(action); break;
+    case 'call-112':
+    case 'call-199':
+      break;
+    default:
+      break;
+  }
+}
+
+function safeInitStep(label, callback) {
+  try {
+    callback();
+  } catch (error) {
+    console.warn(`[SafeMe] Init step failed: ${label}`, error);
+  }
+}
+
 function warnMissingCriticalButtons() {
   const isDevelopmentHost = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
   if (!isDevelopmentHost) return;
@@ -1016,7 +1149,7 @@ function renderSosContactNotifications() {
           : 'Το SafeMe ετοιμάζει έτοιμο SMS προς όλες τις επαφές με αριθμό τηλεφώνου. Η αποστολή γίνεται από τη συσκευή σου.';
 
   if (contacts.length === 0) {
-    sosContactList.innerHTML = '<article class="sos-contact-empty"><strong>Δεν υπάρχουν έμπιστες επαφές.</strong><p>Πρόσθεσε μία επαφή για να ετοιμαστεί SMS.</p><button class="ghost-button" type="button" data-sos-open-contacts>Προσθήκη επαφής</button></article>';
+    sosContactList.innerHTML = '<article class="sos-contact-empty"><strong>Δεν υπάρχουν έμπιστες επαφές.</strong><p>Πρόσθεσε μία επαφή για να ετοιμαστεί SMS.</p><button class="ghost-button" type="button" data-action="open-add-contact" data-sos-open-contacts>Προσθήκη επαφής</button></article>';
     renderSosNotificationHistory();
     return;
   }
@@ -3858,10 +3991,10 @@ function renderContacts() {
           </div>
           <div class="contact-actions">
             ${phoneForLink ? `<a href="tel:${escapeHtml(phoneForLink)}" class="call-link">Κλήση · ${escapeHtml(formatPhone(contact.phone))}</a>` : '<span class="missing-contact-inline">Missing phone</span>'}
-            <button class="ghost-button contact-invite-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Ενημέρωση</button>
-            <button class="ghost-button edit-contact-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Επεξεργασία</button>
-            <button class="secondary-button primary-contact-button" type="button" data-contact-index="${index}" ${isPrimary || isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Κύρια</button>
-            <button class="danger-outline-button delete-contact-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Διαγραφή</button>
+            <button class="ghost-button contact-invite-button" type="button" data-action="open-contact-invite" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true" title="Περίμενε να ολοκληρωθεί ο συγχρονισμός επαφών"' : ''}>Ενημέρωση</button>
+            <button class="ghost-button edit-contact-button" type="button" data-action="edit-contact" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true" title="Περίμενε να ολοκληρωθεί ο συγχρονισμός επαφών"' : ''}>Επεξεργασία</button>
+            <button class="secondary-button primary-contact-button" type="button" data-action="set-primary-contact" data-contact-index="${index}" ${isPrimary ? 'disabled aria-disabled="true" title="Αυτή είναι ήδη η κύρια επαφή SOS"' : (isContactsMutationInProgress ? 'disabled aria-disabled="true" title="Περίμενε να ολοκληρωθεί ο συγχρονισμός επαφών"' : '')}>Κύρια</button>
+            <button class="danger-outline-button delete-contact-button" type="button" data-action="delete-contact" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true" title="Περίμενε να ολοκληρωθεί ο συγχρονισμός επαφών"' : ''}>Διαγραφή</button>
           </div>
         </article>
       `;
@@ -4935,6 +5068,10 @@ function clearSafeMeData() {
 }
 
 if (!window.__safeMeUiEventsBound) {
+
+safeInitStep('central delegated critical click handler', () => {
+  document.addEventListener('click', handleCriticalDelegatedClick, true);
+});
 
 navButtons.forEach((button) => {
   button.addEventListener('click', () => showPage(button.dataset.page));
