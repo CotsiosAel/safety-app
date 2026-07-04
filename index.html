@@ -475,11 +475,11 @@
           </section>
 
           <form class="auth-card" id="auth-form" tabindex="-1">
-            <div class="section-heading compact-heading">
+            <div class="section-heading compact-heading auth-heading">
               <p class="eyebrow">Ασφαλής λογαριασμός</p>
-              <h2>Σύνδεση στο SafeMe</h2>
-              <p>Συνδέσου για συγχρονισμό προφίλ και έμπιστων επαφών. Χωρίς σύνδεση, το SafeMe συνεχίζει με localStorage.</p>
-              <p class="auth-live-tracking-note">Η σύνδεση ενεργοποιεί live tracking και συγχρονισμό επαφών.</p>
+              <h2 id="auth-title">Σύνδεση</h2>
+              <p id="auth-helper">Συνδέσου για συγχρονισμό επαφών και ιστορικού SOS.</p>
+              <p class="auth-live-tracking-note">Χωρίς σύνδεση, το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό επαφών και ιστορικού.</p>
             </div>
             <p class="auth-signed-in" id="auth-signed-in" tabindex="-1" hidden>Συνδεδεμένος ως: <strong id="auth-user-email"></strong></p>
             <div class="auth-mode-tabs" id="auth-mode-tabs" role="tablist" aria-label="Επιλογή σύνδεσης ή δημιουργίας λογαριασμού">
@@ -489,8 +489,7 @@
             <div class="form-grid" id="auth-fields">
               <label>
                 <span>Email</span>
-                <input id="auth-email" name="email" type="email" autocomplete="email" required />
-                <small class="field-helper">Θα χρησιμοποιηθεί για σύνδεση και επαναφορά κωδικού.</small>
+                <input id="auth-email" name="email" type="email" autocomplete="email" inputmode="email" required />
               </label>
               <label class="password-field" id="auth-password-field">
                 <span>Κωδικός</span>
@@ -514,8 +513,11 @@
             </div>
             <div class="auth-actions">
               <button class="primary-button inline-button" id="auth-submit-button" type="submit">Σύνδεση</button>
-              <button class="ghost-button inline-button" id="auth-forgot-password" type="button">Ξέχασα τον κωδικό μου</button>
               <button class="danger-outline-button inline-button" id="auth-logout-button" type="button" hidden>Αποσύνδεση</button>
+            </div>
+            <div class="auth-secondary-links" id="auth-secondary-links">
+              <button class="text-link auth-switch-link" id="auth-switch-mode" type="button">Δεν έχεις λογαριασμό; Δημιουργία</button>
+              <button class="text-link" id="auth-forgot-password" type="button">Ξέχασα τον κωδικό μου</button>
             </div>
             <p class="save-status" id="auth-status" aria-live="polite"></p>
           </form>
