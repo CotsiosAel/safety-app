@@ -2852,9 +2852,28 @@ body.tracking-mode .modal-backdrop {
 .active-sos-disclosure .active-sos-live-note,
 .active-sos-disclosure .active-sos-live-status,
 .active-sos-disclosure .active-sos-tracking-ready,
+.active-sos-disclosure .active-sos-location-note,
 .active-sos-disclosure .active-sos-compact-actions,
 .active-sos-disclosure .active-sos-debug-actions {
   margin: 0 16px 16px;
+}
+.active-sos-disclosure .sos-contact-notify {
+  margin: 0 16px 16px;
+}
+.active-sos-contact-extra-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.active-sos-contact-extra-actions [hidden] { display: none; }
+.active-sos-contact-extra-actions .ghost-button {
+  width: auto;
+  min-height: 38px;
+  padding: 8px 12px;
+  margin-top: 0;
+  justify-content: center;
+  text-decoration: none;
 }
 .active-sos-debug { border-style: dashed; }
 .active-sos-end-action {
@@ -2871,8 +2890,11 @@ body.tracking-mode .modal-backdrop {
   .active-sos-summary { gap: 6px; }
   .active-sos-card h3 { font-size: 1.34rem; }
   .active-sos-intro { padding: 7px 9px; font-size: 0.9rem; }
+  .active-sos-safety-note,
+  .active-sos-location-note { font-size: 0.86rem; }
   .active-sos-primary-action { min-height: 58px; font-size: 1rem; }
   .active-sos-backup-actions .ghost-button,
+  .active-sos-contact-extra-actions .ghost-button,
   .active-sos-compact-actions .ghost-button,
   .active-sos-debug-actions .ghost-button,
   .active-sos-debug-actions .danger-outline-button {
@@ -2881,7 +2903,19 @@ body.tracking-mode .modal-backdrop {
     padding: 8px 10px;
     font-size: 0.9rem;
   }
-  .sos-contact-notify { padding: 12px; border-radius: 18px; }
+  .active-sos-disclosure summary { padding: 11px 12px; }
+  .active-sos-disclosure .active-sos-details,
+  .active-sos-disclosure .active-sos-debug-details,
+  .active-sos-disclosure .active-sos-live-note,
+  .active-sos-disclosure .active-sos-live-status,
+  .active-sos-disclosure .active-sos-tracking-ready,
+  .active-sos-disclosure .active-sos-location-note,
+  .active-sos-disclosure .active-sos-compact-actions,
+  .active-sos-disclosure .active-sos-debug-actions,
+  .active-sos-disclosure .sos-contact-notify {
+    margin: 0 10px 10px;
+  }
+  .sos-contact-notify { padding: 10px; border-radius: 16px; }
   .sos-contact-notify-header {
     flex-direction: column;
     align-items: stretch;

@@ -114,23 +114,20 @@
               <div class="active-sos-summary">
                 <p class="eyebrow">SafeMe SOS</p>
                 <h3 id="active-sos-title">SOS ενεργό</h3>
-                <p class="active-sos-intro" id="active-sos-intro">Το μήνυμα έκτακτης ανάγκης ετοιμάστηκε. Άνοιξε την αποστολή για να ενημερώσεις τις επαφές σου.</p>
                 <p class="active-sos-test-mode" id="active-sos-test-mode-label" hidden>Δοκιμή SOS</p>
+                <p class="active-sos-intro" id="active-sos-intro">Το μήνυμα SOS είναι έτοιμο.</p>
               </div>
 
               <div class="active-sos-emergency-actions" aria-label="Άμεσες ενέργειες SOS">
                 <button class="danger-button active-sos-primary-action" id="notify-all-sos-contacts-action" type="button">Αποστολή SMS σε όλες τις επαφές</button>
-                <p class="active-sos-safety-note">Για λόγους ασφαλείας, το κινητό σου μπορεί να ζητήσει να πατήσεις αποστολή μέσα στο SMS app.</p>
-                <p class="active-sos-location-note" id="active-sos-location-note" aria-live="polite">Η τοποθεσία προστέθηκε στο μήνυμα SOS.</p>
                 <div class="active-sos-backup-actions" aria-label="Εφεδρικές ενέργειες SOS">
                   <a class="ghost-button" id="active-sos-call-112" href="tel:112">Κλήση 112</a>
                   <button class="ghost-button" id="copy-active-sos-message" type="button">Αντιγραφή</button>
-                  <a class="ghost-button" id="active-sos-whatsapp" href="#" target="_blank" rel="noopener" hidden>WhatsApp</a>
-                  <a class="ghost-button" id="active-sos-email" href="#" hidden>Email</a>
                 </div>
               </div>
 
               <p class="active-sos-feedback" id="active-sos-feedback" aria-live="polite"></p>
+              <button class="danger-outline-button active-sos-end-action" id="end-active-sos" type="button">Τερματισμός SOS</button>
 
               <details class="active-sos-disclosure active-sos-info">
                 <summary>Πληροφορίες SOS</summary>
@@ -143,6 +140,7 @@
                   <div><dt>Live tracking</dt><dd id="active-sos-tracking-status">—</dd></div>
                   <div><dt>Τοποθεσία</dt><dd id="active-sos-location">Χωρίς τοποθεσία</dd></div>
                 </dl>
+                <p class="active-sos-location-note" id="active-sos-location-note" aria-live="polite">Η τοποθεσία προστέθηκε στο μήνυμα SOS.</p>
                 <p class="active-sos-tracking-ready" id="active-sos-tracking-ready">Live tracking έτοιμο</p>
                 <div class="active-sos-compact-actions" aria-label="Ενέργειες τοποθεσίας SOS">
                   <button class="ghost-button" id="share-active-sos-location" type="button">Κοινή χρήση τοποθεσίας</button>
@@ -151,6 +149,30 @@
                 </div>
                 <p class="active-sos-live-note" id="active-sos-live-note">Η αυτόματη ενημέρωση δουλεύει όσο η εφαρμογή μένει ανοιχτή. Αν GPS, χάρτης ή sync αποτύχουν, κράτα ανοιχτό αυτό το screen και χρησιμοποίησε αντιγραφή, κοινοποίηση ή κλήση.</p>
                 <p class="active-sos-live-status" id="active-sos-live-status">Live ενημέρωση ενεργή</p>
+              </details>
+
+              <details class="active-sos-disclosure active-sos-contacts">
+                <summary>Επαφές &amp; αποστολές</summary>
+                <section class="sos-contact-notify" id="sos-contact-notify" aria-labelledby="sos-contact-notify-title">
+                  <div class="sos-contact-notify-header">
+                    <div>
+                      <h4 id="sos-contact-notify-title">Επαφές &amp; αποστολές</h4>
+                      <p class="active-sos-safety-note">Για λόγους ασφαλείας, το κινητό σου μπορεί να ζητήσει να πατήσεις αποστολή μέσα στο SMS app.</p>
+                      <p>Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται.</p>
+                    </div>
+                    <button class="danger-button sos-notify-primary" id="notify-all-sos-contacts" type="button">Αποστολή SMS σε όλες τις επαφές</button>
+                  </div>
+                  <div class="active-sos-contact-extra-actions" aria-label="Πρόσθετες αποστολές SOS">
+                    <a class="ghost-button" id="active-sos-whatsapp" href="#" target="_blank" rel="noopener" hidden>WhatsApp</a>
+                    <a class="ghost-button" id="active-sos-email" href="#" hidden>Email</a>
+                  </div>
+                  <p class="sos-contact-warning" id="sos-contact-warning" aria-live="polite"></p>
+                  <div class="sos-contact-list" id="sos-contact-list" aria-live="polite"></div>
+                  <section class="sos-notification-history" aria-labelledby="sos-notification-history-title">
+                    <h5 id="sos-notification-history-title">Ιστορικό ειδοποιήσεων</h5>
+                    <div id="sos-notification-history-list" class="sos-notification-history-list"></div>
+                  </section>
+                </section>
               </details>
 
               <details class="active-sos-disclosure active-sos-debug">
@@ -168,25 +190,6 @@
                   <button class="danger-outline-button" id="disable-active-sos-tracking" type="button" hidden>Απενεργοποίηση tracking link</button>
                 </div>
               </details>
-
-              <section class="sos-contact-notify" id="sos-contact-notify" aria-labelledby="sos-contact-notify-title">
-                <div class="sos-contact-notify-header">
-                  <div>
-                    <p class="eyebrow">Επαφές έκτακτης ανάγκης</p>
-                    <h4 id="sos-contact-notify-title">Επαφές έκτακτης ανάγκης</h4>
-                    <p>Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται.</p>
-                  </div>
-                  <button class="danger-button sos-notify-primary" id="notify-all-sos-contacts" type="button">Αποστολή SMS σε όλες τις επαφές</button>
-                </div>
-                <p class="sos-contact-warning" id="sos-contact-warning" aria-live="polite"></p>
-                <div class="sos-contact-list" id="sos-contact-list" aria-live="polite"></div>
-                <section class="sos-notification-history" aria-labelledby="sos-notification-history-title">
-                  <h5 id="sos-notification-history-title">Ιστορικό ειδοποιήσεων</h5>
-                  <div id="sos-notification-history-list" class="sos-notification-history-list"></div>
-                </section>
-              </section>
-
-              <button class="danger-outline-button active-sos-end-action" id="end-active-sos" type="button">Τερματισμός SOS</button>
             </section>
 
 

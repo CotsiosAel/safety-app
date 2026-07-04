@@ -2543,7 +2543,7 @@ function renderActiveSosSession(message = '') {
   if (activeSosIntro) {
     activeSosIntro.textContent = activeSosSession.testMode
       ? 'Δεν αποστέλλεται πραγματικό μήνυμα έκτακτης ανάγκης.'
-      : 'Άνοιξε την αποστολή για να ενημερώσεις άμεσα τις επαφές σου.';
+      : 'Το μήνυμα SOS είναι έτοιμο.';
   }
   updateActiveSosEmergencyActions();
   if (activeSosTestModeLabel) {
@@ -2599,9 +2599,12 @@ function renderActiveSosSession(message = '') {
   copyActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
   copyActiveSosTrackingButton.textContent = 'Αντιγραφή tracking';
   disableActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
-  activeSosFeedback.textContent = activeSosSession.testMode ? '' : (message || (isActiveSosSessionRestored
-    ? 'Υπάρχει ήδη ενεργό SOS από προηγούμενη χρήση. Αν ήταν δοκιμή, πάτησε Τερματισμός SOS.'
-    : 'Το SOS είναι ενεργό. Κράτα την εφαρμογή ανοιχτή, χρησιμοποίησε SMS και κάλεσε 112 αν υπάρχει άμεσος κίνδυνος.'));
+  const compactFeedback = [
+    'Το SOS ενεργοποιήθηκε.',
+    'Το ενεργό SOS ξεκίνησε.',
+    'Το check-in έληξε και ενεργοποιήθηκε SOS τοπικά.',
+  ].some((prefix) => message.startsWith(prefix)) ? '' : message;
+  activeSosFeedback.textContent = activeSosSession.testMode ? '' : compactFeedback;
   renderSafetyStatusCard();
   renderSosContactNotifications();
 }

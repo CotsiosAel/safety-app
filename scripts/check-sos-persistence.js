@@ -21,6 +21,8 @@ const requiredPatterns = [
   ['post-SOS compact test badge', 'Δοκιμή SOS'],
   ['post-SOS single test note', 'Δεν αποστέλλεται πραγματικό μήνυμα έκτακτης ανάγκης.'],
   ['post-SOS diagnostics collapsed toggle', '<summary>Διαγνωστικά</summary>'],
+  ['post-SOS contacts collapsed toggle', '<summary>Επαφές &amp; αποστολές</summary>'],
+  ['post-SOS information collapsed toggle', '<summary>Πληροφορίες SOS</summary>'],
   ['post-SOS muted tracking unavailable state', 'Live tracking μη διαθέσιμο σε αυτή τη δοκιμή.'],
   ['no-contact post-SOS add contact action', 'Προσθήκη επαφής'],
   ['no-contact post-SOS 112 backup', 'id="active-sos-call-112" href="tel:112"'],
@@ -112,6 +114,43 @@ for (const [label, pattern] of forbiddenPostSosUiPatterns) {
 
 if (markup.includes('<details class="active-sos-disclosure active-sos-debug" open')) {
   console.error('Active SOS diagnostics must be collapsed by default.');
+  process.exit(1);
+}
+
+for (const [label, pattern] of [
+  ['Active SOS information', '<details class="active-sos-disclosure active-sos-info" open'],
+  ['Active SOS contacts and sends', '<details class="active-sos-disclosure active-sos-contacts" open'],
+]) {
+  if (markup.includes(pattern)) {
+    console.error(`${label} must be collapsed by default.`);
+    process.exit(1);
+  }
+}
+
+const activeSosStart = markup.indexOf('<section class="active-sos-card"');
+const activeSosEnd = markup.indexOf('<section class="home-readiness-summary"', activeSosStart);
+const activeSosMarkup = markup.slice(activeSosStart, activeSosEnd);
+
+for (const [label, pattern] of [
+  ['emergency-first real message', 'Το μήνυμα SOS είναι έτοιμο.'],
+  ['emergency-first test message', 'Δεν αποστέλλεται πραγματικό μήνυμα έκτακτης ανάγκης.'],
+  ['terminate SOS action', 'id="end-active-sos"'],
+  ['contacts disclosure before diagnostics', '<summary>Επαφές &amp; αποστολές</summary>'],
+]) {
+  if (!source.includes(pattern) && !activeSosMarkup.includes(pattern)) {
+    console.error(`Missing emergency-first active SOS UI: ${label}`);
+    process.exit(1);
+  }
+}
+
+if (activeSosMarkup.includes('<p class="eyebrow">Επαφές έκτακτης ανάγκης</p>')) {
+  console.error('Active SOS must not show the old full emergency contacts card heading immediately.');
+  process.exit(1);
+}
+
+const testModeCopyMatches = activeSosMarkup.match(/Δοκιμή SOS/g) || [];
+if (testModeCopyMatches.length !== 1) {
+  console.error(`Active SOS should show the test mode badge copy once, found ${testModeCopyMatches.length}.`);
   process.exit(1);
 }
 
