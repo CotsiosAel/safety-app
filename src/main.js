@@ -367,6 +367,10 @@ const contactsList = document.querySelector('#contacts-list');
 const contactsForm = document.querySelector('#contact-form');
 const contactsSyncStatus = document.querySelector('#contacts-sync-status');
 const contactsSyncDiagnostics = document.querySelector('#contacts-sync-diagnostics');
+const contactsSummaryLine = document.querySelector('#contacts-summary-line');
+const contactsAddCta = document.querySelector('#contacts-add-cta');
+const contactsSyncSummary = document.querySelector('#contacts-sync-summary');
+const contactsAccordionCards = Array.from(document.querySelectorAll('[data-contacts-accordion]'));
 const refreshAccountContactsButton = document.querySelector('#refresh-account-contacts');
 const uploadLocalContactsButton = document.querySelector('#upload-local-contacts');
 const contactCount = document.querySelector('#contact-count');
@@ -462,6 +466,36 @@ const profileAccordionCards = Array.from(document.querySelectorAll('[data-profil
 const profileDetailsSummary = document.querySelector('#profile-details-summary');
 const profileSosSummary = document.querySelector('#profile-sos-summary');
 const profileAccountSummary = document.querySelector('#profile-account-summary');
+
+function setContactsAccordionOpen(card, isOpen) {
+  if (!card) return;
+  const button = card.querySelector('.profile-accordion-button');
+  const panel = button ? document.querySelector(`#${button.getAttribute('aria-controls')}`) : null;
+  button?.setAttribute('aria-expanded', String(isOpen));
+  card.classList.toggle('is-open', isOpen);
+  if (panel) panel.hidden = !isOpen;
+}
+
+function openContactsAccordion(name, { focusTarget = null } = {}) {
+  const target = contactsAccordionCards.find((card) => card.dataset.contactsAccordion === name);
+  contactsAccordionCards.forEach((card) => setContactsAccordionOpen(card, card === target));
+  if (target) {
+    const panel = target.querySelector('.profile-accordion-panel');
+    window.setTimeout(() => focusElementAfterScroll(panel || target, focusTarget || panel || target), 80);
+  }
+}
+
+contactsAccordionCards.forEach((card) => {
+  const button = card.querySelector('.profile-accordion-button');
+  if (!button) return;
+  button.addEventListener('click', () => {
+    const isOpen = button.getAttribute('aria-expanded') === 'true';
+    contactsAccordionCards.forEach((item) => setContactsAccordionOpen(item, false));
+    setContactsAccordionOpen(card, !isOpen);
+  });
+});
+
+contactsAddCta?.addEventListener('click', () => openContactsAccordion('add', { focusTarget: contactsForm?.elements?.name || contactsForm }));
 
 function setProfileAccordionOpen(card, isOpen) {
   if (!card) return;
@@ -1218,7 +1252,7 @@ function setContactsSyncState(state, details = {}) {
 function renderContactsSyncStatus() {
   const messages = {
     synced: contactsSyncDiagnosticsState.message || 'Οι επαφές συγχρονίστηκαν με τον λογαριασμό.',
-    local: 'Τοπική λειτουργία: οι επαφές μένουν μόνο σε αυτή τη συσκευή. Οι επαφές είναι μόνο τοπικές σε αυτή τη συσκευή. Συνδέσου για συγχρονισμό Supabase. Συνδέσου για συγχρονισμό επαφών.',
+    local: 'Τοπική λειτουργία: οι επαφές μένουν μόνο σε αυτή τη συσκευή.',
     error: contactsSyncDiagnosticsState.lastError
       ? `Σφάλμα Supabase: ${contactsSyncDiagnosticsState.lastError}`
       : 'Δεν έγινε συγχρονισμός επαφών. Έλεγξε τη σύνδεση και δοκίμασε ξανά.',
@@ -1226,7 +1260,7 @@ function renderContactsSyncStatus() {
   };
 
   if (contactsSyncStatus) {
-    contactsSyncStatus.textContent = currentUser ? (messages[contactsSyncState] || messages.syncing) : messages.local;
+    contactsSyncStatus.textContent = currentUser ? 'Συγχρονισμός ενεργός' : messages.local;
     if (!currentUser) {
       contactsSyncStatus.classList.remove('error', 'signed-in');
     } else {
@@ -1237,12 +1271,14 @@ function renderContactsSyncStatus() {
 
   if (refreshAccountContactsButton) refreshAccountContactsButton.disabled = !currentUser || isContactsRefreshInProgress || isContactsMutationInProgress;
   if (uploadLocalContactsButton) uploadLocalContactsButton.disabled = !currentUser || contacts.length === 0 || isContactsMutationInProgress || isContactsRefreshInProgress;
+  if (contactsSyncSummary) contactsSyncSummary.textContent = currentUser ? `Remote contacts: ${contactsSyncDiagnosticsState.remoteCount === null ? contacts.length : contactsSyncDiagnosticsState.remoteCount}` : 'Τοπική λειτουργία';
 
   if (!contactsSyncDiagnostics) return;
   if (!currentUser) {
     contactsSyncDiagnostics.innerHTML = `
       <ul>
         <li>Τοπική λειτουργία: οι επαφές μένουν μόνο σε αυτή τη συσκευή.</li>
+        <li>Οι επαφές είναι μόνο τοπικές σε αυτή τη συσκευή. Συνδέσου για συγχρονισμό Supabase.</li>
         <li>Οι ενέργειες συγχρονισμού λογαριασμού είναι απενεργοποιημένες.</li>
         <li><strong>Συνδέσου για συγχρονισμό επαφών</strong></li>
       </ul>
@@ -1397,8 +1433,7 @@ function focusContactForm() {
   showPage('contacts');
   window.requestAnimationFrame(() => {
     window.setTimeout(() => {
-      const contactTarget = contactsForm || contactsList;
-      focusElementAfterScroll(contactTarget, contactsForm?.elements?.name || contactTarget);
+      openContactsAccordion('add', { focusTarget: contactsForm?.elements?.name || contactsForm });
     }, 0);
   });
 }
@@ -3527,12 +3562,19 @@ function renderContactsFormState() {
 function renderContacts() {
   renderContactsFormState();
   renderContactsSyncStatus();
+  const primaryContact = contacts.find((contact) => contact.tone === 'primary');
+  if (contactsSummaryLine) {
+    contactsSummaryLine.textContent = contacts.length === 0
+      ? 'Δεν υπάρχουν ακόμα επαφές'
+      : `${contacts.length} επαφές${primaryContact ? ` • Κύρια επαφή: ${primaryContact.name}` : ''}`;
+  }
   if (contacts.length === 0) {
     contactsList.innerHTML = `
       <article class="empty-state">
         <div class="empty-icon" aria-hidden="true">👥</div>
-        <h3>Δεν έχεις προσθέσει έμπιστες επαφές</h3>
+        <h3>Δεν υπάρχουν ακόμα έμπιστες επαφές.</h3>
         <p>Πρόσθεσε το πρώτο άτομο που θέλεις να ειδοποιείται σε ανάγκη.</p>
+        <button class="primary-button contacts-empty-add" type="button" data-open-add-contact>Προσθήκη πρώτης επαφής</button>
       </article>
     `;
     contactCount.textContent = '0';
@@ -3551,14 +3593,13 @@ function renderContacts() {
           <div class="contact-info">
             <h3>${escapeHtml(contact.name)}</h3>
             <p>${escapeHtml(contact.relationship)}</p>
-            ${contact.email ? `<p>${escapeHtml(contact.email)}</p>` : ''}
             ${isPrimary ? '<span class="primary-contact-badge">Κύρια επαφή SOS</span>' : ''}
           </div>
           <div class="contact-actions">
-            ${phoneForLink ? `<a href="tel:${escapeHtml(phoneForLink)}" class="call-link">☎ ${escapeHtml(formatPhone(contact.phone))}</a>` : '<span class="missing-contact-inline">Missing phone</span>'}
-            <button class="ghost-button contact-invite-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Ενημέρωση επαφής</button>
+            ${phoneForLink ? `<a href="tel:${escapeHtml(phoneForLink)}" class="call-link">Κλήση · ${escapeHtml(formatPhone(contact.phone))}</a>` : '<span class="missing-contact-inline">Missing phone</span>'}
+            <button class="ghost-button contact-invite-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Ενημέρωση</button>
             <button class="ghost-button edit-contact-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Επεξεργασία</button>
-            <button class="secondary-button primary-contact-button" type="button" data-contact-index="${index}" ${isPrimary || isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Κύρια επαφή</button>
+            <button class="secondary-button primary-contact-button" type="button" data-contact-index="${index}" ${isPrimary || isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Κύρια</button>
             <button class="danger-outline-button delete-contact-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Διαγραφή</button>
           </div>
         </article>
@@ -3702,7 +3743,9 @@ async function setPrimaryContact(index) {
 async function clearTrustedContacts() {
   if (isContactsMutationInProgress) return;
 
-  const confirmed = window.confirm('Θέλεις σίγουρα να διαγράψεις όλες τις έμπιστες επαφές;');
+  const confirmed = window.confirm(currentUser
+    ? 'Σίγουρα θέλεις να διαγράψεις όλες τις επαφές από αυτή τη συσκευή και τον λογαριασμό σου;'
+    : 'Σίγουρα θέλεις να διαγράψεις όλες τις επαφές από αυτή τη συσκευή;');
 
   if (!confirmed) return;
 
@@ -4688,7 +4731,13 @@ sosHistoryCollapseButton?.addEventListener('click', () => {
 });
 onlineStatusPill?.addEventListener('click', handleOnlineStatusClick);
 contactsForm?.addEventListener('submit', addContact);
-contactsList?.addEventListener('click', handleContactsListClick);
+contactsList?.addEventListener('click', (event) => {
+  if (event.target.closest('[data-open-add-contact]')) {
+    openContactsAccordion('add', { focusTarget: contactsForm?.elements?.name || contactsForm });
+    return;
+  }
+  handleContactsListClick(event);
+});
 clearContactsButton?.addEventListener('click', clearTrustedContacts);
 refreshAccountContactsButton?.addEventListener('click', manuallyRefreshAccountContacts);
 uploadLocalContactsButton?.addEventListener('click', uploadLocalContactsToAccount);

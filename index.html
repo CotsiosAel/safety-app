@@ -245,48 +245,64 @@
         </section>
 
         <section class="page contacts-page" id="contacts" aria-label="Έμπιστες επαφές">
-          <div class="section-heading">
-            <p class="eyebrow">Trusted circle</p>
-            <h2>Έμπιστες επαφές</h2>
-            <p>Κάλεσε άμεσα ή ενημέρωσε τα άτομα που έχεις επιλέξει για καταστάσεις ανάγκης.</p>
-            <p class="contacts-note">Καλό είναι οι έμπιστες επαφές να γνωρίζουν από πριν τι είναι το SafeMe.</p>
-            <p class="contacts-sync-status" id="contacts-sync-status" aria-live="polite"></p>
-            <article class="contacts-sync-diagnostics" id="contacts-sync-diagnostics" aria-live="polite"></article>
-            <div class="contacts-sync-actions">
-              <button class="ghost-button" id="refresh-account-contacts" type="button">Ανανέωση επαφών από λογαριασμό</button>
-              <button class="secondary-button" id="upload-local-contacts" type="button">Αποθήκευση τοπικών επαφών στον λογαριασμό</button>
+          <article class="contacts-summary-card">
+            <div>
+              <p class="eyebrow">Trusted circle</p>
+              <h2>Έμπιστες επαφές</h2>
+              <p class="contacts-summary-line" id="contacts-summary-line">Δεν υπάρχουν ακόμα επαφές</p>
+              <p class="contacts-sync-status" id="contacts-sync-status" aria-live="polite"></p>
             </div>
-          </div>
+            <button class="primary-button contacts-add-cta" id="contacts-add-cta" type="button">Προσθήκη επαφής</button>
+          </article>
 
           <div class="card-list" id="contacts-list" tabindex="-1" aria-live="polite"></div>
 
-          <button class="danger-outline-button contacts-clear-button" id="clear-contacts-button" type="button">Καθαρισμός επαφών</button>
+          <section class="profile-accordion-card contacts-accordion-card" data-contacts-accordion="add">
+            <button class="profile-accordion-button" id="contacts-add-toggle" type="button" aria-expanded="false" aria-controls="contacts-add-panel"><span><strong>Προσθήκη επαφής</strong><small>Όνομα, σχέση, τηλέφωνο</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+            <div class="profile-accordion-panel" id="contacts-add-panel" role="region" aria-labelledby="contacts-add-toggle" hidden>
+              <form class="form-card contact-form-compact" id="contact-form" tabindex="-1">
+                <div class="form-grid">
+                  <label>
+                    <span>Όνομα</span>
+                    <input name="name" type="text" placeholder="π.χ. Γιώργος Δημητρίου" required />
+                  </label>
+                  <label>
+                    <span>Σχέση</span>
+                    <input name="relationship" type="text" placeholder="π.χ. Πατέρας" required />
+                  </label>
+                  <label>
+                    <span>Τηλέφωνο</span>
+                    <input name="phone" type="tel" placeholder="π.χ. 99878765 ή +35799878765" />
+                  </label>
+                  <label>
+                    <span>Email (προαιρετικό)</span>
+                    <input name="email" type="email" placeholder="π.χ. name@example.com" />
+                  </label>
+                </div>
+                <button class="primary-button inline-button" type="submit">Αποθήκευση επαφής</button>
+              </form>
+            </div>
+          </section>
 
-          <form class="form-card" id="contact-form" tabindex="-1">
-            <div class="section-heading compact-heading">
-              <p class="eyebrow">Νέα επαφή</p>
-              <h2>Προσθήκη έμπιστης επαφής</h2>
+          <section class="profile-accordion-card contacts-accordion-card" data-contacts-accordion="sync">
+            <button class="profile-accordion-button" id="contacts-sync-toggle" type="button" aria-expanded="false" aria-controls="contacts-sync-panel"><span><strong>Συγχρονισμός</strong><small id="contacts-sync-summary">Τοπική λειτουργία</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+            <div class="profile-accordion-panel" id="contacts-sync-panel" role="region" aria-labelledby="contacts-sync-toggle" hidden>
+              <article class="contacts-sync-diagnostics" id="contacts-sync-diagnostics" aria-live="polite"></article>
+              <div class="contacts-sync-actions">
+                <button class="ghost-button" id="refresh-account-contacts" type="button">Ανανέωση επαφών από λογαριασμό</button>
+                <button class="secondary-button" id="upload-local-contacts" type="button">Αποθήκευση τοπικών επαφών στον λογαριασμό</button>
+              </div>
             </div>
-            <div class="form-grid">
-              <label>
-                <span>Όνομα</span>
-                <input name="name" type="text" placeholder="π.χ. Γιώργος Δημητρίου" required />
-              </label>
-              <label>
-                <span>Σχέση</span>
-                <input name="relationship" type="text" placeholder="π.χ. Πατέρας" required />
-              </label>
-              <label>
-                <span>Τηλέφωνο</span>
-                <input name="phone" type="tel" placeholder="π.χ. 99878765 ή +35799878765" />
-              </label>
-              <label>
-                <span>Email (προαιρετικό)</span>
-                <input name="email" type="email" placeholder="π.χ. name@example.com" />
-              </label>
+          </section>
+
+          <p class="contacts-note">Καλό είναι οι έμπιστες επαφές να γνωρίζουν από πριν τι είναι το SafeMe.</p>
+
+          <section class="profile-accordion-card contacts-accordion-card danger-accordion" data-contacts-accordion="advanced">
+            <button class="profile-accordion-button" id="contacts-advanced-toggle" type="button" aria-expanded="false" aria-controls="contacts-advanced-panel"><span><strong>Προχωρημένες ενέργειες</strong><small>Ενέργειες διαχείρισης επαφών</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+            <div class="profile-accordion-panel" id="contacts-advanced-panel" role="region" aria-labelledby="contacts-advanced-toggle" hidden>
+              <button class="danger-outline-button contacts-clear-button" id="clear-contacts-button" type="button">Καθαρισμός επαφών</button>
             </div>
-            <button class="primary-button inline-button" type="submit">Αποθήκευση επαφής</button>
-          </form>
+          </section>
         </section>
 
         <section class="page safety-tools-page" id="safety-tools" aria-label="Εργαλεία Ασφάλειας">
