@@ -78,6 +78,24 @@
               <p>Άμεση πρόσβαση σε SOS, έμπιστες επαφές και τοποθεσία.</p>
             </div>
 
+            <section class="home-dashboard-card" id="home-readiness-card" aria-labelledby="home-readiness-title">
+              <div class="home-dashboard-card-header">
+                <div>
+                  <p class="eyebrow">SafeMe readiness</p>
+                  <h3 id="home-readiness-title">SafeMe readiness</h3>
+                </div>
+                <span class="home-test-mode-badge" id="home-test-mode-badge" hidden>Δοκιμή SOS ενεργή</span>
+              </div>
+              <div class="home-readiness-chips" aria-label="Σύνοψη ετοιμότητας SafeMe">
+                <span class="home-readiness-chip" id="home-online-status">Online</span>
+                <span class="home-readiness-chip" id="home-account-status">Τοπικό προφίλ</span>
+                <span class="home-readiness-chip" id="home-contacts-status">0 έμπιστες επαφές</span>
+                <span class="home-readiness-chip" id="home-location-status">Χρειάζεται ενημέρωση GPS</span>
+                <span class="home-readiness-chip" id="home-sos-mode-status">Πραγματικό SOS</span>
+              </div>
+              <p class="home-test-mode-helper" id="home-test-mode-helper" hidden>Δεν αποστέλλεται πραγματικό μήνυμα έκτακτης ανάγκης.</p>
+            </section>
+
             <div class="sos-stage" aria-live="polite">
               <span class="sos-ring sos-ring-one"></span>
               <span class="sos-ring sos-ring-two"></span>
@@ -89,6 +107,7 @@
             </div>
             <p class="sos-account-status" id="sos-account-status" aria-live="polite">Λειτουργία χωρίς σύνδεση: το SOS θα χρησιμοποιήσει μόνο τα στοιχεία αυτής της συσκευής.</p>
             <p class="sos-status" id="sos-status">Πάτησε SOS μία φορά για άμεση ενεργοποίηση.</p>
+            <p class="home-readiness-message" id="home-readiness-message" aria-live="polite">Το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό επαφών και ιστορικού.</p>
 
 
             <section class="active-sos-card" id="active-sos-section" aria-labelledby="active-sos-title" hidden>
@@ -176,16 +195,27 @@
               <article class="info-card readiness-card" id="contacts-readiness-card">
                 <span class="card-icon">👥</span>
                 <div>
-                  <h3>Επαφές SOS έτοιμες</h3>
+                  <h3>Έμπιστες επαφές</h3>
                   <p id="contacts-readiness-text">Πρόσθεσε έμπιστες επαφές για SOS ειδοποιήσεις.</p>
+                  <button class="home-inline-action" id="home-add-contact-cta" type="button" data-open-tool="contacts">Προσθήκη επαφής</button>
                 </div>
               </article>
 
               <article class="info-card readiness-card" id="location-readiness-card">
                 <span class="card-icon">📍</span>
                 <div>
-                  <h3>Τοποθεσία ενεργή</h3>
-                  <p id="location-readiness-text">Ενεργοποίησε την τοποθεσία για πιο χρήσιμο SOS.</p>
+                  <h3>GPS / Τοποθεσία</h3>
+                  <p id="location-readiness-text">Χρειάζεται ενημέρωση GPS.</p>
+                  <button class="home-inline-action" id="home-refresh-gps-cta" type="button" data-open-tool="gps">Ενημέρωση GPS</button>
+                </div>
+              </article>
+
+              <article class="info-card readiness-card" id="account-readiness-card">
+                <span class="card-icon">☁️</span>
+                <div>
+                  <h3>Λογαριασμός / sync</h3>
+                  <p id="account-readiness-text">Τοπική λειτουργία</p>
+                  <button class="home-inline-action" id="home-login-sync-cta" type="button" data-open-tool="profile-login">Σύνδεση για συγχρονισμό</button>
                 </div>
               </article>
             </section>
@@ -196,9 +226,11 @@
                 <h3 id="home-quick-actions-title">Γρήγορη βοήθεια</h3>
               </div>
               <div class="home-quick-action-grid">
-                <button class="home-quick-action" type="button" data-open-tool="checkin" aria-label="Άνοιγμα Check-in">Check-in</button>
-                <button class="home-quick-action" type="button" data-open-tool="safe-walk" aria-label="Άνοιγμα Safe Walk">Safe Walk</button>
-                <button class="home-quick-action" type="button" data-open-tool="contacts" aria-label="Άνοιγμα επαφών">Οι επαφές μου</button>
+                <button class="home-quick-action" type="button" data-open-tool="contacts" aria-label="Άνοιγμα επαφών">Επαφές</button>
+                <button class="home-quick-action" type="button" data-open-tool="gps" aria-label="Ενημέρωση GPS">Ενημέρωση GPS</button>
+                <button class="home-quick-action" type="button" data-open-tool="sos-settings" aria-label="Άνοιγμα ρυθμίσεων SOS">Ρυθμίσεις SOS</button>
+                <button class="home-quick-action" type="button" data-open-tool="sos-history" aria-label="Άνοιγμα ιστορικού SOS">Ιστορικό SOS</button>
+                <button class="home-quick-action" type="button" data-open-tool="share-location" aria-label="Μοίρασμα θέσης">Μοίρασμα θέσης</button>
               </div>
               <p class="home-quick-action-status" id="home-quick-action-status" aria-live="polite"></p>
             </section>
