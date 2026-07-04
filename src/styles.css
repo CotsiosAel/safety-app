@@ -3471,7 +3471,7 @@ body.tracking-mode .modal-backdrop {
   cursor: pointer;
 }
 .home-readiness-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.home-quick-action-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.home-quick-action-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
 @media (max-width: 760px) {
   .home-quick-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -3479,12 +3479,14 @@ body.tracking-mode .modal-backdrop {
 }
 
 @media (max-width: 640px) {
+  .home-emergency-intro { margin-bottom: 10px; }
+  .home-emergency-intro p:last-child { margin-top: 6px; }
   .home-dashboard-card {
-    padding: 8px;
+    padding: 10px;
     border-radius: 18px;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
-  .home-dashboard-card-header { margin-bottom: 0; }
+  .home-dashboard-card-header { margin-bottom: 6px; }
   .home-dashboard-card-header > div { display: none; }
   .home-dashboard-card-header:has(.home-test-mode-badge:not([hidden])) { margin-bottom: 6px; }
   .home-dashboard-card h3 { font-size: 1rem; }
@@ -3497,7 +3499,9 @@ body.tracking-mode .modal-backdrop {
   }
   .home-test-mode-helper,
   .home-readiness-message { font-size: 0.8rem; }
-  .home-readiness-message { margin-top: 8px; }
+  .home-readiness-message { margin-top: 6px; }
+  .home-quick-actions { margin-top: 16px; padding: 16px; border-radius: 22px; }
+  .home-quick-actions .compact-heading { margin-bottom: 10px; }
   .home-readiness-summary { grid-template-columns: 1fr; }
   .home-readiness-summary .readiness-card { grid-template-columns: auto 1fr; }
   .home-inline-action { min-height: 34px; font-size: 0.78rem; }

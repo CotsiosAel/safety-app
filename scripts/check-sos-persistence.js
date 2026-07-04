@@ -128,7 +128,7 @@ for (const [label, pattern] of [
 }
 
 const activeSosStart = markup.indexOf('<section class="active-sos-card"');
-const activeSosEnd = markup.indexOf('<section class="home-readiness-summary"', activeSosStart);
+const activeSosEnd = markup.indexOf('<section class="home-quick-actions"', activeSosStart);
 const activeSosMarkup = markup.slice(activeSosStart, activeSosEnd);
 
 for (const [label, pattern] of [
