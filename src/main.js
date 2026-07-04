@@ -483,6 +483,7 @@ function openContactsAccordion(name, { focusTarget = null } = {}) {
     const panel = target.querySelector('.profile-accordion-panel');
     window.setTimeout(() => focusElementAfterScroll(panel || target, focusTarget || panel || target), 80);
   }
+  updateContactsAddCtaLabel();
 }
 
 contactsAccordionCards.forEach((card) => {
@@ -492,10 +493,36 @@ contactsAccordionCards.forEach((card) => {
     const isOpen = button.getAttribute('aria-expanded') === 'true';
     contactsAccordionCards.forEach((item) => setContactsAccordionOpen(item, false));
     setContactsAccordionOpen(card, !isOpen);
+    updateContactsAddCtaLabel();
   });
 });
 
-contactsAddCta?.addEventListener('click', () => openContactsAccordion('add', { focusTarget: contactsForm?.elements?.name || contactsForm }));
+function isContactsAddFormOpen() {
+  return Boolean(document.querySelector('[data-contacts-accordion="add"]')?.classList.contains('is-open'));
+}
+
+function updateContactsAddCtaLabel() {
+  if (!contactsAddCta) return;
+  const emptyLabel = contacts.length === 0 ? 'Προσθήκη πρώτης επαφής' : 'Προσθήκη επαφής';
+  contactsAddCta.textContent = isContactsAddFormOpen() ? 'Κλείσιμο φόρμας' : emptyLabel;
+}
+
+function closeContactsAddForm() {
+  const addCard = contactsAccordionCards.find((card) => card.dataset.contactsAccordion === 'add');
+  setContactsAccordionOpen(addCard, false);
+  updateContactsAddCtaLabel();
+}
+
+function toggleContactsAddForm() {
+  if (isContactsAddFormOpen()) {
+    closeContactsAddForm();
+    contactsAddCta?.focus();
+    return;
+  }
+  openContactsAccordion('add', { focusTarget: contactsForm?.elements?.name || contactsForm });
+}
+
+contactsAddCta?.addEventListener('click', toggleContactsAddForm);
 
 function setProfileAccordionOpen(card, isOpen) {
   if (!card) return;
@@ -714,7 +741,7 @@ function setupAppFreshnessChecks() {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       checkForAppUpdate({ force: true });
-      if (currentUser) refreshAccountContactsFromSupabase().catch((error) => console.warn('[SafeMe] Background contacts refresh failed', error));
+      if (currentUser) autoRefreshAccountContactsFromSupabase('visible').catch((error) => console.warn('[SafeMe] Background contacts refresh failed', error));
     }
   });
   window.addEventListener('pageshow', (event) => {
@@ -722,7 +749,7 @@ function setupAppFreshnessChecks() {
   });
   window.addEventListener('online', () => {
     checkForAppUpdate({ force: true });
-    if (currentUser) refreshAccountContactsFromSupabase({ silent: false }).catch((error) => console.warn('[SafeMe] Online contacts refresh failed', error));
+    if (currentUser) autoRefreshAccountContactsFromSupabase('online').catch((error) => console.warn('[SafeMe] Online contacts refresh failed', error));
     if (hasRequestedLocationPermission) refreshLocation();
   });
 }
@@ -984,6 +1011,8 @@ let contacts = safeStartupValue('contacts', () => normalizeContactsForStorage(lo
 let isContactsMutationInProgress = false;
 let isContactsRefreshInProgress = false;
 let contactsSyncState = 'local';
+let lastContactsAutoRefreshAt = 0;
+const CONTACTS_AUTO_REFRESH_THROTTLE_MS = 30 * 1000;
 let contactsSyncDiagnosticsState = {
   lastLoadAt: null,
   lastSaveAt: null,
@@ -1251,7 +1280,7 @@ function setContactsSyncState(state, details = {}) {
 
 function renderContactsSyncStatus() {
   const messages = {
-    synced: contactsSyncDiagnosticsState.message || 'Οι επαφές συγχρονίστηκαν με τον λογαριασμό.',
+    synced: contactsSyncDiagnosticsState.message || 'Οι επαφές συγχρονίζονται αυτόματα.',
     local: 'Τοπική λειτουργία: οι επαφές μένουν μόνο σε αυτή τη συσκευή.',
     error: contactsSyncDiagnosticsState.lastError
       ? `Σφάλμα Supabase: ${contactsSyncDiagnosticsState.lastError}`
@@ -1260,7 +1289,7 @@ function renderContactsSyncStatus() {
   };
 
   if (contactsSyncStatus) {
-    contactsSyncStatus.textContent = currentUser ? 'Συγχρονισμός ενεργός' : messages.local;
+    contactsSyncStatus.textContent = currentUser ? messages[contactsSyncState] || messages.synced : messages.local;
     if (!currentUser) {
       contactsSyncStatus.classList.remove('error', 'signed-in');
     } else {
@@ -1271,7 +1300,7 @@ function renderContactsSyncStatus() {
 
   if (refreshAccountContactsButton) refreshAccountContactsButton.disabled = !currentUser || isContactsRefreshInProgress || isContactsMutationInProgress;
   if (uploadLocalContactsButton) uploadLocalContactsButton.disabled = !currentUser || contacts.length === 0 || isContactsMutationInProgress || isContactsRefreshInProgress;
-  if (contactsSyncSummary) contactsSyncSummary.textContent = currentUser ? `Remote contacts: ${contactsSyncDiagnosticsState.remoteCount === null ? contacts.length : contactsSyncDiagnosticsState.remoteCount}` : 'Τοπική λειτουργία';
+  if (contactsSyncSummary) contactsSyncSummary.textContent = currentUser ? 'Αυτόματος συγχρονισμός' : 'Τοπική λειτουργία';
 
   if (!contactsSyncDiagnostics) return;
   if (!currentUser) {
@@ -1289,7 +1318,8 @@ function renderContactsSyncStatus() {
     ? [
         `Συνδεδεμένος ως: ${escapeHtml(currentUser.email || 'χωρίς email')}`,
         `User ID: ${escapeHtml(shortenId(currentUser.id || '—'))}`,
-        'Κατάσταση: Supabase-backed',
+        'Κατάσταση: Αυτόματος συγχρονισμός Supabase',
+        'Οι επαφές συγχρονίζονται αυτόματα.',
       ]
     : ['Τοπική λειτουργία: οι επαφές μένουν μόνο σε αυτή τη συσκευή.'];
   const remoteCount = contactsSyncDiagnosticsState.remoteCount === null ? '—' : contactsSyncDiagnosticsState.remoteCount;
@@ -1403,7 +1433,7 @@ function showPage(nextPage) {
   if (pageTitle) pageTitle.textContent = pageTitles[nextPage];
   if (nextPage === 'health') renderHealthPage();
   if (nextPage === 'contacts' && currentUser) {
-    refreshAccountContactsFromSupabase().catch((error) => console.warn('[SafeMe] Contacts page refresh failed', error));
+    autoRefreshAccountContactsFromSupabase('contacts-page', { force: true }).catch((error) => console.warn('[SafeMe] Contacts page refresh failed', error));
   }
 }
 
@@ -3562,6 +3592,7 @@ function renderContactsFormState() {
 function renderContacts() {
   renderContactsFormState();
   renderContactsSyncStatus();
+  updateContactsAddCtaLabel();
   const primaryContact = contacts.find((contact) => contact.tone === 'primary');
   if (contactsSummaryLine) {
     contactsSummaryLine.textContent = contacts.length === 0
@@ -3573,8 +3604,7 @@ function renderContacts() {
       <article class="empty-state">
         <div class="empty-icon" aria-hidden="true">👥</div>
         <h3>Δεν υπάρχουν ακόμα έμπιστες επαφές.</h3>
-        <p>Πρόσθεσε το πρώτο άτομο που θέλεις να ειδοποιείται σε ανάγκη.</p>
-        <button class="primary-button contacts-empty-add" type="button" data-open-add-contact>Προσθήκη πρώτης επαφής</button>
+        <p>Πάτησε «Προσθήκη πρώτης επαφής» για να ανοίξει η φόρμα.</p>
       </article>
     `;
     contactCount.textContent = '0';
@@ -3720,6 +3750,7 @@ async function setPrimaryContact(index) {
     tone: contactIndex === index ? 'primary' : 'default',
   }));
 
+  const previousContacts = contacts;
   try {
     contacts = nextContacts;
     persistContactsLocally();
@@ -3728,6 +3759,8 @@ async function setPrimaryContact(index) {
       await refreshAccountContactsFromSupabase({ silent: true });
     }
   } catch (error) {
+    contacts = previousContacts;
+    saveJson(storageKeys.contacts, contacts);
     console.warn('[SafeMe] Contact primary update failed', error);
     setContactsSyncState('error', { lastError: getSupabaseErrorMessage(error), message: '' });
     window.alert('Δεν μπόρεσα να ορίσω κύρια επαφή SOS. Δοκίμασε ξανά.');
@@ -4318,10 +4351,19 @@ async function saveContactsToSupabase() {
   await upsertContactsToSupabase(contacts);
 }
 
+async function autoRefreshAccountContactsFromSupabase(reason = 'auto', { force = false } = {}) {
+  if (!currentUser) return contacts;
+  const now = Date.now();
+  if (!force && now - lastContactsAutoRefreshAt < CONTACTS_AUTO_REFRESH_THROTTLE_MS) return contacts;
+  lastContactsAutoRefreshAt = now;
+  return refreshAccountContactsFromSupabase({ silent: true, reason });
+}
+
 async function refreshAccountContactsFromSupabase({ silent = true } = {}) {
   if (!currentUser || isContactsRefreshInProgress) return contacts;
 
   isContactsRefreshInProgress = true;
+  lastContactsAutoRefreshAt = Date.now();
   if (!silent) setContactsSyncState('syncing', { message: 'Φορτώνω επαφές από τον λογαριασμό...', lastError: '' });
 
   try {
@@ -4731,6 +4773,9 @@ sosHistoryCollapseButton?.addEventListener('click', () => {
 });
 onlineStatusPill?.addEventListener('click', handleOnlineStatusClick);
 contactsForm?.addEventListener('submit', addContact);
+contactsForm?.addEventListener('click', (event) => {
+  if (event.target.closest('[data-close-add-contact]')) closeContactsAddForm();
+});
 contactsList?.addEventListener('click', (event) => {
   if (event.target.closest('[data-open-add-contact]')) {
     openContactsAccordion('add', { focusTarget: contactsForm?.elements?.name || contactsForm });
