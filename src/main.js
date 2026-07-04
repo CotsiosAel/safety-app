@@ -52,6 +52,7 @@ async function initializeSupabaseClient() {
 
 const SOS_TRACKING_BASE_URL = 'https://safety-app-vert.vercel.app/';
 const APP_VERSION = 'startup-reliability-2026-07-03';
+const APP_LOADED_AT = new Date();
 const APP_VERSION_URL = './version.json';
 const EMERGENCY_PWA_RESET_VERSION = APP_VERSION;
 const UPDATE_STORAGE_KEYS = [
@@ -408,6 +409,9 @@ const settingsLogoutButton = document.querySelector('#settings-logout');
 const settingsOpenProfileLanguageButton = document.querySelector('#settings-open-profile-language');
 const settingsAccordionButtons = document.querySelectorAll('.settings-panel-toggle');
 const settingsStatus = document.querySelector('#settings-status');
+const settingsVersionValue = document.querySelector('#settings-app-version');
+const settingsLoadedAtValue = document.querySelector('#settings-app-loaded-at');
+const settingsHostValue = document.querySelector('#settings-app-host');
 const healthChecklist = document.querySelector('#health-checklist');
 const healthSummaryTitle = document.querySelector('#health-summary-title');
 const healthReportStatus = document.querySelector('#health-report-status');
@@ -1499,6 +1503,23 @@ function getSettingsLanguageLabel() {
   return (profile?.preferredLanguage || 'el') === 'en' ? 'English' : 'Ελληνικά';
 }
 
+function formatSettingsLoadedAt(date) {
+  return date.toLocaleString('el-GR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+}
+
+function renderSettingsVersionInfo() {
+  if (settingsVersionValue) settingsVersionValue.textContent = APP_VERSION;
+  if (settingsLoadedAtValue) settingsLoadedAtValue.textContent = formatSettingsLoadedAt(APP_LOADED_AT);
+  if (settingsHostValue) settingsHostValue.textContent = window.location.host || 'τοπικό αρχείο';
+}
+
 function renderSettingsSummary() {
   const online = navigator.onLine !== false;
   const onlineChip = document.querySelector('#settings-online-chip');
@@ -1532,6 +1553,8 @@ function renderSettingsSummary() {
   if (syncStatus) syncStatus.textContent = currentUser
     ? `Συνδεδεμένος ως ${currentUser.email || 'χωρίς email'}. Ο συγχρονισμός επαφών είναι ενεργός.`
     : 'Τοπική λειτουργία σε αυτή τη συσκευή.';
+  renderSettingsVersionInfo();
+
   const languageLabel = getSettingsLanguageLabel();
   if (languageSummary) languageSummary.textContent = languageLabel;
   if (languageStatus) languageStatus.textContent = `Τρέχουσα γλώσσα: ${languageLabel}.`;
