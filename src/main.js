@@ -2497,12 +2497,14 @@ function renderSafetyStatusCard() {
   const hasActiveSos = activeSosSession?.status === 'active';
   const hasActiveSafeWalk = activeSafeWalk?.status === 'active';
   const hasActiveCheckIn = activeCheckIn?.status === 'active';
+  const hasContacts = contacts.length > 0;
+  const hasLocation = Boolean(currentLocation);
   const status = hasActiveSos ? 'sos' : hasActiveSafeWalk ? 'safe-walk' : hasActiveCheckIn ? 'checkin' : 'normal';
   const copy = {
     normal: {
-      icon: '💗',
-      title: 'Κατάσταση',
-      description: 'Ασφαλής και διαθέσιμη για check-in',
+      icon: '🛡️',
+      title: 'Κατάσταση SafeMe',
+      description: hasContacts && hasLocation ? 'Έτοιμο για SOS' : 'Χρειάζονται βασικά βήματα',
     },
     'safe-walk': {
       icon: '🚶',
@@ -4300,9 +4302,8 @@ function renderAccountSyncStatus() {
     : 'Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.';
   if (accountSyncLoginButton) accountSyncLoginButton.hidden = signedIn;
   if (sosAccountStatus) {
-    sosAccountStatus.textContent = signedIn
-      ? 'Λογαριασμός ενεργός: τα στοιχεία SOS συγχρονίζονται.'
-      : 'Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.';
+    sosAccountStatus.textContent = signedIn ? 'Συγχρονισμός SOS ενεργός.' : '';
+    sosAccountStatus.hidden = !signedIn;
     sosAccountStatus.classList.toggle('signed-in', signedIn);
   }
 }

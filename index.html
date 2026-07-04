@@ -106,7 +106,7 @@
                 <small>Πατήστε</small>
               </button>
             </div>
-            <p class="sos-account-status" id="sos-account-status" aria-live="polite">Λειτουργία χωρίς σύνδεση: το SOS θα χρησιμοποιήσει μόνο τα στοιχεία αυτής της συσκευής.</p>
+            <p class="sos-account-status" id="sos-account-status" aria-live="polite" hidden></p>
             <p class="sos-status" id="sos-status">Πάτησε SOS μία φορά για άμεση ενεργοποίηση.</p>
             <p class="home-readiness-message" id="home-readiness-message" aria-live="polite">Το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό.</p>
 
@@ -208,35 +208,6 @@
 
 
 
-            <section class="home-readiness-summary" aria-label="Ετοιμότητα ασφάλειας">
-              <article class="info-card readiness-card" id="contacts-readiness-card">
-                <span class="card-icon">👥</span>
-                <div>
-                  <h3>Έμπιστες επαφές</h3>
-                  <p id="contacts-readiness-text">Πρόσθεσε έμπιστες επαφές για SOS ειδοποιήσεις.</p>
-                  <button class="home-inline-action" id="home-add-contact-cta" type="button" data-open-tool="contacts">Προσθήκη επαφής</button>
-                </div>
-              </article>
-
-              <article class="info-card readiness-card" id="location-readiness-card">
-                <span class="card-icon">📍</span>
-                <div>
-                  <h3>GPS / Τοποθεσία</h3>
-                  <p id="location-readiness-text">Χρειάζεται ενημέρωση GPS.</p>
-                  <button class="home-inline-action" id="home-refresh-gps-cta" type="button" data-open-tool="gps">Ενημέρωση GPS</button>
-                </div>
-              </article>
-
-              <article class="info-card readiness-card" id="account-readiness-card">
-                <span class="card-icon">☁️</span>
-                <div>
-                  <h3>Λογαριασμός / sync</h3>
-                  <p id="account-readiness-text">Τοπική λειτουργία</p>
-                  <button class="home-inline-action" id="home-login-sync-cta" type="button" data-open-tool="profile-login">Σύνδεση για συγχρονισμό</button>
-                </div>
-              </article>
-            </section>
-
             <section class="home-quick-actions" aria-labelledby="home-quick-actions-title">
               <div class="section-heading compact-heading">
                 <p class="eyebrow">ΓΡΗΓΟΡΕΣ ΕΝΕΡΓΕΙΕΣ</p>
@@ -245,9 +216,8 @@
               <div class="home-quick-action-grid">
                 <button class="home-quick-action" type="button" data-open-tool="contacts" aria-label="Άνοιγμα επαφών">Επαφές</button>
                 <button class="home-quick-action" type="button" data-open-tool="gps" aria-label="Ενημέρωση GPS">Ενημέρωση GPS</button>
-                <button class="home-quick-action" type="button" data-open-tool="sos-settings" aria-label="Άνοιγμα ρυθμίσεων SOS">Ρυθμίσεις SOS</button>
-                <button class="home-quick-action" type="button" data-open-tool="sos-history" aria-label="Άνοιγμα ιστορικού SOS">Ιστορικό SOS</button>
                 <button class="home-quick-action" type="button" data-open-tool="share-location" aria-label="Μοίρασμα θέσης">Μοίρασμα θέσης</button>
+                <button class="home-quick-action" type="button" data-open-tool="sos-history" aria-label="Άνοιγμα ιστορικού SOS">Ιστορικό SOS</button>
               </div>
               <p class="home-quick-action-status" id="home-quick-action-status" aria-live="polite"></p>
             </section>
@@ -278,8 +248,8 @@
 
           <article class="info-card safety-status-card status-normal" id="safety-status-card">
             <span class="card-icon" id="safety-status-icon">💗</span>
-            <h3 id="safety-status-title">Κατάσταση</h3>
-            <p id="safety-status-description">Ασφαλής και διαθέσιμη για check-in</p>
+            <h3 id="safety-status-title">Κατάσταση SafeMe</h3>
+            <p id="safety-status-description">Έτοιμο για SOS</p>
             <div class="progress safety-status-progress" aria-hidden="true"><span></span></div>
           </article>
 
