@@ -90,10 +90,6 @@
             <p class="sos-account-status" id="sos-account-status" aria-live="polite">Λειτουργία χωρίς σύνδεση: το SOS θα χρησιμοποιήσει μόνο τα στοιχεία αυτής της συσκευής.</p>
             <p class="sos-status" id="sos-status">Πάτησε SOS μία φορά για άμεση ενεργοποίηση.</p>
 
-            <label class="sos-test-toggle">
-              <input id="sos-test-mode" type="checkbox" />
-              <span>Λειτουργία δοκιμής SOS</span>
-            </label>
 
             <section class="active-sos-card" id="active-sos-section" aria-labelledby="active-sos-title" hidden>
               <div class="active-sos-summary">
@@ -632,59 +628,105 @@
         </section>
 
         <section class="page settings-page" id="settings" aria-label="Ρυθμίσεις και ασφάλεια">
-          <div class="settings-hero">
-            <div>
-              <p class="eyebrow">SafeMe settings</p>
-              <h2>Ρυθμίσεις & ασφάλεια</h2>
-              <p>Κατανόησε τι κάνει το SafeMe, πού σταματούν οι δυνατότητές του και πώς χειρίζεται τα δεδομένα σου.</p>
+          <div class="settings-summary-card" aria-labelledby="settings-summary-title">
+            <div class="settings-summary-copy">
+              <p class="eyebrow">Κέντρο ελέγχου</p>
+              <h2 id="settings-summary-title">Ρυθμίσεις SafeMe</h2>
+              <p>Σύντομος έλεγχος για λογαριασμό, SOS, GPS και δεδομένα.</p>
             </div>
-            <div class="settings-emergency-actions" aria-label="Γρήγορες κλήσεις έκτακτης ανάγκης">
-              <a class="emergency-call-button" href="tel:112">Κλήση 112</a>
-              <a class="emergency-call-button" href="tel:199">Κλήση 199</a>
+            <div class="settings-status-chips" aria-label="Γρήγορη κατάσταση ρυθμίσεων">
+              <span class="settings-chip" id="settings-online-chip">Online</span>
+              <span class="settings-chip" id="settings-account-chip">Τοπικό προφίλ</span>
+              <span class="settings-chip warning" id="settings-sos-mode-chip">Πραγματικό SOS</span>
             </div>
           </div>
 
-          <div class="settings-grid">
-            <article class="settings-card">
-              <span class="card-icon">🛡️</span>
-              <h3>Πώς λειτουργεί το SafeMe</h3>
-              <p>Το SafeMe σε βοηθά να ετοιμάσεις μήνυμα SOS, να μοιραστείς τοποθεσία και να ενημερώσεις έμπιστες επαφές.</p>
-            </article>
-
-            <article class="settings-card settings-card-wide settings-limits-card">
-              <span class="card-icon">⚠️</span>
-              <h3>Σημαντικοί περιορισμοί</h3>
-              <ul class="settings-list">
-                <li>Το SafeMe δεν αντικαθιστά τις υπηρεσίες έκτακτης ανάγκης.</li>
-                <li>Σε άμεσο κίνδυνο κάλεσε 112 ή 199.</li>
-                <li>Το live tracking χρειάζεται σύνδεση στο SafeMe.</li>
-                <li>Η live ενημέρωση τοποθεσίας λειτουργεί όσο η εφαρμογή/browser παραμένει ενεργή.</li>
-                <li>Το SafeMe δεν στέλνει αυτόματα SMS ή WhatsApp. Ο χρήστης επιλέγει χειροκίνητα αποστολή.</li>
-              </ul>
-            </article>
-
-            <article class="settings-card settings-card-wide">
-              <span class="card-icon">🔒</span>
-              <h3>Δεδομένα & απόρρητο</h3>
-              <p>Το προφίλ και οι επαφές μπορούν να αποθηκεύονται τοπικά στη συσκευή σου. Όταν είσαι συνδεδεμένος/η, τα δεδομένα μπορούν να συγχρονίζονται με Supabase για ασφαλές αντίγραφο και λειτουργίες live tracking.</p>
-              <p>Τα δημόσια tracking links δεν εκθέτουν ιατρικές σημειώσεις, επαφές, αριθμούς τηλεφώνου ή user_id.</p>
-            </article>
-
-            <article class="settings-card settings-card-wide">
-              <span class="card-icon">✨</span>
-              <h3>Γρήγορες ενέργειες</h3>
-              <div class="settings-actions">
-                <button class="ghost-button" id="settings-open-profile" type="button">Άνοιγμα προφίλ</button>
-                <button class="ghost-button" id="settings-open-contacts" type="button">Άνοιγμα επαφών</button>
-                <button class="ghost-button" id="settings-refresh-location" type="button">Έλεγχος τοποθεσίας</button>
-                <button class="ghost-button" id="settings-refresh-app" type="button">Επανέλεγχος εφαρμογής</button>
-                <button class="danger-outline-button" id="settings-logout" type="button">Αποσύνδεση</button>
-                <button class="danger-outline-button" id="settings-clear-data" type="button">Καθαρισμός τοπικών δεδομένων</button>
+          <div class="settings-accordion" data-settings-accordion>
+            <article class="settings-panel">
+              <button class="settings-panel-toggle" id="settings-sos-toggle" type="button" aria-expanded="false" aria-controls="settings-sos-panel">
+                <span><strong>SOS λειτουργία</strong><small id="settings-sos-summary">Πραγματική λειτουργία</small></span>
+                <span class="settings-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div class="settings-panel-body" id="settings-sos-panel" role="region" aria-labelledby="settings-sos-toggle" hidden>
+                <label class="sos-test-toggle settings-control-toggle">
+                  <input id="sos-test-mode" type="checkbox" />
+                  <span>Λειτουργία δοκιμής SOS</span>
+                </label>
+                <p>Η λειτουργία δοκιμής δεν στέλνει πραγματικό μήνυμα έκτακτης ανάγκης.</p>
               </div>
-              <p class="build-marker">Build: no-banner-final-2</p>
-              <p class="save-status" id="settings-status" aria-live="polite"></p>
+            </article>
+
+            <article class="settings-panel">
+              <button class="settings-panel-toggle" id="settings-location-toggle" type="button" aria-expanded="false" aria-controls="settings-location-panel">
+                <span><strong>Τοποθεσία &amp; GPS</strong><small id="settings-location-summary">Χρειάζεται ενημέρωση</small></span>
+                <span class="settings-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div class="settings-panel-body" id="settings-location-panel" role="region" aria-labelledby="settings-location-toggle" hidden>
+                <p id="settings-location-status">Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα.</p>
+                <button class="ghost-button" id="settings-refresh-location" type="button">Ενημέρωση GPS</button>
+                <p>Η τοποθεσία χρησιμοποιείται για το μήνυμα SOS και το live tracking.</p>
+              </div>
+            </article>
+
+            <article class="settings-panel">
+              <button class="settings-panel-toggle" id="settings-sync-toggle" type="button" aria-expanded="false" aria-controls="settings-sync-panel">
+                <span><strong>Συγχρονισμός</strong><small id="settings-sync-summary">Τοπική λειτουργία</small></span>
+                <span class="settings-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div class="settings-panel-body" id="settings-sync-panel" role="region" aria-labelledby="settings-sync-toggle" hidden>
+                <p id="settings-sync-status">Τοπική λειτουργία σε αυτή τη συσκευή.</p>
+                <p>Οι επαφές και το ιστορικό συγχρονίζονται όταν είσαι συνδεδεμένος.</p>
+                <div class="settings-actions compact">
+                  <button class="ghost-button" id="settings-open-profile" type="button">Άνοιγμα προφίλ</button>
+                  <button class="ghost-button" id="settings-open-contacts" type="button">Άνοιγμα επαφών</button>
+                  <button class="ghost-button" id="settings-refresh-app" type="button">Επανέλεγχος εφαρμογής</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="settings-panel">
+              <button class="settings-panel-toggle" id="settings-privacy-toggle" type="button" aria-expanded="false" aria-controls="settings-privacy-panel">
+                <span><strong>Απόρρητο &amp; δεδομένα</strong><small>Τοπικά δεδομένα και αντίγραφα</small></span>
+                <span class="settings-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div class="settings-panel-body" id="settings-privacy-panel" role="region" aria-labelledby="settings-privacy-toggle" hidden>
+                <p>Το προφίλ, οι έμπιστες επαφές, η τελευταία τοποθεσία, η λειτουργία δοκιμής SOS και πρόσφατες ενέργειες κρατούνται τοπικά στη συσκευή.</p>
+                <p>Όταν είσαι συνδεδεμένος, το προφίλ, οι επαφές, το ιστορικό SOS και οι ενεργές συνεδρίες live tracking συγχρονίζονται με Supabase.</p>
+              </div>
+            </article>
+
+            <article class="settings-panel">
+              <button class="settings-panel-toggle" id="settings-display-toggle" type="button" aria-expanded="false" aria-controls="settings-display-panel">
+                <span><strong>Εμφάνιση &amp; γλώσσα</strong><small id="settings-language-summary">Ελληνικά</small></span>
+                <span class="settings-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div class="settings-panel-body" id="settings-display-panel" role="region" aria-labelledby="settings-display-toggle" hidden>
+                <p id="settings-language-status">Τρέχουσα γλώσσα: Ελληνικά.</p>
+                <button class="ghost-button" id="settings-open-profile-language" type="button">Αλλαγή από το προφίλ</button>
+              </div>
+            </article>
+
+            <article class="settings-panel settings-panel-danger">
+              <button class="settings-panel-toggle" id="settings-advanced-toggle" type="button" aria-expanded="false" aria-controls="settings-advanced-panel">
+                <span><strong>Προχωρημένες ενέργειες</strong><small>Ενέργειες διαχείρισης</small></span>
+                <span class="settings-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div class="settings-panel-body" id="settings-advanced-panel" role="region" aria-labelledby="settings-advanced-toggle" hidden>
+                <p>Οι παρακάτω ενέργειες αλλάζουν ή διαγράφουν κατάσταση της εφαρμογής και ζητούν επιβεβαίωση.</p>
+                <div class="settings-actions compact">
+                  <button class="danger-outline-button" id="settings-logout" type="button">Αποσύνδεση</button>
+                  <button class="danger-outline-button" id="settings-clear-data" type="button">Καθαρισμός τοπικών δεδομένων</button>
+                </div>
+              </div>
             </article>
           </div>
+
+          <div class="settings-emergency-actions" aria-label="Γρήγορες κλήσεις έκτακτης ανάγκης">
+            <a class="emergency-call-button" href="tel:112">Κλήση 112</a>
+            <a class="emergency-call-button" href="tel:199">Κλήση 199</a>
+          </div>
+          <p class="build-marker">Build: settings-accordion-mobile</p>
+          <p class="save-status" id="settings-status" aria-live="polite"></p>
         </section>
       </main>
     </div>
