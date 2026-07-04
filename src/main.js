@@ -480,6 +480,33 @@ const accountReadinessText = document.querySelector('#account-readiness-text');
 const homeLoginSyncCta = document.querySelector('#home-login-sync-cta');
 const homeAddContactCta = document.querySelector('#home-add-contact-cta');
 const safetyToolsTestSosButton = document.querySelector('#safety-tools-test-sos');
+
+const criticalButtonChecks = [
+  ['SOS', '#sos-button'],
+  ['Σύνδεση για συγχρονισμό', '#account-sync-login-button'],
+  ['Μοίρασμα θέσης', '#share-location-button'],
+  ['Ενημέρωση GPS', '#refresh-location-button'],
+  ['Προσθήκη επαφής', '#contacts-add-cta'],
+  ['Αποθήκευση επαφής', '#contact-form button[type="submit"]'],
+  ['Αποθήκευση προφίλ', '#profile-form button[type="submit"]'],
+  ['Σύνδεση', '#auth-submit-button'],
+  ['Αποσύνδεση', '#auth-logout-button'],
+  ['Κλήση 112', '#active-sos-call-112'],
+  ['Post-SOS SMS', '#notify-all-sos-contacts-action'],
+  ['Τερματισμός SOS', '#end-active-sos'],
+  ['Profile accordions', '[data-profile-accordion] .profile-accordion-button'],
+  ['Contacts accordions', '[data-contacts-accordion] .profile-accordion-button'],
+  ['Settings accordions', '.settings-panel-toggle'],
+];
+
+function warnMissingCriticalButtons() {
+  const isDevelopmentHost = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+  if (!isDevelopmentHost) return;
+  criticalButtonChecks.forEach(([label, selector]) => {
+    if (!document.querySelector(selector)) console.warn(`[SafeMe] Missing button: ${label} (${selector})`);
+  });
+}
+
 const profileAccordionCards = Array.from(document.querySelectorAll('[data-profile-accordion]'));
 const profileDetailsSummary = document.querySelector('#profile-details-summary');
 const profileSosSummary = document.querySelector('#profile-sos-summary');
@@ -5088,6 +5115,7 @@ renderSetupChecklist();
 renderHealthPage();
 renderSosHistory();
 renderActiveSosSession();
+warnMissingCriticalButtons();
 restoreSafeWalkOnLoad();
 restoreCheckInOnLoad();
 refreshLocationPermissionStatus();

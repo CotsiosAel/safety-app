@@ -16,6 +16,7 @@
     "check:auth-session-ui": "node scripts/check-auth-session-ui.js",
     "check:contacts-sync": "node scripts/check-contacts-sync.js",
     "check:settings-accordion": "node scripts/check-settings-accordion.js",
-    "check:pwa-mobile": "node scripts/check-pwa-mobile.js"
+    "check:pwa-mobile": "node scripts/check-pwa-mobile.js",
+    "check:mobile-clicks": "node scripts/check-mobile-click-regression.js"
   }
 }
