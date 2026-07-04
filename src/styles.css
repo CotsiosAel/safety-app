@@ -3184,3 +3184,68 @@ body.tracking-mode .modal-backdrop {
   .profile-accordion-panel .auth-card { padding: 12px; box-shadow: none; }
   .profile-card .auth-heading .eyebrow { letter-spacing: 0.08em; }
 }
+
+/* Mobile-first Contacts redesign */
+.contacts-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+}
+.contacts-summary-card h2 { margin: 3px 0 6px; font-size: clamp(1.45rem, 5vw, 2rem); letter-spacing: -0.04em; }
+.contacts-summary-line { margin: 0; color: var(--ink); font-weight: 900; }
+.contacts-summary-card .contacts-sync-status { margin: 8px 0 0; }
+.contacts-add-cta { width: auto; white-space: nowrap; }
+.contacts-accordion-card { width: 100%; }
+.contacts-accordion-card .contact-form-compact { margin: 0; border: 0; box-shadow: none; padding: 14px 0 0; }
+.danger-accordion .profile-accordion-button strong { color: #be123c; }
+.contacts-empty-add { margin-top: 16px; }
+.contact-card { display: flex; }
+.contact-actions .call-link,
+.contact-actions .ghost-button,
+.contact-actions .secondary-button,
+.contact-actions .danger-outline-button { min-height: 38px; }
+
+@media (max-width: 640px) {
+  .contacts-page { gap: 12px; }
+  .contacts-summary-card { align-items: stretch; flex-direction: column; padding: 14px; border-radius: 20px; }
+  .contacts-summary-card .eyebrow { margin: 0; }
+  .contacts-summary-card h2 { margin-bottom: 4px; }
+  .contacts-add-cta { width: 100%; }
+  .contacts-note { margin-top: 0; padding: 9px 11px; border-radius: 14px; font-size: .88rem; }
+  .contacts-sync-diagnostics { width: 100%; margin-top: 0; padding: 10px 12px; border-radius: 14px; font-size: .86rem; }
+  .contacts-sync-actions { gap: 8px; }
+  .contacts-sync-actions .ghost-button,
+  .contacts-sync-actions .secondary-button { width: 100%; }
+  .card-list { gap: 10px; }
+  .contact-card { display: grid; grid-template-columns: 44px 1fr; gap: 10px; padding: 12px; border-radius: 18px; }
+  .contact-card .avatar { width: 44px; height: 44px; border-radius: 15px; }
+  .contact-info h3 { margin: 0; font-size: 1rem; }
+  .contact-card p { margin-top: 3px; font-size: .88rem; }
+  .primary-contact-badge { margin-top: 6px; padding: 5px 8px; font-size: .72rem; }
+  .contact-actions { grid-column: 1 / -1; justify-content: flex-start; gap: 7px; width: auto; }
+  .contact-actions .call-link,
+  .contact-actions .ghost-button,
+  .contact-actions .secondary-button,
+  .contact-actions .danger-outline-button,
+  .delete-contact-button,
+  .edit-contact-button,
+  .primary-contact-button,
+  .contact-invite-button {
+    width: auto;
+    flex: 0 1 auto;
+    padding: 8px 10px;
+    border-radius: 999px;
+    font-size: .8rem;
+    line-height: 1;
+  }
+  .contact-actions .call-link { background: #dbeafe; }
+  .contacts-clear-button { width: 100%; }
+  .contacts-accordion-card .form-grid { gap: 10px; }
+}
