@@ -34,6 +34,23 @@ npm run build
 npm run check:text-only
 ```
 
+## SafeMe Manual QA before merge
+
+Before merging UI/JS PRs, run:
+
+```bash
+npm run build
+node --check src/main.js
+npm run check:text-only
+npm run check:sos-persistence
+npm run check:home-quick-actions
+npm run check:auth-session-ui
+npm run check:contacts-sync
+npm run check:settings-accordion
+```
+
+Then complete the manual checklist in `docs/manual-qa-checklist.md` on iPhone/mobile before merge.
+
 
 ## Account/auth foundation
 
