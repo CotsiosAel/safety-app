@@ -3982,7 +3982,7 @@ function renderAccountSyncStatus() {
   if (accountSyncTitle) accountSyncTitle.title = signedIn ? (currentUser.email || '') : '';
   if (accountSyncMessage) accountSyncMessage.textContent = signedIn
     ? 'Συγχρονισμός ενεργός'
-    : 'Το SOS μπορεί να λειτουργήσει τοπικά σε αυτή τη συσκευή, αλλά οι επαφές και το ιστορικό δεν συγχρονίζονται με τον λογαριασμό σου.';
+    : 'Το SOS λειτουργεί τοπικά, αλλά οι επαφές και το ιστορικό δεν συγχρονίζονται.';
   if (accountSyncLoginButton) accountSyncLoginButton.hidden = signedIn;
   if (sosAccountStatus) {
     sosAccountStatus.textContent = signedIn
@@ -4044,10 +4044,10 @@ function renderAuth() {
   if (authHelper) {
     authHelper.hidden = signedIn;
     authHelper.textContent = isSignup
-      ? 'Φτιάξε λογαριασμό για συγχρονισμό επαφών και ιστορικού SOS.'
-      : 'Συνδέσου για συγχρονισμό επαφών και ιστορικού SOS.';
+      ? 'Φτιάξε λογαριασμό για συγχρονισμό SOS.'
+      : 'Συγχρόνισε επαφές και ιστορικό SOS.';
   }
-  if (authLiveTrackingNote) authLiveTrackingNote.hidden = signedIn;
+  if (authLiveTrackingNote) authLiveTrackingNote.hidden = true;
   if (authSwitchModeButton) authSwitchModeButton.textContent = isSignup
     ? 'Έχεις ήδη λογαριασμό; Σύνδεση'
     : 'Δεν έχεις λογαριασμό; Δημιουργία';
