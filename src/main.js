@@ -4273,19 +4273,44 @@ function setAuthLoading(isLoading) {
   authLogoutButton.disabled = isLoading || !currentUser;
 }
 
+function getSafeAuthErrorValue(value) {
+  return String(value ?? '')
+    .replace(/[\u0000-\u001f\u007f]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getAuthErrorDetails(error) {
+  return {
+    message: getSafeAuthErrorValue(error?.message || error),
+    status: getSafeAuthErrorValue(error?.status),
+    code: getSafeAuthErrorValue(error?.code),
+    isSupabaseReady,
+  };
+}
+
 function getFriendlyAuthErrorMessage(error) {
-  const rawMessage = String(error?.message || '').toLowerCase();
+  const details = getAuthErrorDetails(error);
+  const rawMessage = details.message.toLowerCase();
+
+  if (!isSupabaseReady) {
+    return 'Η υπηρεσία σύνδεσης δεν φορτώθηκε. Κάνε refresh και δοκίμασε ξανά.';
+  }
+
+  if (rawMessage.includes('supabase is unavailable')) {
+    return 'Το Supabase δεν φορτώθηκε. Η εφαρμογή είναι σε τοπική λειτουργία.';
+  }
 
   if (rawMessage.includes('invalid login credentials') || rawMessage.includes('invalid credentials')) {
-    return 'Το email ή ο κωδικός δεν είναι σωστός. Έλεγξέ τα και δοκίμασε ξανά.';
+    return 'Το email ή ο κωδικός δεν είναι σωστός.';
   }
 
   if (rawMessage.includes('email not confirmed') || rawMessage.includes('not confirmed')) {
-    return 'Το email σου δεν έχει επιβεβαιωθεί ακόμη. Άνοιξε το email επιβεβαίωσης και δοκίμασε ξανά.';
+    return 'Το email δεν έχει επιβεβαιωθεί ακόμη.';
   }
 
   if (rawMessage.includes('failed to fetch') || rawMessage.includes('network') || rawMessage.includes('fetch')) {
-    return authStatusMessages.networkError;
+    return 'Δεν υπάρχει σύνδεση με την υπηρεσία σύνδεσης.';
   }
 
   if (rawMessage.includes('already registered') || rawMessage.includes('user already registered')) {
@@ -4296,7 +4321,28 @@ function getFriendlyAuthErrorMessage(error) {
     return 'Ο κωδικός δεν έγινε δεκτός. Χρησιμοποίησε τουλάχιστον 6 χαρακτήρες.';
   }
 
-  return 'Κάτι πήγε στραβά με τη σύνδεση. Δοκίμασε ξανά σε λίγο.';
+  return `Σφάλμα σύνδεσης: ${details.message || 'Άγνωστο σφάλμα'}`;
+}
+
+function getDiagnosticAuthErrorMessage(error) {
+  const details = getAuthErrorDetails(error);
+  const lines = [getFriendlyAuthErrorMessage(error)];
+
+  if (details.message.toLowerCase().includes('supabase is unavailable')) {
+    lines.push('Το Supabase δεν φορτώθηκε. Η εφαρμογή είναι σε τοπική λειτουργία.');
+  }
+
+  if (details.message) lines.push(`message: ${details.message}`);
+  if (details.status) lines.push(`status: ${details.status}`);
+  if (details.code) lines.push(`code: ${details.code}`);
+  lines.push(`isSupabaseReady: ${details.isSupabaseReady}`);
+
+  return lines.join('\n');
+}
+
+function warnAuthError(error) {
+  const details = getAuthErrorDetails(error);
+  console.warn('[SafeMe] Auth error', details);
 }
 
 function setAuthMode(nextMode) {
@@ -4860,7 +4906,8 @@ async function handleAuthSubmit(event) {
     renderAuth();
     if (!isSignup || data.session) await loadSupabaseData();
   } catch (error) {
-    showAuthMessage(getFriendlyAuthErrorMessage(error), true);
+    warnAuthError(error);
+    showAuthMessage(getDiagnosticAuthErrorMessage(error), true);
   } finally {
     setAuthLoading(false);
   }
