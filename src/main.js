@@ -458,6 +458,39 @@ const shareLocationButton = document.querySelector('#share-location-button');
 const homeQuickActions = document.querySelector('.home-quick-actions');
 const homeQuickActionStatus = document.querySelector('#home-quick-action-status');
 const safetyToolsTestSosButton = document.querySelector('#safety-tools-test-sos');
+const profileAccordionCards = Array.from(document.querySelectorAll('[data-profile-accordion]'));
+const profileDetailsSummary = document.querySelector('#profile-details-summary');
+const profileSosSummary = document.querySelector('#profile-sos-summary');
+const profileAccountSummary = document.querySelector('#profile-account-summary');
+
+function setProfileAccordionOpen(card, isOpen) {
+  if (!card) return;
+  const button = card.querySelector('.profile-accordion-button');
+  const panel = button ? document.querySelector(`#${button.getAttribute('aria-controls')}`) : null;
+  button?.setAttribute('aria-expanded', String(isOpen));
+  card.classList.toggle('is-open', isOpen);
+  if (panel) panel.hidden = !isOpen;
+}
+
+function openProfileAccordion(name, { focusTarget = null } = {}) {
+  const target = profileAccordionCards.find((card) => card.dataset.profileAccordion === name);
+  profileAccordionCards.forEach((card) => setProfileAccordionOpen(card, card === target));
+  if (target) {
+    const panel = target.querySelector('.profile-accordion-panel, #profile-form');
+    window.setTimeout(() => focusElementAfterScroll(panel || target, focusTarget || panel || target), 80);
+  }
+}
+
+profileAccordionCards.forEach((card) => {
+  const button = card.querySelector('.profile-accordion-button');
+  if (!button) return;
+  button.addEventListener('click', () => {
+    const isOpen = button.getAttribute('aria-expanded') === 'true';
+    profileAccordionCards.forEach((item) => setProfileAccordionOpen(item, false));
+    setProfileAccordionOpen(card, !isOpen);
+  });
+});
+
 const contactsReadinessText = document.querySelector('#contacts-readiness-text');
 const locationReadinessText = document.querySelector('#location-readiness-text');
 const sosHistoryList = document.querySelector('#sos-history-list');
@@ -1352,16 +1385,12 @@ function openProfileAuthCard() {
 
   const signedIn = Boolean(currentUser);
   const focusTarget = isPasswordRecoveryMode ? passwordResetForm : (signedIn ? authSignedIn : authEmail);
-  focusElementAfterScroll(focusTarget || authForm);
+  openProfileAccordion('account', { focusTarget: focusTarget || authForm });
 }
 
 function focusProfileForm() {
   showPage('profile');
-  if (profileForm?.hidden) {
-    profileForm.hidden = false;
-    profileEditToggle?.setAttribute('aria-expanded', 'true');
-  }
-  focusElementAfterScroll(profileForm?.elements?.name || profileForm);
+  openProfileAccordion('details', { focusTarget: profileForm?.elements?.name || profileForm });
 }
 
 function focusContactForm() {
@@ -3164,6 +3193,11 @@ function renderSosHistory() {
   sosHistoryList.hidden = !isSosHistoryExpanded;
   if (sosHistoryToggleButton) sosHistoryToggleButton.hidden = isSosHistoryExpanded;
   if (sosHistoryCollapseButton) sosHistoryCollapseButton.hidden = !isSosHistoryExpanded;
+  if (profileSosSummary) {
+    profileSosSummary.textContent = sosHistoryEvents.length > 0
+      ? `Σύνολο SOS: ${sosHistoryEvents.length}${sosHistoryEvents[0]?.createdAt ? ` • Τελευταίο: ${formatSosEventDate(sosHistoryEvents[0].createdAt)}` : ''}`
+      : 'Δεν υπάρχει ακόμα ιστορικό';
+  }
 
   const hasMoreThanThree = sosHistoryEvents.length > 3;
   if (sosHistoryShowAllButton) {
@@ -3829,8 +3863,10 @@ function renderProfile() {
   profilePhone.textContent = getProfileValue('phone', 'Δεν έχει προστεθεί τηλέφωνο');
   if (profileDetailName) profileDetailName.textContent = displayName;
   if (profileDetailPhone) profileDetailPhone.textContent = getProfileValue('phone', 'Δεν έχει προστεθεί τηλέφωνο');
-  profileNotes.textContent = getProfileMedicalNotesDisplay();
-  profileLanguage.textContent = (profile?.preferredLanguage || 'el') === 'en' ? 'English' : 'Ελληνικά';
+  const displayPhone = getProfileValue('phone', 'Δεν έχει προστεθεί τηλέφωνο');
+  if (profileDetailsSummary) profileDetailsSummary.textContent = `${displayName} • ${displayPhone}`;
+  if (profileNotes) profileNotes.textContent = getProfileMedicalNotesDisplay();
+  if (profileLanguage) profileLanguage.textContent = (profile?.preferredLanguage || 'el') === 'en' ? 'English' : 'Ελληνικά';
   if (profileCreatedAt) profileCreatedAt.textContent = formatDiagnosticDateTime(profile?.createdAt);
   if (profileUpdatedAt) profileUpdatedAt.textContent = formatDiagnosticDateTime(profile?.updatedAt);
   profileAvatar.textContent = profile?.name ? getInitials(profile.name) : '👤';
@@ -4064,6 +4100,10 @@ function renderAuth() {
       : 'Χωρίς σύνδεση. Άνοιγμα σύνδεσης στο Προφίλ'));
   authIndicator.classList.toggle('signed-in', signedIn);
   authIndicator.classList.toggle('signed-out', !signedIn);
+  if (profileAccountSummary) {
+    profileAccountSummary.textContent = signedIn ? `Συνδεδεμένος ως ${userEmail || 'χωρίς email'}` : 'Δεν είσαι συνδεδεμένος';
+    profileAccountSummary.title = signedIn ? userEmail : '';
+  }
   if (storageMode) storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικό προφίλ σε αυτή τη συσκευή';
   passwordResetForm.hidden = !isPasswordRecoveryMode;
   passwordResetNew.required = isPasswordRecoveryMode;
@@ -4624,13 +4664,6 @@ authSignupTab?.addEventListener('click', () => setAuthMode('signup'));
 authSwitchModeButton?.addEventListener('click', () => setAuthMode(authMode === 'signup' ? 'login' : 'signup'));
 accountSyncLoginButton?.addEventListener('click', openProfileAuthCard);
 profileStatusLoginButton?.addEventListener('click', openProfileAuthCard);
-profileEditToggle?.addEventListener('click', () => {
-  if (!profileForm) return;
-  const willOpen = profileForm.hidden;
-  profileForm.hidden = !willOpen;
-  profileEditToggle.setAttribute('aria-expanded', String(willOpen));
-  if (willOpen) focusElementAfterScroll(profileForm.elements?.name || profileForm);
-});
 authLoginTab?.addEventListener('click', () => setAuthMode('login'));
 authForgotPasswordButton?.addEventListener('click', sendPasswordResetEmail);
 authPasswordToggle?.addEventListener('click', togglePasswordVisibility);

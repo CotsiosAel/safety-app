@@ -18,7 +18,7 @@ const requiredPatterns = [
   ['compact signed-in banner copy exists', "`Συνδεδεμένος • ${currentUser.email || 'χωρίς email'}`"],
   ['signed-in auth card title is compact', "authTitle) authTitle.textContent = signedIn ? 'Λογαριασμός'"],
   ['signed-in account status is compact', "localStatusHint) localStatusHint.textContent = currentUser\n    ? 'Συγχρονισμός ενεργός'"],
-  ['profile edit form expands from collapsed state', 'profileForm.hidden = !willOpen;'],
+  ['profile account sync button opens account accordion', "openProfileAccordion('account'"],
   ['login mobile helper copy is short', "'Συγχρόνισε επαφές και ιστορικό SOS.'"],
   ['register mobile helper copy is short', "'Φτιάξε λογαριασμό για συγχρονισμό SOS.'"],
   ['login/register switch link is wired', "authSwitchModeButton?.addEventListener('click', () => setAuthMode(authMode === 'signup' ? 'login' : 'signup'));"],
@@ -37,7 +37,10 @@ const markupPatterns = [
   ['remember email only-email helper exists', 'Αποθηκεύεται μόνο το email.'],
   ['compact signed-out warning exists', 'Δεν είσαι συνδεδεμένος.'],
   ['signed-out sync button exists', 'Σύνδεση για συγχρονισμό'],
-  ['profile edit form is collapsed by default', 'id="profile-form" hidden'],
+  ['profile details accordion is collapsed by default', 'id="profile-details-panel" role="region" aria-labelledby="profile-edit-toggle" hidden'],
+  ['profile accordion titles exist', 'Στοιχεία προφίλ'],
+  ['medical notes accordion title exists', 'Ιατρικές σημειώσεις'],
+  ['SOS history accordion title exists', 'Ιστορικό SOS'],
   ['login/register switch link exists', 'id="auth-switch-mode"'],
 ];
 

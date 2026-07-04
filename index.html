@@ -441,13 +441,35 @@
             <button class="primary-button inline-button" id="profile-status-login-button" type="button">Σύνδεση για συγχρονισμό</button>
           </section>
 
-          <div class="profile-details">
-            <div><span>Όνομα</span><strong id="profile-detail-name">Συμπλήρωσε το προφίλ σου</strong></div>
-            <div><span>Τηλέφωνο</span><strong id="profile-detail-phone">Δεν έχει προστεθεί τηλέφωνο</strong></div>
-            <div><span>Ιατρικές σημειώσεις</span><strong id="profile-notes">Δεν έχουν συμπληρωθεί</strong></div>
-            <div><span>Γλώσσα</span><strong id="profile-language">Ελληνικά</strong></div>
-          </div>
+          <form class="profile-accordion-form" id="profile-form">
+            <section class="profile-accordion-card profile-edit-section" data-profile-accordion="details" aria-labelledby="profile-edit-title">
+              <button class="profile-accordion-button profile-edit-toggle" id="profile-edit-toggle" type="button" aria-expanded="false" aria-controls="profile-details-panel"><span><strong>Στοιχεία προφίλ</strong><small id="profile-details-summary">Συμπλήρωσε το προφίλ σου • Δεν έχει προστεθεί τηλέφωνο</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+              <div class="profile-form profile-accordion-panel" id="profile-details-panel" role="region" aria-labelledby="profile-edit-toggle" hidden>
+                <h2 class="visually-hidden" id="profile-edit-title">Επεξεργασία προφίλ</h2>
+                <div class="form-grid">
+                  <label><span>Όνομα χρήστη</span><input name="name" type="text" required /></label>
+                  <label><span>Τηλέφωνο</span><input name="phone" type="tel" placeholder="π.χ. 99878765 ή +35799878765" required /></label>
+                  <label><span>Προτιμώμενη γλώσσα</span><select name="preferredLanguage"><option value="el">Ελληνικά</option><option value="en">English</option></select></label>
+                </div>
+                <button class="primary-button inline-button" type="submit">Αποθήκευση προφίλ</button>
+              </div>
+            </section>
 
+            <section class="profile-accordion-card" data-profile-accordion="medical">
+              <button class="profile-accordion-button" id="profile-medical-toggle" type="button" aria-expanded="false" aria-controls="profile-medical-panel"><span><strong>Ιατρικές σημειώσεις</strong><small id="profile-notes">Δεν έχουν συμπληρωθεί</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+              <div class="profile-form profile-accordion-panel" id="profile-medical-panel" role="region" aria-labelledby="profile-medical-toggle" hidden>
+                <label class="full-field"><span>Σημείωση έκτακτης ανάγκης / ιατρικές σημειώσεις</span><textarea name="medicalNotes" rows="4" placeholder="Προαιρετικό: αλλεργίες, φάρμακα ή άλλο σημαντικό στοιχείο"></textarea></label>
+                <small class="field-helper">Προαιρετικό: αλλεργίες, φάρμακα ή άλλο σημαντικό στοιχείο</small>
+                <button class="primary-button inline-button" type="submit">Αποθήκευση αλλαγών</button>
+                <button class="danger-outline-button inline-button" id="clear-data-button" type="button">Καθαρισμός δεδομένων</button>
+                <p class="save-status" id="profile-status" aria-live="polite"></p>
+              </div>
+            </section>
+          </form>
+
+          <section class="profile-accordion-card" data-profile-accordion="sos">
+            <button class="profile-accordion-button" id="profile-sos-toggle" type="button" aria-expanded="false" aria-controls="profile-sos-panel"><span><strong>Ιστορικό SOS</strong><small id="profile-sos-summary">Δεν υπάρχει ακόμα ιστορικό</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+            <div class="profile-accordion-panel" id="profile-sos-panel" role="region" aria-labelledby="profile-sos-toggle" hidden>
           <section class="sos-history-card sos-history-summary-card" aria-labelledby="sos-history-title">
             <div class="sos-history-summary">
               <div>
@@ -473,7 +495,12 @@
             </div>
             <div class="sos-history-list" id="sos-history-list" aria-live="polite" hidden></div>
           </section>
+            </div>
+          </section>
 
+          <section class="profile-accordion-card" data-profile-accordion="account">
+            <button class="profile-accordion-button" id="profile-account-toggle" type="button" aria-expanded="false" aria-controls="profile-account-panel"><span><strong>Λογαριασμός</strong><small id="profile-account-summary">Δεν είσαι συνδεδεμένος</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+            <div class="profile-accordion-panel" id="profile-account-panel" role="region" aria-labelledby="profile-account-toggle" hidden>
           <form class="auth-card" id="auth-form" tabindex="-1">
             <div class="section-heading compact-heading auth-heading">
               <p class="eyebrow">Λογαριασμός</p>
@@ -521,6 +548,8 @@
             </div>
             <p class="save-status" id="auth-status" aria-live="polite"></p>
           </form>
+            </div>
+          </section>
 
           <form class="auth-card password-reset-card" id="password-reset-form" tabindex="-1" hidden>
             <div class="section-heading compact-heading">
@@ -555,36 +584,6 @@
             <p class="save-status" id="local-import-status"></p>
           </section>
 
-          <section class="profile-edit-section" aria-labelledby="profile-edit-title">
-            <button class="secondary-button profile-edit-toggle" id="profile-edit-toggle" type="button" aria-expanded="false" aria-controls="profile-form">Επεξεργασία προφίλ</button>
-            <form class="profile-form" id="profile-form" hidden>
-              <h2 class="visually-hidden" id="profile-edit-title">Επεξεργασία προφίλ</h2>
-            <div class="form-grid">
-              <label>
-                <span>Όνομα χρήστη</span>
-                <input name="name" type="text" required />
-              </label>
-              <label>
-                <span>Τηλέφωνο</span>
-                <input name="phone" type="tel" placeholder="π.χ. 99878765 ή +35799878765" required />
-              </label>
-              <label>
-                <span>Προτιμώμενη γλώσσα</span>
-                <select name="preferredLanguage">
-                  <option value="el">Ελληνικά</option>
-                  <option value="en">English</option>
-                </select>
-              </label>
-              <label class="full-field">
-                <span>Σημείωση έκτακτης ανάγκης / ιατρικές σημειώσεις</span>
-                <textarea name="medicalNotes" rows="4" placeholder="Προαιρετικό: αλλεργίες, φάρμακα ή άλλο σημαντικό στοιχείο"></textarea>
-              </label>
-            </div>
-            <button class="primary-button inline-button" type="submit">Αποθήκευση προφίλ</button>
-            <button class="danger-outline-button inline-button" id="clear-data-button" type="button">Καθαρισμός δεδομένων</button>
-            <p class="save-status" id="profile-status" aria-live="polite"></p>
-            </form>
-          </section>
         </section>
 
 
