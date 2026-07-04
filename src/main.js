@@ -419,6 +419,10 @@ const authModeTabs = document.querySelector('#auth-mode-tabs');
 const authLoginTab = document.querySelector('#auth-login-tab');
 const authSignupTab = document.querySelector('#auth-signup-tab');
 const authSubmitButton = document.querySelector('#auth-submit-button');
+const authTitle = document.querySelector('#auth-title');
+const authHelper = document.querySelector('#auth-helper');
+const authSwitchModeButton = document.querySelector('#auth-switch-mode');
+const authSecondaryLinks = document.querySelector('#auth-secondary-links');
 const authForgotPasswordButton = document.querySelector('#auth-forgot-password');
 const authPasswordToggle = document.querySelector('#auth-password-toggle');
 const authFields = document.querySelector('#auth-fields');
@@ -4006,6 +4010,7 @@ function renderAuth() {
   if (rememberEmailOption) rememberEmailOption.hidden = signedIn || isSignup;
   if (rememberEmailHelper) rememberEmailHelper.hidden = signedIn || isSignup;
   authSubmitButton.hidden = signedIn;
+  if (authSecondaryLinks) authSecondaryLinks.hidden = signedIn;
   authForgotPasswordButton.hidden = signedIn || isSignup;
   authModeTabs.hidden = signedIn;
   authLoginTab.hidden = signedIn;
@@ -4019,6 +4024,13 @@ function renderAuth() {
   authPassword.required = !signedIn;
   authRepeatPassword.required = !signedIn && isSignup;
   authSubmitButton.textContent = isSignup ? 'Δημιουργία λογαριασμού' : 'Σύνδεση';
+  if (authTitle) authTitle.textContent = isSignup ? 'Δημιουργία λογαριασμού' : 'Σύνδεση';
+  if (authHelper) authHelper.textContent = isSignup
+    ? 'Φτιάξε λογαριασμό για συγχρονισμό επαφών και ιστορικού SOS.'
+    : 'Συνδέσου για συγχρονισμό επαφών και ιστορικού SOS.';
+  if (authSwitchModeButton) authSwitchModeButton.textContent = isSignup
+    ? 'Έχεις ήδη λογαριασμό; Σύνδεση'
+    : 'Δεν έχεις λογαριασμό; Δημιουργία';
   authPassword.autocomplete = isSignup ? 'new-password' : 'current-password';
   authLoginTab.classList.toggle('active', !isSignup);
   authSignupTab.classList.toggle('active', isSignup);
@@ -4589,6 +4601,7 @@ document.addEventListener('keydown', (event) => {
   if (sosModal && !sosModal.hidden) closeSosModal();
 });
 authSignupTab?.addEventListener('click', () => setAuthMode('signup'));
+authSwitchModeButton?.addEventListener('click', () => setAuthMode(authMode === 'signup' ? 'login' : 'signup'));
 accountSyncLoginButton?.addEventListener('click', openProfileAuthCard);
 authLoginTab?.addEventListener('click', () => setAuthMode('login'));
 authForgotPasswordButton?.addEventListener('click', sendPasswordResetEmail);
