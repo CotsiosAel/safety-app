@@ -53,6 +53,8 @@ Then complete the manual checklist in `docs/manual-qa-checklist.md` on iPhone/mo
 
 For release planning, use the Greek store-readiness roadmap in `docs/store-readiness-checklist.md` before preparing App Store or Play Store submissions.
 
+Privacy Policy draft: `docs/privacy-policy-draft.md`
+
 
 ## Account/auth foundation
 
