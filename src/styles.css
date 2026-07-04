@@ -2660,9 +2660,13 @@ body.tracking-mode .modal-backdrop {
     padding: 12px;
     border-radius: 18px;
   }
-  .home-setup-card .setup-checklist-header p:not(.eyebrow),
   .home-setup-card .setup-checklist-summary {
     display: none;
+  }
+  .home-setup-card .setup-checklist-header p:not(.eyebrow) {
+    margin-top: 4px;
+    font-size: 0.86rem;
+    line-height: 1.35;
   }
   .home-setup-card .setup-checklist-header {
     flex-direction: row;
