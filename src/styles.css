@@ -2944,3 +2944,152 @@ body.tracking-mode .modal-backdrop {
   .account-sync-banner { align-items: stretch; flex-direction: column; }
   .account-sync-banner .inline-button { width: 100%; }
 }
+
+/* Mobile-first Profile/Auth redesign */
+.profile-page-active .account-sync-banner {
+  display: none;
+}
+
+.profile-summary-card {
+  align-items: center;
+  padding: 0 0 18px;
+}
+.profile-summary-copy {
+  min-width: 0;
+}
+.profile-summary-copy h2,
+.profile-summary-copy p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-status-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 10px;
+  padding: 6px 10px;
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid rgba(22, 163, 74, 0.18);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 950;
+}
+.profile-edit-section {
+  margin-top: 22px;
+}
+.profile-edit-toggle {
+  width: 100%;
+  justify-content: center;
+}
+.profile-form[hidden] {
+  display: none;
+}
+.local-profile-status #profile-local-status-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.local-profile-status #profile-status-login-button[hidden] {
+  display: none;
+}
+.auth-signed-in strong,
+#auth-user-email {
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .profile-card {
+    padding: 16px;
+  }
+  .profile-summary-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    padding-bottom: 14px;
+  }
+  .profile-avatar {
+    width: 58px;
+    height: 58px;
+    border-radius: 20px;
+    font-size: 1.35rem;
+  }
+  .profile-summary-copy .eyebrow {
+    margin-bottom: 3px;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+  }
+  .profile-summary-copy h2 {
+    font-size: 1.32rem;
+    line-height: 1.15;
+  }
+  .profile-summary-copy p {
+    margin-top: 3px;
+    font-size: 0.9rem;
+  }
+  .profile-status-badge {
+    margin-top: 7px;
+    padding: 5px 9px;
+    font-size: 0.75rem;
+  }
+  .profile-details {
+    margin-top: 12px;
+    border: 1px solid #e7edf5;
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  .profile-details div {
+    padding: 12px 14px;
+    background: rgba(248, 250, 252, 0.7);
+  }
+  .profile-details span {
+    font-size: 0.8rem;
+    font-weight: 850;
+  }
+  .profile-details strong {
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+  .local-profile-status {
+    align-items: stretch;
+    margin: 12px 0;
+    padding: 12px;
+  }
+  .local-profile-status h3 {
+    font-size: 0.98rem;
+  }
+  .local-profile-status p:last-child {
+    font-size: 0.86rem;
+  }
+  .local-profile-status #profile-status-login-button {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 8px;
+  }
+  .sos-history-card {
+    margin-top: 14px;
+    padding: 14px;
+  }
+  .sos-history-summary h2 {
+    font-size: 1.25rem;
+  }
+  .sos-history-status-line {
+    display: none;
+  }
+  .sos-history-metrics div {
+    padding: 10px;
+  }
+  .auth-card,
+  .profile-form {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 20px;
+  }
+  .profile-edit-section {
+    margin-top: 14px;
+  }
+  .compact-heading h2 {
+    font-size: 1.28rem;
+  }
+}

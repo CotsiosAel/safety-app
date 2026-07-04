@@ -17,7 +17,8 @@ const requiredPatterns = [
   ['local storage mode explains device-only data', "storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικό προφίλ σε αυτή τη συσκευή';"],
   ['compact signed-in banner copy exists', "`Συνδεδεμένος • ${currentUser.email || 'χωρίς email'}`"],
   ['signed-in auth card title is compact', "authTitle) authTitle.textContent = signedIn ? 'Λογαριασμός'"],
-  ['signed-in account card is compact', "localStatusHint) localStatusHint.textContent = currentUser\n    ? 'Supabase + τοπικό αντίγραφο'"],
+  ['signed-in account status is compact', "localStatusHint) localStatusHint.textContent = currentUser\n    ? 'Συγχρονισμός ενεργός'"],
+  ['profile edit form expands from collapsed state', 'profileForm.hidden = !willOpen;'],
   ['login mobile helper copy exists', "'Συνδέσου για συγχρονισμό επαφών και ιστορικού SOS.'"],
   ['register mobile helper copy exists', "'Φτιάξε λογαριασμό για συγχρονισμό επαφών και ιστορικού SOS.'"],
   ['login/register switch link is wired', "authSwitchModeButton?.addEventListener('click', () => setAuthMode(authMode === 'signup' ? 'login' : 'signup'));"],
@@ -34,7 +35,9 @@ for (const [label, pattern] of requiredPatterns) {
 const markupPatterns = [
   ['remember email checkbox still exists', 'id="remember-email"'],
   ['remember email only-email helper exists', 'Αποθηκεύεται μόνο το email σε αυτή τη συσκευή.'],
-  ['short signed-out explanation exists', 'Χωρίς σύνδεση, το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό επαφών και ιστορικού.'],
+  ['compact signed-out warning exists', 'Δεν είσαι συνδεδεμένος.'],
+  ['signed-out sync button exists', 'Σύνδεση για συγχρονισμό'],
+  ['profile edit form is collapsed by default', 'id="profile-form" hidden'],
   ['login/register switch link exists', 'id="auth-switch-mode"'],
 ];
 
@@ -53,6 +56,8 @@ const stylePatterns = [
   ['signed-in email uses ellipsis', '.auth-signed-in strong,'],
   ['account banner email uses ellipsis', '.account-sync-banner strong {'],
   ['mobile signed-in account card is compact', '.account-sync-banner.signed-in {'],
+  ['profile page hides duplicate global banner', '.profile-page-active .account-sync-banner {'],
+  ['profile status email uses ellipsis', '.local-profile-status #profile-local-status-text {'],
 ];
 
 for (const [label, pattern] of stylePatterns) {

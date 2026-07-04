@@ -382,6 +382,10 @@ const profileForm = document.querySelector('#profile-form');
 const profileName = document.querySelector('#profile-name');
 const profilePhone = document.querySelector('#profile-phone');
 const profileNotes = document.querySelector('#profile-notes');
+const profileDetailName = document.querySelector('#profile-detail-name');
+const profileDetailPhone = document.querySelector('#profile-detail-phone');
+const profileEditToggle = document.querySelector('#profile-edit-toggle');
+const profileStatusLoginButton = document.querySelector('#profile-status-login-button');
 const profileLanguage = document.querySelector('#profile-language');
 const profileCreatedAt = document.querySelector('#profile-created-at');
 const profileUpdatedAt = document.querySelector('#profile-updated-at');
@@ -1326,6 +1330,7 @@ function showPage(nextPage) {
   });
 
   pages.forEach((page) => page.classList.toggle('active', page.id === nextPage));
+  document.body.classList.toggle('profile-page-active', nextPage === 'profile');
   if (pageTitle) pageTitle.textContent = pageTitles[nextPage];
   if (nextPage === 'health') renderHealthPage();
   if (nextPage === 'contacts' && currentUser) {
@@ -1352,6 +1357,10 @@ function openProfileAuthCard() {
 
 function focusProfileForm() {
   showPage('profile');
+  if (profileForm?.hidden) {
+    profileForm.hidden = false;
+    profileEditToggle?.setAttribute('aria-expanded', 'true');
+  }
   focusElementAfterScroll(profileForm?.elements?.name || profileForm);
 }
 
@@ -3808,18 +3817,22 @@ function renderProfile() {
   const accountStatusLabel = document.querySelector('#profile-account-label');
   const localStatusText = document.querySelector('#profile-local-status-text');
   const localStatusHint = document.querySelector('#profile-local-status-hint');
-  if (accountStatusLabel) accountStatusLabel.textContent = currentUser ? 'Λογαριασμός SafeMe' : 'ΤΟΠΙΚΟ ΠΡΟΦΙΛ';
-  if (localStatusText) localStatusText.textContent = currentUser ? 'Ενεργός' : 'Δεν είσαι συνδεδεμένος';
+  if (accountStatusLabel) accountStatusLabel.textContent = currentUser ? 'Συνδεδεμένος' : 'Τοπικό προφίλ';
+  if (localStatusText) localStatusText.textContent = currentUser ? `Συνδεδεμένος • ${currentUser.email || 'χωρίς email'}` : 'Δεν είσαι συνδεδεμένος.';
+  if (localStatusText) localStatusText.title = currentUser ? (currentUser.email || '') : '';
   if (localStatusHint) localStatusHint.textContent = currentUser
-    ? 'Supabase + τοπικό αντίγραφο'
-    : 'Τα στοιχεία αποθηκεύονται μόνο σε αυτή τη συσκευή.';
+    ? 'Συγχρονισμός ενεργός'
+    : 'Το SOS λειτουργεί τοπικά, αλλά οι επαφές και το ιστορικό δεν συγχρονίζονται.';
+  if (profileStatusLoginButton) profileStatusLoginButton.hidden = Boolean(currentUser);
 
   profileName.textContent = displayName;
   profilePhone.textContent = getProfileValue('phone', 'Δεν έχει προστεθεί τηλέφωνο');
+  if (profileDetailName) profileDetailName.textContent = displayName;
+  if (profileDetailPhone) profileDetailPhone.textContent = getProfileValue('phone', 'Δεν έχει προστεθεί τηλέφωνο');
   profileNotes.textContent = getProfileMedicalNotesDisplay();
   profileLanguage.textContent = (profile?.preferredLanguage || 'el') === 'en' ? 'English' : 'Ελληνικά';
-  profileCreatedAt.textContent = formatDiagnosticDateTime(profile?.createdAt);
-  profileUpdatedAt.textContent = formatDiagnosticDateTime(profile?.updatedAt);
+  if (profileCreatedAt) profileCreatedAt.textContent = formatDiagnosticDateTime(profile?.createdAt);
+  if (profileUpdatedAt) profileUpdatedAt.textContent = formatDiagnosticDateTime(profile?.updatedAt);
   profileAvatar.textContent = profile?.name ? getInitials(profile.name) : '👤';
   profileForm.elements.name.value = profile?.name || '';
   profileForm.elements.phone.value = profile?.phone || '';
@@ -4051,7 +4064,7 @@ function renderAuth() {
       : 'Χωρίς σύνδεση. Άνοιγμα σύνδεσης στο Προφίλ'));
   authIndicator.classList.toggle('signed-in', signedIn);
   authIndicator.classList.toggle('signed-out', !signedIn);
-  storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικό προφίλ σε αυτή τη συσκευή';
+  if (storageMode) storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικό προφίλ σε αυτή τη συσκευή';
   passwordResetForm.hidden = !isPasswordRecoveryMode;
   passwordResetNew.required = isPasswordRecoveryMode;
   passwordResetRepeat.required = isPasswordRecoveryMode;
@@ -4610,6 +4623,14 @@ document.addEventListener('keydown', (event) => {
 authSignupTab?.addEventListener('click', () => setAuthMode('signup'));
 authSwitchModeButton?.addEventListener('click', () => setAuthMode(authMode === 'signup' ? 'login' : 'signup'));
 accountSyncLoginButton?.addEventListener('click', openProfileAuthCard);
+profileStatusLoginButton?.addEventListener('click', openProfileAuthCard);
+profileEditToggle?.addEventListener('click', () => {
+  if (!profileForm) return;
+  const willOpen = profileForm.hidden;
+  profileForm.hidden = !willOpen;
+  profileEditToggle.setAttribute('aria-expanded', String(willOpen));
+  if (willOpen) focusElementAfterScroll(profileForm.elements?.name || profileForm);
+});
 authLoginTab?.addEventListener('click', () => setAuthMode('login'));
 authForgotPasswordButton?.addEventListener('click', sendPasswordResetEmail);
 authPasswordToggle?.addEventListener('click', togglePasswordVisibility);

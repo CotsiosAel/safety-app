@@ -423,29 +423,29 @@
         </section>
 
         <section class="page profile-card" id="profile" aria-label="Προφίλ χρήστη">
-          <div class="profile-header">
+          <div class="profile-header profile-summary-card">
             <div class="profile-avatar" id="profile-avatar">👤</div>
-            <div>
+            <div class="profile-summary-copy">
               <p class="eyebrow">Προφίλ χρήστη</p>
               <h2 id="profile-name">Συμπλήρωσε το προφίλ σου</h2>
               <p id="profile-phone">Δεν έχει προστεθεί τηλέφωνο</p>
+              <span class="profile-status-badge" id="profile-account-label">Τοπικό προφίλ</span>
             </div>
           </div>
 
           <section class="local-profile-status" id="profile-local-status" aria-live="polite">
             <div>
-              <p class="eyebrow" id="profile-account-label">ΤΟΠΙΚΟ ΠΡΟΦΙΛ</p>
-              <h3 id="profile-local-status-text">Χωρίς σύνδεση</h3>
-              <p id="profile-local-status-hint">Δημιούργησε ένα τοπικό demo προφίλ για να εμφανίζεταις ως συνδεδεμένος.</p>
+              <h3 id="profile-local-status-text">Δεν είσαι συνδεδεμένος.</h3>
+              <p id="profile-local-status-hint">Το SOS λειτουργεί τοπικά, αλλά οι επαφές και το ιστορικό δεν συγχρονίζονται.</p>
             </div>
+            <button class="primary-button inline-button" id="profile-status-login-button" type="button">Σύνδεση για συγχρονισμό</button>
           </section>
 
           <div class="profile-details">
+            <div><span>Όνομα</span><strong id="profile-detail-name">Συμπλήρωσε το προφίλ σου</strong></div>
+            <div><span>Τηλέφωνο</span><strong id="profile-detail-phone">Δεν έχει προστεθεί τηλέφωνο</strong></div>
             <div><span>Ιατρικές σημειώσεις</span><strong id="profile-notes">Δεν έχουν συμπληρωθεί</strong></div>
             <div><span>Γλώσσα</span><strong id="profile-language">Ελληνικά</strong></div>
-            <div><span>Δημιουργήθηκε</span><strong id="profile-created-at">—</strong></div>
-            <div><span>Τελευταία ενημέρωση</span><strong id="profile-updated-at">—</strong></div>
-            <div><span>Αποθήκευση</span><strong id="storage-mode">Τοπικά, χωρίς backend</strong></div>
           </div>
 
           <section class="sos-history-card sos-history-summary-card" aria-labelledby="sos-history-title">
@@ -476,7 +476,7 @@
 
           <form class="auth-card" id="auth-form" tabindex="-1">
             <div class="section-heading compact-heading auth-heading">
-              <p class="eyebrow">Ασφαλής λογαριασμός</p>
+              <p class="eyebrow">Λογαριασμός</p>
               <h2 id="auth-title">Σύνδεση</h2>
               <p id="auth-helper">Συνδέσου για συγχρονισμό επαφών και ιστορικού SOS.</p>
               <p class="auth-live-tracking-note">Χωρίς σύνδεση, το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό επαφών και ιστορικού.</p>
@@ -555,7 +555,10 @@
             <p class="save-status" id="local-import-status"></p>
           </section>
 
-          <form class="profile-form" id="profile-form">
+          <section class="profile-edit-section" aria-labelledby="profile-edit-title">
+            <button class="secondary-button profile-edit-toggle" id="profile-edit-toggle" type="button" aria-expanded="false" aria-controls="profile-form">Επεξεργασία προφίλ</button>
+            <form class="profile-form" id="profile-form" hidden>
+              <h2 class="visually-hidden" id="profile-edit-title">Επεξεργασία προφίλ</h2>
             <div class="form-grid">
               <label>
                 <span>Όνομα χρήστη</span>
@@ -580,7 +583,8 @@
             <button class="primary-button inline-button" type="submit">Αποθήκευση προφίλ</button>
             <button class="danger-outline-button inline-button" id="clear-data-button" type="button">Καθαρισμός δεδομένων</button>
             <p class="save-status" id="profile-status" aria-live="polite"></p>
-          </form>
+            </form>
+          </section>
         </section>
 
 
