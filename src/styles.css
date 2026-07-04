@@ -1949,6 +1949,38 @@ body.tracking-mode .modal-backdrop {
   padding: 0 18px 18px;
 }
 
+.settings-legal-links {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(100, 116, 139, 0.16);
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.settings-legal-links strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.settings-legal-links div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.settings-legal-links a {
+  color: var(--brand);
+  font-size: 0.9rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.settings-legal-links a:hover,
+.settings-legal-links a:focus-visible {
+  text-decoration: underline;
+}
+
 .settings-control-toggle {
   margin: 0;
   width: 100%;
