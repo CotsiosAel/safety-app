@@ -4301,7 +4301,7 @@ function getFriendlyAuthErrorMessage(error) {
     return 'Το Supabase δεν φορτώθηκε. Η εφαρμογή είναι σε τοπική λειτουργία.';
   }
 
-  if (rawMessage.includes('invalid login credentials') || rawMessage.includes('invalid credentials')) {
+  if (details.code === 'invalid_credentials' || rawMessage.includes('invalid login credentials') || rawMessage.includes('invalid credentials')) {
     return 'Το email ή ο κωδικός δεν είναι σωστός.';
   }
 
@@ -4322,22 +4322,6 @@ function getFriendlyAuthErrorMessage(error) {
   }
 
   return `Σφάλμα σύνδεσης: ${details.message || 'Άγνωστο σφάλμα'}`;
-}
-
-function getDiagnosticAuthErrorMessage(error) {
-  const details = getAuthErrorDetails(error);
-  const lines = [getFriendlyAuthErrorMessage(error)];
-
-  if (details.message.toLowerCase().includes('supabase is unavailable')) {
-    lines.push('Το Supabase δεν φορτώθηκε. Η εφαρμογή είναι σε τοπική λειτουργία.');
-  }
-
-  if (details.message) lines.push(`message: ${details.message}`);
-  if (details.status) lines.push(`status: ${details.status}`);
-  if (details.code) lines.push(`code: ${details.code}`);
-  lines.push(`isSupabaseReady: ${details.isSupabaseReady}`);
-
-  return lines.join('\n');
 }
 
 function warnAuthError(error) {
@@ -4907,7 +4891,7 @@ async function handleAuthSubmit(event) {
     if (!isSignup || data.session) await loadSupabaseData();
   } catch (error) {
     warnAuthError(error);
-    showAuthMessage(getDiagnosticAuthErrorMessage(error), true);
+    showAuthMessage(getFriendlyAuthErrorMessage(error), true);
   } finally {
     setAuthLoading(false);
   }
