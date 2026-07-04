@@ -1376,6 +1376,29 @@ function renderContactsSyncStatus() {
   `;
 }
 
+function renderSignedOutAccountUi(message = authStatusMessages.signedOut) {
+  currentUser = null;
+  setContactsSyncState('local');
+  applyRememberedEmail({ overwrite: true });
+  if (authPassword) authPassword.value = '';
+  if (authRepeatPassword) authRepeatPassword.value = '';
+  sosHistoryEvents = [];
+  sosHistoryStatus = '';
+  if (activeSosSession?.shareToken || isRemoteSosSession(activeSosSession)) {
+    clearActiveSosRuntimeState({ message: '', endedSession: activeSosSession, status: 'ended' });
+  } else {
+    syncActiveSosLocationAutoUpdate();
+    renderActiveSosSession();
+  }
+  renderSosHistory();
+  renderAuth();
+  renderProfile();
+  renderContactsSyncStatus();
+  renderSetupChecklist();
+  renderSettingsSummary();
+  showAuthMessage(message);
+}
+
 function shortenId(id) {
   const value = String(id || '');
   return value.length > 18 ? `${value.slice(0, 8)}…${value.slice(-6)}` : value;
@@ -4851,20 +4874,7 @@ async function logout() {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
 
-    currentUser = null;
-    applyRememberedEmail({ overwrite: true });
-    authPassword.value = '';
-    authRepeatPassword.value = '';
-    showAuthMessage(authStatusMessages.logoutSuccess);
-    sosHistoryEvents = [];
-    sosHistoryStatus = '';
-    activeSosSession = null;
-    isActiveSosSessionRestored = false;
-    renderSosHistory();
-    renderActiveSosSession();
-    syncActiveSosLocationAutoUpdate();
-    renderAuth();
-    renderSetupChecklist();
+    renderSignedOutAccountUi(authStatusMessages.logoutSuccess);
   } catch (error) {
     hasPendingLogoutMessage = false;
     showAuthMessage(getFriendlyAuthErrorMessage(error), true);
@@ -4894,17 +4904,11 @@ async function initializeAuth() {
     else applyRememberedEmail({ overwrite: true });
     if (event === 'PASSWORD_RECOVERY') activatePasswordRecoveryMode();
     if (!currentUser) {
-      sosHistoryEvents = [];
-      sosHistoryStatus = '';
-      clearActiveSosRuntimeState({ message: '', endedSession: activeSosSession, status: 'ended' });
-      renderSosHistory();
-      renderSetupChecklist();
-      renderContactsSyncStatus();
       if (hasPendingLogoutMessage) {
-        showAuthMessage(authStatusMessages.logoutSuccess);
+        renderSignedOutAccountUi(authStatusMessages.logoutSuccess);
         hasPendingLogoutMessage = false;
       } else {
-        showAuthMessage(authStatusMessages.signedOut);
+        renderSignedOutAccountUi(authStatusMessages.signedOut);
       }
     } else {
       loadSupabaseData().catch((error) => console.warn('[SafeMe] Auth account data refresh failed', error));
