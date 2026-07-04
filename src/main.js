@@ -1863,14 +1863,14 @@ function getSetupChecklistItems() {
     },
     {
       id: 'location',
-      label: 'Ενεργοποίησε/έλεγξε GPS',
+      label: 'Έλεγξε GPS',
       completed: Boolean(currentLocation),
       buttonLabel: 'Ενημέρωση GPS',
       action: 'location',
     },
     {
       id: 'test-sos',
-      label: 'Κάνε δοκιμή SOS σε ασφαλές περιβάλλον',
+      label: 'Κάνε δοκιμή SOS',
       completed: hasCompletedTestSos,
       buttonLabel: 'Δοκιμή SOS',
       action: 'test-sos',
@@ -1909,7 +1909,7 @@ function renderSetupChecklist() {
       <div>
         <p class="eyebrow">Ετοιμότητα SafeMe</p>
         <h3 id="setup-checklist-title">Πρώτη ρύθμιση SafeMe</h3>
-        <p>Για να είναι έτοιμο το SOS, συμπλήρωσε τα βασικά στοιχεία πριν το χρησιμοποιήσεις σε πραγματική ανάγκη.</p>
+        <p>Σύντομα βασικά βήματα πριν από πραγματική ανάγκη.</p>
       </div>
       <div class="setup-checklist-header-actions">
         <span class="setup-checklist-progress" aria-live="polite">${completedCount}/${items.length}</span>
@@ -2444,29 +2444,25 @@ function renderHomeReadinessCards() {
   if (homeTestModeHelper) homeTestModeHelper.hidden = !isSosTestMode;
 
   if (homeReadinessMessage) {
-    homeReadinessMessage.textContent = !hasAccount
-      ? 'Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.'
-      : !hasContacts
-        ? 'Πρόσθεσε έμπιστες επαφές.'
-        : !hasLocation
-          ? 'Ενημέρωσε GPS για τοποθεσία SOS.'
-          : 'Το SafeMe είναι έτοιμο για χρήση.';
+    homeReadinessMessage.textContent = !hasAccount || !hasContacts || !hasLocation
+      ? 'Δες τον σύντομο οδηγό πρώτης ρύθμισης.'
+      : 'Το SafeMe είναι έτοιμο για χρήση.';
   }
 
   if (contactsReadinessText) {
     contactsReadinessText.textContent = hasContacts
-      ? `${contacts.length} έμπιστες επαφές${primaryContact?.name ? ` • κύρια: ${primaryContact.name}` : ''}.`
-      : 'Πρόσθεσε έμπιστες επαφές.';
+      ? `${contacts.length} επαφές διαθέσιμες${primaryContact?.name ? ` • κύρια: ${primaryContact.name}` : ''}.`
+      : 'Άνοιγμα λίστας και προσθήκης.';
   }
   if (homeAddContactCta) homeAddContactCta.hidden = hasContacts;
 
   if (locationReadinessText) {
     locationReadinessText.textContent = hasLocation
       ? `Τοποθεσία διαθέσιμη${currentLocation.accuracy ? ` • ακρίβεια περίπου ${Math.round(currentLocation.accuracy)}μ.` : ''}.`
-      : 'Ενημέρωσε GPS για τοποθεσία SOS.';
+      : 'Άνοιγμα ελέγχου τοποθεσίας.';
   }
 
-  if (accountReadinessText) accountReadinessText.textContent = hasAccount ? 'Συγχρονισμός ενεργός' : 'Τοπική λειτουργία';
+  if (accountReadinessText) accountReadinessText.textContent = hasAccount ? 'Συγχρονισμός ενεργός' : 'Άνοιγμα σύνδεσης.';
   if (homeLoginSyncCta) homeLoginSyncCta.hidden = hasAccount;
   if (homeReadinessCard) homeReadinessCard.classList.toggle('is-ready', hasAccount && hasContacts && hasLocation && isOnline);
 }
@@ -4282,7 +4278,7 @@ function renderAccountSyncStatus() {
   if (sosAccountStatus) {
     sosAccountStatus.textContent = signedIn
       ? 'Λογαριασμός ενεργός: τα στοιχεία SOS συγχρονίζονται.'
-      : 'Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.';
+      : 'SOS διαθέσιμο σε αυτή τη συσκευή.';
     sosAccountStatus.classList.toggle('signed-in', signedIn);
   }
 }
