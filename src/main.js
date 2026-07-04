@@ -405,6 +405,8 @@ const pullRefreshMessage = document.querySelector('#pull-refresh-message');
 const pullRefreshManualButton = document.querySelector('#pull-refresh-manual');
 const settingsClearDataButton = document.querySelector('#settings-clear-data');
 const settingsLogoutButton = document.querySelector('#settings-logout');
+const settingsOpenProfileLanguageButton = document.querySelector('#settings-open-profile-language');
+const settingsAccordionButtons = document.querySelectorAll('.settings-panel-toggle');
 const settingsStatus = document.querySelector('#settings-status');
 const healthChecklist = document.querySelector('#health-checklist');
 const healthSummaryTitle = document.querySelector('#health-summary-title');
@@ -748,10 +750,12 @@ function setupAppFreshnessChecks() {
     if (event.persisted) checkForAppUpdate({ force: true });
   });
   window.addEventListener('online', () => {
+    renderSettingsSummary();
     checkForAppUpdate({ force: true });
     if (currentUser) autoRefreshAccountContactsFromSupabase('online').catch((error) => console.warn('[SafeMe] Online contacts refresh failed', error));
     if (hasRequestedLocationPermission) refreshLocation();
   });
+  window.addEventListener('offline', renderSettingsSummary);
 }
 
 
@@ -1301,6 +1305,7 @@ function renderContactsSyncStatus() {
   if (refreshAccountContactsButton) refreshAccountContactsButton.disabled = !currentUser || isContactsRefreshInProgress || isContactsMutationInProgress;
   if (uploadLocalContactsButton) uploadLocalContactsButton.disabled = !currentUser || contacts.length === 0 || isContactsMutationInProgress || isContactsRefreshInProgress;
   if (contactsSyncSummary) contactsSyncSummary.textContent = currentUser ? 'Αυτόματος συγχρονισμός' : 'Τοπική λειτουργία';
+  renderSettingsSummary();
 
   if (!contactsSyncDiagnostics) return;
   if (!currentUser) {
@@ -1474,6 +1479,70 @@ function openSettingsProfile() {
 
 function openSettingsContacts() {
   focusContactForm();
+}
+
+
+function getSettingsLanguageLabel() {
+  return (profile?.preferredLanguage || 'el') === 'en' ? 'English' : 'Ελληνικά';
+}
+
+function renderSettingsSummary() {
+  const online = navigator.onLine !== false;
+  const onlineChip = document.querySelector('#settings-online-chip');
+  const accountChip = document.querySelector('#settings-account-chip');
+  const sosModeChip = document.querySelector('#settings-sos-mode-chip');
+  const sosSummary = document.querySelector('#settings-sos-summary');
+  const locationSummary = document.querySelector('#settings-location-summary');
+  const locationStatus = document.querySelector('#settings-location-status');
+  const syncSummary = document.querySelector('#settings-sync-summary');
+  const syncStatus = document.querySelector('#settings-sync-status');
+  const languageSummary = document.querySelector('#settings-language-summary');
+  const languageStatus = document.querySelector('#settings-language-status');
+
+  if (onlineChip) {
+    onlineChip.textContent = online ? 'Online' : 'Offline';
+    onlineChip.classList.toggle('offline', !online);
+  }
+  if (accountChip) accountChip.textContent = currentUser ? 'Συνδεδεμένος' : 'Τοπικό προφίλ';
+  if (sosModeChip) {
+    sosModeChip.textContent = isSosTestMode ? 'Δοκιμή SOS ενεργή' : 'Πραγματικό SOS';
+    sosModeChip.classList.toggle('warning', !isSosTestMode);
+  }
+  if (sosSummary) sosSummary.textContent = isSosTestMode ? 'Δοκιμή ενεργή' : 'Πραγματική λειτουργία';
+  if (locationSummary) locationSummary.textContent = currentLocation ? 'Τοποθεσία διαθέσιμη' : 'Χρειάζεται ενημέρωση';
+  if (locationStatus) {
+    locationStatus.textContent = currentLocation
+      ? `${formatLocation(currentLocation)}${currentLocation.accuracy ? ` • ακρίβεια περίπου ${Math.round(currentLocation.accuracy)}μ.` : ''}`
+      : 'Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα.';
+  }
+  if (syncSummary) syncSummary.textContent = currentUser ? 'Αυτόματος συγχρονισμός ενεργός' : 'Τοπική λειτουργία';
+  if (syncStatus) syncStatus.textContent = currentUser
+    ? `Συνδεδεμένος ως ${currentUser.email || 'χωρίς email'}. Ο συγχρονισμός επαφών είναι ενεργός.`
+    : 'Τοπική λειτουργία σε αυτή τη συσκευή.';
+  const languageLabel = getSettingsLanguageLabel();
+  if (languageSummary) languageSummary.textContent = languageLabel;
+  if (languageStatus) languageStatus.textContent = `Τρέχουσα γλώσσα: ${languageLabel}.`;
+}
+
+function setSettingsPanelOpen(panel, open) {
+  const button = panel?.querySelector('.settings-panel-toggle');
+  const body = button ? document.querySelector(`#${button.getAttribute('aria-controls')}`) : null;
+  if (!button || !body) return;
+  panel.classList.toggle('open', open);
+  button.setAttribute('aria-expanded', String(open));
+  body.hidden = !open;
+}
+
+function toggleSettingsPanel(button) {
+  const panel = button.closest('.settings-panel');
+  const shouldOpen = button.getAttribute('aria-expanded') !== 'true';
+  settingsAccordionButtons.forEach((otherButton) => setSettingsPanelOpen(otherButton.closest('.settings-panel'), false));
+  setSettingsPanelOpen(panel, shouldOpen);
+}
+
+function confirmSettingsLogout() {
+  const confirmed = window.confirm('Θέλεις σίγουρα να αποσυνδεθείς από αυτόν τον λογαριασμό;');
+  if (confirmed) logout();
 }
 
 function focusSosButton() {
@@ -1866,12 +1935,14 @@ function renderLocation() {
   if (!currentLocation) {
     showLocationMessage('Πάτησε ανανέωση για να βρεθεί η θέση σου.');
     renderHomeReadinessCards();
+    renderSettingsSummary();
     return;
   }
 
   const accuracyText = currentLocation.accuracy ? ` • ακρίβεια περίπου ${Math.round(currentLocation.accuracy)}μ.` : '';
   showLocationMessage(`${formatLocation(currentLocation)}${accuracyText}`);
   renderHomeReadinessCards();
+  renderSettingsSummary();
 }
 
 function getGeolocationErrorMessage(error) {
@@ -3566,11 +3637,13 @@ async function confirmSos() {
 
 function syncSosTestModeToggle() {
   if (sosTestModeToggle) sosTestModeToggle.checked = isSosTestMode;
+  renderSettingsSummary();
 }
 
 function handleSosTestModeChange() {
   isSosTestMode = Boolean(sosTestModeToggle?.checked);
   saveJson(storageKeys.sosTestMode, isSosTestMode);
+  renderSettingsSummary();
 
   if (preparedSosMessage) {
     preparedSosMessage = buildSosMessage(currentLocation);
@@ -3943,6 +4016,7 @@ function renderProfile() {
   if (profileDetailsSummary) profileDetailsSummary.textContent = `${displayName} • ${displayPhone}`;
   if (profileNotes) profileNotes.textContent = getProfileMedicalNotesDisplay();
   if (profileLanguage) profileLanguage.textContent = (profile?.preferredLanguage || 'el') === 'en' ? 'English' : 'Ελληνικά';
+  renderSettingsSummary();
   if (profileCreatedAt) profileCreatedAt.textContent = formatDiagnosticDateTime(profile?.createdAt);
   if (profileUpdatedAt) profileUpdatedAt.textContent = formatDiagnosticDateTime(profile?.updatedAt);
   profileAvatar.textContent = profile?.name ? getInitials(profile.name) : '👤';
@@ -4794,7 +4868,10 @@ settingsRefreshLocationButton?.addEventListener('click', refreshLocationFromSett
 settingsRefreshAppButton?.addEventListener('click', () => refreshAppSafely());
 pullRefreshManualButton?.addEventListener('click', () => refreshAppSafely());
 settingsClearDataButton?.addEventListener('click', clearSafeMeData);
-settingsLogoutButton?.addEventListener('click', logout);
+settingsLogoutButton?.addEventListener('click', confirmSettingsLogout);
+settingsOpenProfileLanguageButton?.addEventListener('click', openSettingsProfile);
+settingsAccordionButtons.forEach((button) => button.addEventListener('click', () => toggleSettingsPanel(button)));
+renderSettingsSummary();
 localImportButton?.addEventListener('click', importLocalEmergencyInfo);
 localImportSkipButton?.addEventListener('click', skipLocalEmergencyImport);
 healthOpenProfileButton?.addEventListener('click', () => handleHealthAction('profile'));
