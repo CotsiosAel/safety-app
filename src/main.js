@@ -478,6 +478,10 @@ const refreshActiveSosGpsButton = document.querySelector('#refresh-active-sos-gp
 const updateActiveSosLocationButton = document.querySelector('#update-active-sos-location');
 const endActiveSosButton = document.querySelector('#end-active-sos');
 const copyActiveSosTrackingButton = document.querySelector('#copy-active-sos-tracking');
+const copyActiveSosMessageButton = document.querySelector('#copy-active-sos-message');
+const activeSosWhatsappButton = document.querySelector('#active-sos-whatsapp');
+const activeSosEmailButton = document.querySelector('#active-sos-email');
+const activeSosLocationNote = document.querySelector('#active-sos-location-note');
 const shareActiveSosLocationButton = document.querySelector('#share-active-sos-location');
 const activeSosTestModeLabel = document.querySelector('#active-sos-test-mode-label');
 const activeSosTrackingReady = document.querySelector('#active-sos-tracking-ready');
@@ -744,10 +748,18 @@ function getSmsCapableSosContacts() {
   return contacts.filter((contact) => normalizePhone(contact.phone || ''));
 }
 
-function getGroupSmsLink(message) {
-  const recipients = getSmsCapableSosContacts()
+function getGroupSmsRecipients() {
+  return getSmsCapableSosContacts()
     .map((contact) => normalizePhone(contact.phone || ''))
     .filter(Boolean);
+}
+
+function getEmailCapableSosContacts() {
+  return contacts.filter((contact) => contact.email);
+}
+
+function getGroupSmsLink(message) {
+  const recipients = getGroupSmsRecipients();
 
   return `sms:${recipients.join(',')}?&body=${encodeURIComponent(message)}`;
 }
@@ -784,19 +796,23 @@ function renderSosContactNotifications() {
   const smsCapableContacts = getSmsCapableSosContacts();
   const hasSmsCapableContacts = smsCapableContacts.length > 0;
   notifyAllSosContactsButton.disabled = !hasSmsCapableContacts || isSosTestMode;
-  if (notifyAllSosContactsActionButton) notifyAllSosContactsActionButton.disabled = !hasSmsCapableContacts || isSosTestMode;
+  notifyAllSosContactsButton.textContent = hasSmsCapableContacts ? 'Αποστολή SMS σε όλες τις επαφές' : 'Προσθήκη επαφής';
+  if (notifyAllSosContactsActionButton) {
+    notifyAllSosContactsActionButton.disabled = isSosTestMode;
+    notifyAllSosContactsActionButton.textContent = hasSmsCapableContacts ? 'Αποστολή SMS σε όλες τις επαφές' : 'Προσθήκη επαφής';
+  }
   sosContactWarning.textContent = isSosTestMode
     ? 'Λειτουργία δοκιμής SOS: δεν ετοιμάζεται πραγματικό μήνυμα έκτακτης ανάγκης.'
     : !trackingUrl
       ? 'Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται. Δεν υπάρχει active tracking link.'
       : contacts.length === 0
-        ? 'Δεν υπάρχουν emergency contacts. Πήγαινε στις Επαφές για setup.'
+        ? 'Δεν υπάρχουν έμπιστες επαφές.'
         : !hasSmsCapableContacts
           ? 'Δεν υπάρχουν emergency contacts με αριθμό τηλεφώνου. Πρόσθεσε αριθμούς για να ετοιμαστεί SMS προς όλες τις επαφές.'
           : 'Το SafeMe ετοιμάζει έτοιμο SMS προς όλες τις επαφές με αριθμό τηλεφώνου. Η αποστολή γίνεται από τη συσκευή σου.';
 
   if (contacts.length === 0) {
-    sosContactList.innerHTML = '<article class="sos-contact-empty"><strong>Δεν υπάρχουν emergency contacts</strong><p>Άνοιξε τις Επαφές και πρόσθεσε τουλάχιστον ένα άτομο.</p><button class="ghost-button" type="button" data-sos-open-contacts>Άνοιγμα επαφών</button></article>';
+    sosContactList.innerHTML = '<article class="sos-contact-empty"><strong>Δεν υπάρχουν έμπιστες επαφές.</strong><p>Πρόσθεσε μία επαφή για να ετοιμαστεί SMS.</p><button class="ghost-button" type="button" data-sos-open-contacts>Προσθήκη επαφής</button></article>';
     renderSosNotificationHistory();
     return;
   }
@@ -827,7 +843,8 @@ async function notifyAllSosContacts() {
   const smsCapableContacts = getSmsCapableSosContacts();
 
   if (smsCapableContacts.length === 0) {
-    renderActiveSosSession('Πρόσθεσε έμπιστες επαφές με αριθμό τηλεφώνου για να ετοιμαστεί SMS SOS.');
+    showPage('contacts');
+    renderActiveSosSession('Δεν υπάρχουν έμπιστες επαφές. Πρόσθεσε επαφή για να ετοιμαστεί SMS SOS.');
     return;
   }
 
@@ -2193,6 +2210,32 @@ function renderSafetyStatusCard() {
   renderHomeReadinessCards();
 }
 
+function updateActiveSosEmergencyActions() {
+  const message = getActiveSosEmergencyMessage();
+  const hasSmsCapableContacts = getSmsCapableSosContacts().length > 0;
+  const emailContacts = getEmailCapableSosContacts();
+
+  if (notifyAllSosContactsActionButton) {
+    notifyAllSosContactsActionButton.textContent = hasSmsCapableContacts
+      ? 'Αποστολή SMS σε όλες τις επαφές'
+      : 'Προσθήκη επαφής';
+    notifyAllSosContactsActionButton.disabled = isSosTestMode ? true : false;
+  }
+  if (activeSosLocationNote) {
+    activeSosLocationNote.textContent = currentLocation || hasSosLocation(activeSosSession)
+      ? 'Η τοποθεσία προστέθηκε στο μήνυμα SOS.'
+      : 'Δεν βρέθηκε τοποθεσία. Το SOS μπορεί να σταλεί χωρίς τοποθεσία.';
+  }
+  if (activeSosWhatsappButton) {
+    activeSosWhatsappButton.hidden = !hasSmsCapableContacts || isSosTestMode;
+    activeSosWhatsappButton.href = getWhatsappLink(message);
+  }
+  if (activeSosEmailButton) {
+    activeSosEmailButton.hidden = emailContacts.length === 0 || isSosTestMode;
+    activeSosEmailButton.href = getEmailLink({ email: emailContacts.map((contact) => contact.email).join(',') }, message);
+  }
+}
+
 function renderActiveSosSession(message = '') {
   if (!activeSosSection) return;
 
@@ -2220,8 +2263,9 @@ function renderActiveSosSession(message = '') {
   renderActiveSosDiagnostics();
   if (activeSosLiveStatus) activeSosLiveStatus.hidden = false;
   if (activeSosIntro) {
-    activeSosIntro.textContent = 'Ετοιμάσαμε μήνυμα βοήθειας με την τοποθεσία σου.';
+    activeSosIntro.textContent = 'Το μήνυμα έκτακτης ανάγκης ετοιμάστηκε. Άνοιξε την αποστολή για να ενημερώσεις τις επαφές σου.';
   }
+  updateActiveSosEmergencyActions();
   if (activeSosTestModeLabel) {
     activeSosTestModeLabel.hidden = !activeSosSession.testMode;
   }
@@ -2560,6 +2604,17 @@ async function refreshActiveSosGpsNow() {
   } finally {
     setActiveSosButtonsLoading(false);
     syncActiveSosLocationAutoUpdate();
+  }
+}
+
+async function copyActiveSosMessage() {
+  if (!activeSosSession) return;
+
+  try {
+    await copyTextToClipboard(getActiveSosEmergencyMessage());
+    renderActiveSosSession('Το μήνυμα SOS αντιγράφηκε.');
+  } catch {
+    renderActiveSosSession('Δεν μπόρεσα να αντιγράψω το μήνυμα SOS. Δοκίμασε ξανά.');
   }
 }
 
@@ -4578,6 +4633,7 @@ testActiveSosLiveSyncButton?.addEventListener('click', testActiveSosLiveSyncNow)
 refreshActiveSosGpsButton?.addEventListener('click', refreshActiveSosGpsNow);
 updateActiveSosLocationButton?.addEventListener('click', updateActiveSosLocation);
 copyActiveSosTrackingButton?.addEventListener('click', copyActiveSosTrackingLink);
+copyActiveSosMessageButton?.addEventListener('click', copyActiveSosMessage);
 shareActiveSosLocationButton?.addEventListener('click', shareLocation);
 disableActiveSosTrackingButton?.addEventListener('click', disableActiveSosTrackingLink);
 notifyAllSosContactsActionButton?.addEventListener('click', notifyAllSosContacts);
