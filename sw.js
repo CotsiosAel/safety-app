@@ -1,10 +1,10 @@
-const CACHE_NAME = 'safeme-shell-safe-me-ui-events-2026-07-04';
+const CACHE_NAME = 'safeme-shell-startup-reliability-2026-07-03';
 const SHELL_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css?v=safe-me-ui-events-2026-07-04',
-  './src/main.js?v=safe-me-ui-events-2026-07-04',
+  './src/styles.css?v=startup-reliability-2026-07-03',
+  './src/main.js?v=startup-reliability-2026-07-03',
   './assets/icon.png',
   './version.json',
 ];

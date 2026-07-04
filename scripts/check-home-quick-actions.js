@@ -8,9 +8,12 @@ const markupRequirements = [
   ['SOS button remains primary', 'class="sos-button" id="sos-button"'],
   ['test mode badge', 'id="home-test-mode-badge"'],
   ['test mode helper', 'Δεν αποστέλλεται πραγματικό μήνυμα έκτακτης ανάγκης.'],
+  ['no-contact CTA', 'id="home-add-contact-cta" type="button" data-open-tool="contacts"'],
   ['location status chip', 'id="home-location-status"'],
+  ['signed-out sync CTA', 'id="home-login-sync-cta" type="button" data-open-tool="profile-login"'],
   ['contacts quick action button', 'class="home-quick-action" type="button" data-open-tool="contacts"'],
   ['GPS quick action button', 'class="home-quick-action" type="button" data-open-tool="gps"'],
+  ['SOS settings quick action button', 'class="home-quick-action" type="button" data-open-tool="sos-settings"'],
   ['SOS history quick action button', 'class="home-quick-action" type="button" data-open-tool="sos-history"'],
   ['share location quick action button', 'class="home-quick-action" type="button" data-open-tool="share-location"'],
 ];
@@ -25,8 +28,9 @@ for (const [label, pattern] of markupRequirements) {
 
 const homeReadinessIndex = markup.indexOf('id="home-readiness-card"');
 const sosButtonIndex = markup.indexOf('id="sos-button"');
-if (!(homeReadinessIndex >= 0 && sosButtonIndex > homeReadinessIndex)) {
-  console.error('Home mobile order must keep compact status chips before SOS.');
+const readinessDetailsIndex = markup.indexOf('class="home-readiness-summary"');
+if (!(homeReadinessIndex >= 0 && sosButtonIndex > homeReadinessIndex && readinessDetailsIndex > sosButtonIndex)) {
+  console.error('Home mobile order must keep compact status chips before SOS and readiness details after SOS.');
   process.exit(1);
 }
 
@@ -43,19 +47,8 @@ if ((markup.match(/Δεν αποστέλλεται πραγματικό μήνυ
   process.exit(1);
 }
 
-const homeStart = markup.indexOf('id="home"');
-const homeEnd = markup.indexOf('id="contacts"');
-const homeMarkup = markup.slice(homeStart, homeEnd);
-if ((markup.match(/Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή\./g) || []).length !== 1) {
-  console.error('Signed-out local-mode notice should appear exactly once in markup.');
-  process.exit(1);
-}
-if (homeMarkup.includes('Ασφαλής και διαθέσιμη για check-in')) {
-  console.error('Home must not show check-in readiness copy.');
-  process.exit(1);
-}
-if ((homeMarkup.match(/class="home-quick-action"/g) || []).length !== 4) {
-  console.error('Home should show exactly four main quick actions.');
+if (!markup.includes('Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.')) {
+  console.error('Signed-out Home notice must use compact local-mode copy.');
   process.exit(1);
 }
 
@@ -66,8 +59,12 @@ const sourceRequirements = [
   ['dataset openTool read', 'button.dataset.openTool'],
   ['contacts handler branch', "if (action === 'contacts')"],
   ['GPS handler branch', "if (action === 'gps')"],
+  ['SOS settings handler branch', "if (action === 'sos-settings')"],
   ['SOS history handler branch', "if (action === 'sos-history')"],
   ['share location handler branch', "if (action === 'share-location')"],
+  ['profile login handler branch', "if (action === 'profile-login')"],
+  ['signed-out CTA opens Profile Account/Login', 'openProfileAuthCard()'],
+  ['contacts CTA opens add form', 'focusContactForm()'],
   ['GPS refresh uses existing logic', 'refreshLocation()'],
   ['readiness ready message', 'Το SafeMe είναι έτοιμο για χρήση.'],
   ['signed-out readiness message', 'Το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό.'],
