@@ -98,16 +98,20 @@
             <section class="active-sos-card" id="active-sos-section" aria-labelledby="active-sos-title" hidden>
               <div class="active-sos-summary">
                 <p class="eyebrow">SafeMe SOS</p>
-                <h3 id="active-sos-title">Το SOS ενεργοποιήθηκε</h3>
-                <p class="active-sos-intro" id="active-sos-intro">Ετοιμάσαμε μήνυμα βοήθειας με την τοποθεσία σου.</p>
+                <h3 id="active-sos-title">SOS ενεργό</h3>
+                <p class="active-sos-intro" id="active-sos-intro">Το μήνυμα έκτακτης ανάγκης ετοιμάστηκε. Άνοιξε την αποστολή για να ενημερώσεις τις επαφές σου.</p>
                 <p class="active-sos-test-mode" id="active-sos-test-mode-label" hidden>Λειτουργία δοκιμής SOS</p>
               </div>
 
               <div class="active-sos-emergency-actions" aria-label="Άμεσες ενέργειες SOS">
-                <button class="danger-button active-sos-primary-action" id="notify-all-sos-contacts-action" type="button">Ειδοποίηση όλων των επαφών</button>
-                <div class="active-sos-call-actions" aria-label="Κλήσεις έκτακτης ανάγκης">
-                  <a class="emergency-action-button" href="tel:112">Κλήση 112</a>
-                  <a class="emergency-action-button" href="tel:199">Κλήση 199</a>
+                <button class="danger-button active-sos-primary-action" id="notify-all-sos-contacts-action" type="button">Αποστολή SMS σε όλες τις επαφές</button>
+                <p class="active-sos-safety-note">Για λόγους ασφαλείας, το κινητό σου μπορεί να ζητήσει να πατήσεις αποστολή μέσα στο SMS app.</p>
+                <p class="active-sos-location-note" id="active-sos-location-note" aria-live="polite">Η τοποθεσία προστέθηκε στο μήνυμα SOS.</p>
+                <div class="active-sos-backup-actions" aria-label="Εφεδρικές ενέργειες SOS">
+                  <a class="ghost-button" id="active-sos-call-112" href="tel:112">Κλήση 112</a>
+                  <button class="ghost-button" id="copy-active-sos-message" type="button">Αντιγραφή μηνύματος</button>
+                  <a class="ghost-button" id="active-sos-whatsapp" href="#" target="_blank" rel="noopener" hidden>Αποστολή με WhatsApp</a>
+                  <a class="ghost-button" id="active-sos-email" href="#" hidden>Αποστολή με Email</a>
                 </div>
               </div>
 
