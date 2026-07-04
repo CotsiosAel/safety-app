@@ -352,6 +352,7 @@ const accountSyncTitle = document.querySelector('#account-sync-title');
 const accountSyncMessage = document.querySelector('#account-sync-message');
 const accountSyncLoginButton = document.querySelector('#account-sync-login-button');
 const sosTestModeToggle = document.querySelector('#sos-test-mode');
+const homeSosTestModeToggle = document.querySelector('#home-sos-test-mode');
 const sosModal = document.querySelector('#sos-modal');
 const sosActionPanel = document.querySelector('#sos-action-panel');
 const sosActionTitle = document.querySelector('#sos-action-title');
@@ -888,6 +889,19 @@ function getGroupSmsLink(message) {
   return `sms:${recipients.join(',')}?&body=${encodeURIComponent(message)}`;
 }
 
+function isValidUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
+}
+
+function isRemoteSosSession(session = activeSosSession) {
+  return Boolean(currentUser && session && isValidUuid(session.id) && session.userId === currentUser.id);
+}
+
+function openSmsComposer(message, recipients = []) {
+  const cleanRecipients = recipients.map((recipient) => normalizePhone(recipient || '')).filter(Boolean);
+  window.location.href = `sms:${cleanRecipients.join(',')}?&body=${encodeURIComponent(message)}`;
+}
+
 function logSosNotification(contact, method, status) {
   const entry = { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, contactName: contact?.name || 'Όλες οι επαφές', method, status, at: new Date().toISOString() };
   sosNotificationHistory = [entry, ...sosNotificationHistory].slice(0, 12);
@@ -976,9 +990,15 @@ function renderSosContactNotifications() {
 }
 
 async function notifyAllSosContacts() {
-  if (isSosTestMode) { renderActiveSosSession(); return; }
   const message = getActiveSosEmergencyMessage();
   const smsCapableContacts = getSmsCapableSosContacts();
+
+  if (isSosTestMode) {
+    logSosNotification(null, 'SMS', 'Άνοιξε');
+    renderActiveSosSession('Άνοιξε το SMS για δοκιμή. Πάτησε αποστολή μόνο αν θέλεις να σταλεί το δοκιμαστικό μήνυμα.');
+    openSmsComposer(message);
+    return;
+  }
 
   if (smsCapableContacts.length === 0) {
     showPage('contacts');
@@ -988,7 +1008,7 @@ async function notifyAllSosContacts() {
 
   logSosNotification(null, 'SMS', 'Άνοιξε');
   renderActiveSosSession('Άνοιξε έτοιμο SMS προς όλες τις επαφές. Πάτησε αποστολή για να φύγει το SOS.');
-  window.location.href = getGroupSmsLink(message);
+  openSmsComposer(message, smsCapableContacts.map((contact) => contact.phone));
 }
 
 function loadJson(key, fallback) {
@@ -2214,7 +2234,7 @@ const trustedContactInviteMessage = [
 
 function getSosMessageIntro() {
   return isSosTestMode
-    ? '🧪 ΔΟΚΙΜΗ SafeMe SOS'
+    ? '🧪 ΔΟΚΙΜΗ SafeMe SOS — Δεν υπάρχει πραγματική ανάγκη.'
     : '🚨 SOS από SafeMe';
 }
 
@@ -2261,7 +2281,11 @@ function buildSosMessage(location = currentLocation, shareToken = activeSosSessi
     lines.push('Δεν είναι διαθέσιμη αυτή τη στιγμή.');
   }
 
-  if (trackingUrl) lines.push(`SafeMe live tracking: ${trackingUrl}`);
+  if (trackingUrl) {
+    lines.push('', isSosTestMode ? 'Δοκιμαστικό live tracking:' : 'Live tracking:', trackingUrl);
+  } else if (locationUrl) {
+    lines.push('', 'Google Maps:', locationUrl);
+  }
 
   if (!isSosTestMode) {
     lines.push('', 'Αν δεν μπορείς να επικοινωνήσεις μαζί μου, κάλεσε άμεσα το 112 ή τις αρμόδιες αρχές.');
@@ -2397,7 +2421,7 @@ function mapActiveSosSessionToSupabase(sosEventId, location = currentLocation) {
 }
 
 async function attachSosEventToActiveSession(sosEventId) {
-  if (!currentUser || !activeSosSession || !sosEventId) return;
+  if (!isRemoteSosSession(activeSosSession) || !sosEventId) return;
 
   const { data, error } = await supabase
     .from('active_sos_sessions')
@@ -2415,7 +2439,9 @@ async function attachSosEventToActiveSession(sosEventId) {
     return;
   }
 
+  const wasTestMode = activeSosSession?.testMode === true;
   activeSosSession = restoredSession;
+  activeSosSession.testMode = wasTestMode;
   renderActiveSosSession();
   syncActiveSosLocationAutoUpdate();
 }
@@ -2628,7 +2654,7 @@ function renderActiveSosSession(message = '') {
     'Το ενεργό SOS ξεκίνησε.',
     'Το check-in έληξε και ενεργοποιήθηκε SOS τοπικά.',
   ].some((prefix) => message.startsWith(prefix)) ? '' : message;
-  activeSosFeedback.textContent = activeSosSession.testMode ? '' : compactFeedback;
+  activeSosFeedback.textContent = activeSosSession.testMode ? message : compactFeedback;
   renderSafetyStatusCard();
   renderSosContactNotifications();
 }
@@ -2638,6 +2664,7 @@ function shouldAutoUpdateActiveSosLocation() {
     currentUser
       && activeSosSession
       && activeSosSession.status === 'active'
+      && isRemoteSosSession(activeSosSession)
   );
 }
 
@@ -2717,7 +2744,7 @@ async function autoUpdateActiveSosLocation() {
   }
 }
 
-async function createActiveSosSession(sosEventId, location = currentLocation) {
+async function createActiveSosSession(sosEventId, location = currentLocation, options = {}) {
   if (!currentUser) return null;
 
   const { data, error } = await supabase
@@ -2730,7 +2757,8 @@ async function createActiveSosSession(sosEventId, location = currentLocation) {
 
   activeSosSession = mapActiveSosSessionFromSupabase(data);
   isActiveSosSessionRestored = false;
-  renderActiveSosSession('Το ενεργό SOS ξεκίνησε.');
+  activeSosSession.testMode = options.testMode === true;
+  renderActiveSosSession(options.successMessage || 'Το ενεργό SOS ξεκίνησε.');
   syncActiveSosLocationAutoUpdate();
   return activeSosSession;
 }
@@ -2777,7 +2805,7 @@ function setActiveSosButtonsLoading(isLoading) {
 }
 
 async function syncActiveSosLocationToSupabase(location, { successMessage = '', source = 'manual' } = {}) {
-  if (!currentUser || !activeSosSession || !location) return false;
+  if (!isRemoteSosSession(activeSosSession) || !location) return false;
 
   const now = new Date().toISOString();
   const { data, error } = await supabase
@@ -2802,7 +2830,9 @@ async function syncActiveSosLocationToSupabase(location, { successMessage = '', 
     throw error;
   }
 
+  const wasTestMode = activeSosSession?.testMode === true;
   activeSosSession = mapActiveSosSessionFromSupabase(data);
+  activeSosSession.testMode = wasTestMode;
   activeSosLastAutoUpdateAt = now;
   setActiveSosDiagnosticState({
     lastSupabaseSyncAt: now,
@@ -2814,7 +2844,7 @@ async function syncActiveSosLocationToSupabase(location, { successMessage = '', 
 }
 
 async function updateActiveSosLocation(options = {}) {
-  if (!currentUser || !activeSosSession) return;
+  if (!isRemoteSosSession(activeSosSession)) return;
 
   const {
     successMessage = 'Η τοποθεσία SOS ενημερώθηκε.',
@@ -2857,7 +2887,7 @@ async function updateActiveSosLocation(options = {}) {
 }
 
 async function testActiveSosLiveSyncNow() {
-  if (!currentUser || !activeSosSession) return;
+  if (!isRemoteSosSession(activeSosSession)) return;
 
   setActiveSosButtonsLoading(true);
   renderActiveSosSession('Δοκιμάζω live sync στο Supabase...');
@@ -2935,7 +2965,7 @@ async function copyActiveSosTrackingLink() {
 }
 
 async function disableActiveSosTrackingLink() {
-  if (!currentUser || !activeSosSession?.shareToken) return;
+  if (!isRemoteSosSession(activeSosSession) || !activeSosSession?.shareToken) return;
 
   const confirmed = window.confirm('Θέλεις σίγουρα να απενεργοποιήσεις το tracking link; Η επαφή δεν θα μπορεί πλέον να βλέπει την τοποθεσία.');
   if (!confirmed) return;
@@ -2953,7 +2983,9 @@ async function disableActiveSosTrackingLink() {
 
     if (error) throw error;
 
+    const wasTestMode = activeSosSession?.testMode === true;
     activeSosSession = mapActiveSosSessionFromSupabase(data);
+    activeSosSession.testMode = wasTestMode;
     renderActiveSosSession('Το tracking link απενεργοποιήθηκε.');
   } catch (error) {
     renderActiveSosSession(`Δεν απενεργοποιήθηκε το tracking link: ${error.message}`);
@@ -2973,9 +3005,9 @@ async function endActiveSosSession() {
   markSosSessionEnded(endingSession, 'ending');
   stopActiveSosLocationAutoUpdate();
 
-  if (!currentUser) {
+  if (!isRemoteSosSession(endingSession)) {
     clearActiveSosRuntimeState({
-      message: 'Το SOS τερματίστηκε σε αυτή τη συσκευή. Δεν θα αποκατασταθεί μετά από refresh.',
+      message: 'Το SOS τερματίστηκε τοπικά.',
       endedSession: endingSession,
       status: 'ended',
     });
@@ -3524,7 +3556,7 @@ function showSosActionPanel(message, contact, historyMessage = '') {
   sosActionPanel.hidden = false;
   sosMessagePreview.textContent = message;
   sosTestModeLabel.hidden = !isSosTestMode;
-  sosSendSmsButton.disabled = isSosTestMode;
+  sosSendSmsButton.disabled = false;
   sosSendWhatsappButton.disabled = isSosTestMode;
   sosNativeShareButton.disabled = isSosTestMode;
   const contactMessage = contact
@@ -3553,7 +3585,16 @@ function resetSosModal() {
 }
 
 function sendPreparedSosSms() {
-  if (!preparedSosMessage || !preparedSosContact) return;
+  if (!preparedSosMessage) return;
+
+  if (isSosTestMode) {
+    openSmsComposer(preparedSosMessage);
+    sosActionFeedback.textContent = 'Άνοιξε το SMS για δοκιμή. Πάτησε αποστολή μόνο αν θέλεις να σταλεί το δοκιμαστικό μήνυμα.';
+    sosStatus.textContent = sosActionFeedback.textContent;
+    return;
+  }
+
+  if (!preparedSosContact) return;
 
   window.location.href = getSmsLink(preparedSosContact, preparedSosMessage);
   sosActionFeedback.textContent = `Άνοιξε έτοιμο SMS προς ${preparedSosContact.name}. Πάτα αποστολή.`;
@@ -3665,10 +3706,20 @@ async function confirmSos() {
 
   if (isSosTestMode) {
     createLocalActiveSosSession(currentLocation, { testMode: true });
-    preparedSosMessage = buildSosMessage(currentLocation, null);
+    let testSosMessage = 'Λειτουργία δοκιμής SOS. Το SOS ενεργοποιήθηκε για δοκιμή.';
+    if (currentUser) {
+      try {
+        await createActiveSosSession(null, currentLocation, { testMode: true, successMessage: 'Δοκιμαστικό SOS με live tracking έτοιμο.' });
+        testSosMessage = 'Δοκιμαστικό SOS με live tracking έτοιμο.';
+      } catch {
+        testSosMessage = 'Live tracking δεν δημιουργήθηκε. Το δοκιμαστικό SOS λειτουργεί τοπικά.';
+        renderActiveSosSession(testSosMessage);
+      }
+    }
+    preparedSosMessage = buildSosMessage(currentLocation, activeSosSession?.shareToken);
     preparedSosContact = contact;
     preparedSosTrackingUrl = '';
-    renderActiveSosSession('Λειτουργία δοκιμής SOS. Το SOS ενεργοποιήθηκε για δοκιμή.');
+    renderActiveSosSession(testSosMessage);
     showPage('home');
     activeSosSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setSosConfirmLoading(false);
@@ -3747,19 +3798,25 @@ async function confirmSos() {
 
 function syncSosTestModeToggle() {
   if (sosTestModeToggle) sosTestModeToggle.checked = isSosTestMode;
+  if (homeSosTestModeToggle) homeSosTestModeToggle.checked = isSosTestMode;
   renderSettingsSummary();
+  renderHomeReadinessCards();
 }
 
-function handleSosTestModeChange() {
-  isSosTestMode = Boolean(sosTestModeToggle?.checked);
+function setSosTestMode(enabled) {
+  isSosTestMode = Boolean(enabled);
   saveJson(storageKeys.sosTestMode, isSosTestMode);
-  renderSettingsSummary();
+  syncSosTestModeToggle();
 
   if (preparedSosMessage) {
-    preparedSosMessage = buildSosMessage(currentLocation);
+    preparedSosMessage = buildSosMessage(currentLocation, activeSosSession?.shareToken);
     if (sosMessagePreview) sosMessagePreview.textContent = preparedSosMessage;
     if (sosTestModeLabel) sosTestModeLabel.hidden = !isSosTestMode;
   }
+}
+
+function handleSosTestModeChange(event) {
+  setSosTestMode(Boolean(event?.target?.checked));
 }
 
 function renderContactsFormState() {
@@ -4982,6 +5039,7 @@ settingsClearDataButton?.addEventListener('click', clearSafeMeData);
 settingsLogoutButton?.addEventListener('click', confirmSettingsLogout);
 settingsOpenProfileLanguageButton?.addEventListener('click', openSettingsProfile);
 settingsAccordionButtons.forEach((button) => button.addEventListener('click', () => toggleSettingsPanel(button)));
+homeSosTestModeToggle?.addEventListener('change', handleSosTestModeChange);
 renderSettingsSummary();
 localImportButton?.addEventListener('click', importLocalEmergencyInfo);
 localImportSkipButton?.addEventListener('click', skipLocalEmergencyImport);
