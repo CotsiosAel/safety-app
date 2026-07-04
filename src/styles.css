@@ -1806,8 +1806,7 @@ body.tracking-mode .modal-backdrop {
 }
 
 .settings-summary-card,
-.settings-panel,
-.settings-emergency-actions {
+.settings-panel {
   background: var(--card);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
@@ -1880,7 +1879,21 @@ body.tracking-mode .modal-backdrop {
 }
 
 .settings-panel-danger {
-  border-color: rgba(225, 29, 72, 0.24);
+  border-color: var(--line);
+}
+
+.settings-panel-danger .settings-panel-toggle strong {
+  color: #be123c;
+}
+
+.settings-panel-danger .settings-chevron {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.settings-panel-danger.open {
+  border-color: rgba(225, 29, 72, 0.22);
+  box-shadow: 0 12px 30px rgba(190, 18, 60, 0.08);
 }
 
 .settings-panel-toggle {
@@ -1966,8 +1979,25 @@ body.tracking-mode .modal-backdrop {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  padding: 12px;
-  border-radius: 20px;
+  padding: 10px;
+  border: 1px solid rgba(225, 29, 72, 0.12);
+  border-radius: 18px;
+  background: #fff7f7;
+}
+
+.settings-help-panel .settings-panel-toggle strong {
+  color: #0f766e;
+}
+
+.settings-help-panel .settings-chevron {
+  background: #ecfeff;
+  color: #0f766e;
+}
+
+.settings-help-panel .emergency-call-button {
+  min-height: 46px;
+  border-radius: 15px;
+  font-size: 0.95rem;
 }
 
 @media (max-width: 960px) {
