@@ -56,6 +56,66 @@ requireIncludes(main, 'console.warn(`[SafeMe] Init step failed: ${label}`', 'exa
 requireIncludes(main, 'contactsForm?.requestSubmit()', 'delegated save contact uses form submit path');
 requireIncludes(main, 'authForm?.requestSubmit()', 'delegated login uses form submit path');
 
+const interactiveControlSelectors = [
+  'button,',
+  'a[role="button"],',
+  '.nav-item,',
+  '.status-pill,',
+  '.auth-indicator,',
+  '.ghost-button,',
+  '.primary-button,',
+  '.secondary-button,',
+  '.danger-button,',
+  '.danger-outline-button,',
+  '.profile-accordion-button,',
+  '.settings-panel-toggle,',
+  '.home-readiness-chip,',
+  '.home-quick-actions button,',
+  '.contact-card button,',
+  '.contact-action,',
+  '.sos-button,',
+  '.install-help-dismiss,',
+  '.emergency-call-button {'
+];
+for (const selector of interactiveControlSelectors) {
+  requireIncludes(styles, selector, `mobile interaction CSS selector ${selector}`);
+}
+requireIncludes(styles, '-webkit-user-select: none;', 'iOS user-select disabled for app controls');
+requireIncludes(styles, 'user-select: none;', 'user-select disabled for app controls');
+requireIncludes(styles, '-webkit-touch-callout: none;', 'iOS touch callout disabled for app controls');
+requireIncludes(styles, '-webkit-tap-highlight-color: transparent;', 'tap highlight disabled for app controls');
+requireIncludes(styles, 'touch-action: manipulation;', 'mobile touch action manipulation for controls');
+requireIncludes(styles, `button *,
+.nav-item *,`, 'child labels inside buttons covered by non-select CSS');
+requireIncludes(styles, 'pointer-events: none;', 'child spans/icons cannot capture pointer events');
+requireIncludes(styles, `button,
+a,
+[data-action] {
+  pointer-events: auto;`, 'actual buttons and data-action controls remain clickable');
+requireIncludes(styles, `input,
+textarea,
+select,
+[contenteditable="true"]`, 'forms keep selectable text CSS');
+requireIncludes(styles, '-webkit-touch-callout: default;', 'inputs keep default iOS callout');
+requireIncludes(styles, 'touch-action: auto;', 'inputs keep native touch behavior');
+requireIncludes(styles, `.app-shell,
+.sidebar,
+.topbar,
+.page,
+.card,
+.hero-card`, 'app chrome globally disables text selection');
+
+requireIncludes(main, 'function handleCriticalDelegatedMobileTap(event)', 'mobile pointer/touch delegated tap fallback');
+requireIncludes(main, "document.addEventListener('pointerup', handleCriticalDelegatedMobileTap, true)", 'pointerup fallback listener');
+requireIncludes(main, "document.addEventListener('touchend', handleCriticalDelegatedMobileTap, true)", 'touchend fallback listener');
+requireIncludes(main, 'lastHandledMobileTap', 'mobile tap double-fire guard');
+requireIncludes(main, 'Date.now() - lastHandledMobileTap.time < 700', 'timestamp-based duplicate tap suppression');
+requireIncludes(main, "actionElement.closest('#contacts') ? toggleContactsAddForm() : focusContactForm()", 'same add-contact action path used by click and mobile tap');
+requireIncludes(main, 'shouldIgnoreInteractiveTapTarget(event.target)', 'fallback ignores form typing controls');
+requireIncludes(main, `case 'call-112':
+    case 'call-199':
+      return false;`, 'tel links are not prevented by fallback');
+
 const requiredIds = [
   'sos-button',
   'notify-all-sos-contacts-action',
