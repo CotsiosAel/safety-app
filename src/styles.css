@@ -2046,6 +2046,14 @@ body.tracking-mode .modal-backdrop {
   .compact-danger-button { width: 100%; }
 }
 
+@media (max-width: 640px) {
+  .sos-contact-notify-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sos-notify-primary { width: 100%; }
+}
+
 .pull-refresh-indicator {
   position: fixed;
   top: calc(env(safe-area-inset-top, 0px) + 10px);
@@ -2626,6 +2634,8 @@ body.tracking-mode .modal-backdrop {
 .active-sos-disclosure .active-sos-debug-details,
 .active-sos-disclosure .active-sos-live-note,
 .active-sos-disclosure .active-sos-live-status,
+.active-sos-disclosure .active-sos-tracking-ready,
+.active-sos-disclosure .active-sos-compact-actions,
 .active-sos-disclosure .active-sos-debug-actions {
   margin: 0 16px 16px;
 }
@@ -2637,12 +2647,13 @@ body.tracking-mode .modal-backdrop {
 
 @media (max-width: 640px) {
   .active-sos-card {
-    gap: 10px;
-    margin-top: 12px;
-    padding: 12px;
+    gap: 9px;
+    margin-top: 10px;
+    padding: 10px;
   }
-  .active-sos-card h3 { font-size: 1.45rem; }
-  .active-sos-intro { padding: 8px 10px; font-size: 0.92rem; }
+  .active-sos-summary { gap: 6px; }
+  .active-sos-card h3 { font-size: 1.34rem; }
+  .active-sos-intro { padding: 7px 9px; font-size: 0.9rem; }
   .active-sos-primary-action { min-height: 58px; font-size: 1rem; }
   .active-sos-backup-actions .ghost-button,
   .active-sos-compact-actions .ghost-button,
@@ -2654,10 +2665,19 @@ body.tracking-mode .modal-backdrop {
     font-size: 0.9rem;
   }
   .sos-contact-notify { padding: 12px; border-radius: 18px; }
+  .sos-contact-notify-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sos-notify-primary { width: 100%; }
+  .sos-contact-notify-card { padding: 9px 10px; }
+  .sos-contact-notify-actions { gap: 6px; }
   .sos-contact-notify-actions a,
   .sos-contact-notify-actions button {
-    flex: 1 1 auto;
-    font-size: 0.86rem;
+    flex: 0 1 auto;
+    min-height: 34px;
+    padding: 7px 10px;
+    font-size: 0.84rem;
   }
   .emergency-action-button { min-height: 52px; }
 }

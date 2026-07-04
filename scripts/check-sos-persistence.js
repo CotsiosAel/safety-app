@@ -70,13 +70,37 @@ for (const [label, pattern] of [
   }
 }
 
+
+const requiredPolishPatterns = [
+  ['test mode primary action label', 'Δοκιμή αποστολής SMS'],
+  ['real mode primary action label remains', 'Αποστολή SMS σε όλες τις επαφές'],
+  ['SOS information disclosure', '<summary>Πληροφορίες SOS</summary>'],
+  ['tracking unavailable note inside SOS information', 'Live tracking μη διαθέσιμο σε αυτή τη δοκιμή.'],
+  ['Greek opened notification status', 'Άνοιξε'],
+  ['Greek copied notification status', 'Αντιγράφηκε'],
+  ['Greek failed notification status', 'Απέτυχε'],
+  ['Greek sent notification status', 'Στάλθηκε'],
+  ['mobile vertical SOS contacts header', '.sos-contact-notify-header {\n    flex-direction: column;'],
+  ['mobile full-width all-contacts SMS button', '.sos-notify-primary { width: 100%; }'],
+];
+
+for (const [label, pattern] of requiredPolishPatterns) {
+  if (!source.includes(pattern) && !markup.includes(pattern) && !styles.includes(pattern)) {
+    console.error(`Missing post-SOS polish safeguard: ${label}`);
+    process.exit(1);
+  }
+}
+
 const forbiddenPostSosUiPatterns = [
   ['English Send SMS label', 'Send SMS'],
   ['English Open WhatsApp label', 'Open WhatsApp'],
   ['English Send Email label', 'Send Email'],
   ['English copy emergency message label', 'Copy emergency message'],
   ['English Emergency contacts label', 'Emergency contacts'],
+  ['English uppercase emergency contacts label', 'EMERGENCY CONTACTS'],
+  ['English Opened notification label', 'Opened'],
   ['confusing unavailable tracking label', 'Tracking link μη διαθέσιμο'],
+  ['large unavailable tracking action label', '>Live tracking μη διαθέσιμο</button>'],
 ];
 
 for (const [label, pattern] of forbiddenPostSosUiPatterns) {
