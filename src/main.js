@@ -51,9 +51,10 @@ async function initializeSupabaseClient() {
 }
 
 const SOS_TRACKING_BASE_URL = 'https://safety-app-vert.vercel.app/';
-const APP_VERSION = 'startup-reliability-2026-07-03';
+const APP_VERSION = 'safe-me-ui-events-2026-07-04';
 const APP_VERSION_URL = './version.json';
 const EMERGENCY_PWA_RESET_VERSION = APP_VERSION;
+const APP_VERSION_STORAGE_KEY = 'safeme-current-app-version';
 const UPDATE_STORAGE_KEYS = [
   'updateAvailable',
   'pwaUpdateAvailable',
@@ -73,10 +74,47 @@ function clearStoredAppUpdateFlags() {
   });
 }
 
+function replaceUrlWithVersion(params) {
+  params.set('v', APP_VERSION);
+  const query = params.toString();
+  return `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
+}
+
+async function clearOldSafeMeCaches() {
+  if (!('caches' in window)) return;
+  const keys = await caches.keys();
+  await Promise.all(
+    keys
+      .filter((key) => key.startsWith('safeme-') || key.startsWith('safe-me-') || key.includes('safeme'))
+      .map((key) => caches.delete(key)),
+  );
+}
+
+function selfHealStaleAppVersion() {
+  let storedVersion = null;
+  try {
+    storedVersion = localStorage.getItem(APP_VERSION_STORAGE_KEY);
+  } catch {}
+
+  if (storedVersion === APP_VERSION) return;
+
+  clearStoredAppUpdateFlags();
+
+  clearOldSafeMeCaches()
+    .catch((error) => console.warn('[SafeMe] Could not clear old app caches during version self-heal', error));
+
+  try {
+    localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION);
+  } catch (error) {
+    console.warn('[SafeMe] Could not store current app version during boot', error);
+  }
+}
+
 try {
   clearStoredAppUpdateFlags();
+  selfHealStaleAppVersion();
 } catch (error) {
-  console.warn('[SafeMe] Could not clear stale update flags during boot', error);
+  console.warn('[SafeMe] Could not complete cache/version self-heal during boot', error);
 }
 
 async function runEmergencyPwaResetIfRequested() {
@@ -86,8 +124,7 @@ async function runEmergencyPwaResetIfRequested() {
   const resetKey = `pwa-reset-complete-${EMERGENCY_PWA_RESET_VERSION}`;
   if (sessionStorage.getItem(resetKey) === '1') {
     params.delete('resetPwa');
-    params.set('v', EMERGENCY_PWA_RESET_VERSION);
-    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}${window.location.hash}`);
+    window.history.replaceState({}, '', replaceUrlWithVersion(params));
     return false;
   }
 
@@ -113,10 +150,12 @@ async function runEmergencyPwaResetIfRequested() {
   }
 
   clearStoredAppUpdateFlags();
+  try {
+    localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION);
+  } catch {}
   const cleanParams = new URLSearchParams(window.location.search);
   cleanParams.delete('resetPwa');
-  cleanParams.set('v', EMERGENCY_PWA_RESET_VERSION);
-  window.location.replace(`${window.location.pathname}?${cleanParams.toString()}${window.location.hash}`);
+  window.location.replace(replaceUrlWithVersion(cleanParams));
   return true;
 }
 
