@@ -73,6 +73,52 @@ for (const [label, pattern] of [
 }
 
 
+
+const sosMessageStart = source.indexOf('function buildSosMessage(');
+const sosMessageEnd = source.indexOf('function getSmsLink', sosMessageStart);
+const sosMessageBody = source.slice(sosMessageStart, sosMessageEnd);
+
+for (const [label, pattern] of [
+  ['real SOS SafeMe heading', '🚨 SOS από SafeMe'],
+  ['real SOS emergency copy', 'Χρειάζομαι βοήθεια. Αυτή είναι ειδοποίηση έκτακτης ανάγκης από το SafeMe.'],
+  ['real SOS 112 fallback', 'Αν δεν μπορείς να επικοινωνήσεις μαζί μου, κάλεσε άμεσα το 112 ή τις αρμόδιες αρχές.'],
+  ['test SOS SafeMe heading', '🧪 ΔΟΚΙΜΗ SafeMe SOS'],
+  ['test SOS clearly states no emergency', 'Αυτό είναι δοκιμαστικό μήνυμα. Δεν υπάρχει πραγματική ανάγκη.'],
+  ['location section label', 'Τοποθεσία:'],
+  ['location/maps link is included when available', 'lines.push(locationUrl);'],
+  ['notification timestamp label', 'Ώρα ειδοποίησης:'],
+]) {
+  if (!source.includes(pattern) && !sosMessageBody.includes(pattern)) {
+    console.error(`Missing SOS message wording safeguard: ${label}`);
+    process.exit(1);
+  }
+}
+
+const testMessageBranchStart = sosMessageBody.indexOf('if (isSosTestMode) {');
+const realMessageBranchStart = sosMessageBody.indexOf('if (!isSosTestMode) {');
+const testMessageBranch = sosMessageBody.slice(testMessageBranchStart, realMessageBranchStart);
+const realMessageBranch = sosMessageBody.slice(realMessageBranchStart);
+
+if (testMessageBranch.includes('112')) {
+  console.error('Test SOS message must not include real-emergency 112 escalation copy.');
+  process.exit(1);
+}
+
+if (!realMessageBranch.includes('112')) {
+  console.error('Real SOS message must include 112 escalation copy only outside test mode.');
+  process.exit(1);
+}
+
+for (const [label, pattern] of [
+  ['individual SMS composer remains prepared-only', 'return `sms:${phone}?&body=${encodeURIComponent(message)}`;'],
+  ['group SMS composer remains prepared-only', 'return `sms:${recipients.join(',')}?&body=${encodeURIComponent(message)}`;'],
+]) {
+  if (!source.includes(pattern)) {
+    console.error(`Missing prepared SMS composer safeguard: ${label}`);
+    process.exit(1);
+  }
+}
+
 const requiredPolishPatterns = [
   ['test mode primary action label', 'Δοκιμή αποστολής SMS'],
   ['real mode primary action label remains', 'Αποστολή SMS σε όλες τις επαφές'],

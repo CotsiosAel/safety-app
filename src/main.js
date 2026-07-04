@@ -2214,8 +2214,8 @@ const trustedContactInviteMessage = [
 
 function getSosMessageIntro() {
   return isSosTestMode
-    ? 'ΔΟΚΙΜΗ SOS - Δεν πρόκειται για πραγματική ανάγκη.'
-    : 'ΕΠΕΙΓΟΝ SOS: Χρειάζομαι άμεση βοήθεια.';
+    ? '🧪 ΔΟΚΙΜΗ SafeMe SOS'
+    : '🚨 SOS από SafeMe';
 }
 
 function getSosTrackingUrl(shareToken) {
@@ -2241,28 +2241,33 @@ function buildSosMessage(location = currentLocation, shareToken = activeSosSessi
   const sentAt = new Intl.DateTimeFormat('el-GR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
   const lines = [];
 
-  if (isSosTestMode) {
-    lines.push('ΔΟΚΙΜΗ SOS - Δεν πρόκειται για πραγματική ανάγκη.', '');
-  }
+  lines.push(getSosMessageIntro(), '');
 
-  lines.push(getSosMessageIntro());
-  if (!isSosTestMode) {
-    lines.push('Παρακαλώ επικοινώνησε μαζί μου άμεσα. Αν δεν απαντώ και πιστεύεις ότι κινδυνεύω, κάλεσε το 112.');
+  if (isSosTestMode) {
+    lines.push('Αυτό είναι δοκιμαστικό μήνυμα. Δεν υπάρχει πραγματική ανάγκη.', '');
+  } else {
+    lines.push('Χρειάζομαι βοήθεια. Αυτή είναι ειδοποίηση έκτακτης ανάγκης από το SafeMe.', '');
   }
 
   if (profile?.name?.trim()) lines.push(`Όνομα: ${profile.name.trim()}`);
   if (profile?.phone?.trim()) lines.push(`Τηλέφωνο: ${profile.phone.trim()}`);
-  lines.push(`Ώρα αποστολής: ${sentAt}`);
 
+  lines.push('Τοποθεσία:');
   if (hasLocation) {
-    lines.push(`Τελευταίες συντεταγμένες: ${coordinatesText}`);
-    if (locationUpdatedAt) lines.push(`Ώρα τελευταίας τοποθεσίας: ${locationUpdatedAt}`);
-    lines.push(`Google Maps: ${locationUrl}`);
+    lines.push(locationUrl);
+    lines.push(`Συντεταγμένες: ${coordinatesText}`);
+    if (locationUpdatedAt) lines.push(`Ώρα τοποθεσίας: ${locationUpdatedAt}`);
   } else {
-    lines.push('Τοποθεσία: Δεν είναι διαθέσιμη από τη συσκευή αυτή τη στιγμή.');
+    lines.push('Δεν είναι διαθέσιμη αυτή τη στιγμή.');
   }
 
   if (trackingUrl) lines.push(`SafeMe live tracking: ${trackingUrl}`);
+
+  if (!isSosTestMode) {
+    lines.push('', 'Αν δεν μπορείς να επικοινωνήσεις μαζί μου, κάλεσε άμεσα το 112 ή τις αρμόδιες αρχές.');
+  }
+
+  lines.push('', `Ώρα ειδοποίησης: ${sentAt}`);
 
   return lines.join('\n');
 }
