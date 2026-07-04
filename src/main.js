@@ -392,6 +392,7 @@ const profileDetailPhone = document.querySelector('#profile-detail-phone');
 const profileEditToggle = document.querySelector('#profile-edit-toggle');
 const profileStatusLoginButton = document.querySelector('#profile-status-login-button');
 const profileLanguage = document.querySelector('#profile-language');
+const preferredLanguageSelect = profileForm?.elements?.preferredLanguage;
 const profileCreatedAt = document.querySelector('#profile-created-at');
 const profileUpdatedAt = document.querySelector('#profile-updated-at');
 const profileAvatar = document.querySelector('#profile-avatar');
@@ -4134,11 +4135,12 @@ function renderProfile() {
 async function saveProfile(event) {
   event.preventDefault();
   const formData = new FormData(profileForm);
+  const preferredLanguage = formData.get('preferredLanguage') === 'en' ? 'en' : 'el';
   profile = {
     name: formData.get('name').trim(),
     phone: formData.get('phone').trim(),
     medicalNotes: normalizeMedicalNotes(formData.get('medicalNotes')),
-    preferredLanguage: formData.get('preferredLanguage') || 'el',
+    preferredLanguage,
     createdAt: profile?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -4966,6 +4968,9 @@ clearContactsButton?.addEventListener('click', clearTrustedContacts);
 refreshAccountContactsButton?.addEventListener('click', manuallyRefreshAccountContacts);
 uploadLocalContactsButton?.addEventListener('click', uploadLocalContactsToAccount);
 profileForm?.addEventListener('submit', saveProfile);
+preferredLanguageSelect?.addEventListener('change', () => {
+  preferredLanguageSelect.blur();
+});
 clearDataButton?.addEventListener('click', clearSafeMeData);
 settingsOpenProfileButton?.addEventListener('click', openSettingsProfile);
 settingsOpenContactsButton?.addEventListener('click', openSettingsContacts);
