@@ -463,6 +463,18 @@ const refreshLocationButton = document.querySelector('#refresh-location-button')
 const shareLocationButton = document.querySelector('#share-location-button');
 const homeQuickActions = document.querySelector('.home-quick-actions');
 const homeQuickActionStatus = document.querySelector('#home-quick-action-status');
+const homeReadinessCard = document.querySelector('#home-readiness-card');
+const homeOnlineStatus = document.querySelector('#home-online-status');
+const homeAccountStatus = document.querySelector('#home-account-status');
+const homeContactsStatus = document.querySelector('#home-contacts-status');
+const homeLocationStatus = document.querySelector('#home-location-status');
+const homeSosModeStatus = document.querySelector('#home-sos-mode-status');
+const homeReadinessMessage = document.querySelector('#home-readiness-message');
+const homeTestModeBadge = document.querySelector('#home-test-mode-badge');
+const homeTestModeHelper = document.querySelector('#home-test-mode-helper');
+const accountReadinessText = document.querySelector('#account-readiness-text');
+const homeLoginSyncCta = document.querySelector('#home-login-sync-cta');
+const homeAddContactCta = document.querySelector('#home-add-contact-cta');
 const safetyToolsTestSosButton = document.querySelector('#safety-tools-test-sos');
 const profileAccordionCards = Array.from(document.querySelectorAll('[data-profile-accordion]'));
 const profileDetailsSummary = document.querySelector('#profile-details-summary');
@@ -751,11 +763,12 @@ function setupAppFreshnessChecks() {
   });
   window.addEventListener('online', () => {
     renderSettingsSummary();
+    renderHomeReadinessCards();
     checkForAppUpdate({ force: true });
     if (currentUser) autoRefreshAccountContactsFromSupabase('online').catch((error) => console.warn('[SafeMe] Online contacts refresh failed', error));
     if (hasRequestedLocationPermission) refreshLocation();
   });
-  window.addEventListener('offline', renderSettingsSummary);
+  window.addEventListener('offline', () => { renderSettingsSummary(); renderHomeReadinessCards(); });
 }
 
 
@@ -1598,6 +1611,38 @@ function handleHomeQuickAction(action) {
   if (action === 'contacts') {
     setHomeQuickActionStatus('Άνοιγμα επαφών...');
     focusContactForm();
+    return;
+  }
+
+  if (action === 'gps') {
+    setHomeQuickActionStatus('Ενημέρωση GPS...');
+    refreshLocation();
+    return;
+  }
+
+  if (action === 'sos-settings') {
+    setHomeQuickActionStatus('Άνοιγμα ρυθμίσεων SOS...');
+    showPage('settings');
+    window.setTimeout(() => focusElementAfterScroll(document.querySelector('#sos-test-mode') || document.querySelector('#settings')), 80);
+    return;
+  }
+
+  if (action === 'sos-history') {
+    setHomeQuickActionStatus('Άνοιγμα ιστορικού SOS...');
+    showPage('profile');
+    openProfileAccordion('sos', { focusTarget: sosHistoryList || document.querySelector('#profile-sos-summary') });
+    return;
+  }
+
+  if (action === 'share-location') {
+    setHomeQuickActionStatus('Μοίρασμα θέσης...');
+    shareLocation();
+    return;
+  }
+
+  if (action === 'profile-login') {
+    setHomeQuickActionStatus('Άνοιγμα σύνδεσης...');
+    openProfileAuthCard();
   }
 }
 
@@ -2352,17 +2397,55 @@ function getActiveSosLocationUrl(session) {
 }
 
 function renderHomeReadinessCards() {
-  if (contactsReadinessText) {
-    contactsReadinessText.textContent = contacts.length > 0
-      ? `${contacts.length} έμπιστες επαφές είναι έτοιμες για SOS ειδοποιήσεις.`
-      : 'Πρόσθεσε έμπιστες επαφές για SOS ειδοποιήσεις.';
+  const isOnline = navigator.onLine !== false;
+  const hasAccount = Boolean(currentUser);
+  const hasContacts = contacts.length > 0;
+  const primaryContact = contacts.find((contact) => contact.isPrimary) || contacts[0];
+  const hasLocation = Boolean(currentLocation);
+
+  if (homeOnlineStatus) {
+    homeOnlineStatus.textContent = isOnline ? 'Online' : 'Offline';
+    homeOnlineStatus.classList.toggle('warning', !isOnline);
+  }
+  if (homeAccountStatus) homeAccountStatus.textContent = hasAccount ? 'Συνδεδεμένος' : 'Τοπικό προφίλ';
+  if (homeContactsStatus) homeContactsStatus.textContent = `${contacts.length} έμπιστες επαφές`;
+  if (homeLocationStatus) {
+    homeLocationStatus.textContent = hasLocation ? 'Τοποθεσία διαθέσιμη' : 'Χρειάζεται ενημέρωση GPS';
+    homeLocationStatus.classList.toggle('warning', !hasLocation);
+  }
+  if (homeSosModeStatus) {
+    homeSosModeStatus.textContent = isSosTestMode ? 'Δοκιμή SOS ενεργή' : 'Πραγματικό SOS';
+    homeSosModeStatus.classList.toggle('test', isSosTestMode);
+  }
+  if (homeTestModeBadge) homeTestModeBadge.hidden = !isSosTestMode;
+  if (homeTestModeHelper) homeTestModeHelper.hidden = !isSosTestMode;
+
+  if (homeReadinessMessage) {
+    homeReadinessMessage.textContent = !hasAccount
+      ? 'Το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό επαφών και ιστορικού.'
+      : !hasContacts
+        ? 'Πρόσθεσε έμπιστες επαφές για γρήγορη ειδοποίηση.'
+        : !hasLocation
+          ? 'Ενημέρωσε GPS για να προστεθεί τοποθεσία στο SOS.'
+          : 'Το SafeMe είναι έτοιμο για χρήση.';
   }
 
-  if (locationReadinessText) {
-    locationReadinessText.textContent = currentLocation
-      ? `Η τοποθεσία είναι ενεργή: ${formatLocation(currentLocation)}.`
-      : 'Ενεργοποίησε την τοποθεσία για πιο χρήσιμο SOS.';
+  if (contactsReadinessText) {
+    contactsReadinessText.textContent = hasContacts
+      ? `${contacts.length} έμπιστες επαφές${primaryContact?.name ? ` • κύρια: ${primaryContact.name}` : ''}.`
+      : 'Δεν υπάρχουν επαφές. Πρόσθεσε έμπιστες επαφές για γρήγορη ειδοποίηση.';
   }
+  if (homeAddContactCta) homeAddContactCta.hidden = hasContacts;
+
+  if (locationReadinessText) {
+    locationReadinessText.textContent = hasLocation
+      ? `Τοποθεσία διαθέσιμη${currentLocation.accuracy ? ` • ακρίβεια περίπου ${Math.round(currentLocation.accuracy)}μ.` : ''}.`
+      : 'Χρειάζεται ενημέρωση GPS για να προστεθεί τοποθεσία στο SOS.';
+  }
+
+  if (accountReadinessText) accountReadinessText.textContent = hasAccount ? 'Συγχρονισμός ενεργός' : 'Τοπική λειτουργία';
+  if (homeLoginSyncCta) homeLoginSyncCta.hidden = hasAccount;
+  if (homeReadinessCard) homeReadinessCard.classList.toggle('is-ready', hasAccount && hasContacts && hasLocation && isOnline);
 }
 
 function renderSafetyStatusCard() {
@@ -4886,6 +4969,8 @@ healthChecklist?.addEventListener('click', (event) => {
   if (actionButton) handleHealthAction(actionButton.dataset.healthAction);
 });
 refreshLocationButton?.addEventListener('click', refreshLocation);
+homeLoginSyncCta?.addEventListener('click', openProfileAuthCard);
+homeAddContactCta?.addEventListener('click', focusContactForm);
 setupChecklist?.addEventListener('click', handleSetupChecklistAction);
 shareLocationButton?.addEventListener('click', shareLocation);
 testActiveSosLiveSyncButton?.addEventListener('click', testActiveSosLiveSyncNow);
