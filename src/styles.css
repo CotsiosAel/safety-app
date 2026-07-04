@@ -3583,3 +3583,23 @@ body.tracking-mode .modal-backdrop {
   .home-readiness-summary .readiness-card { grid-template-columns: auto 1fr; }
   .home-inline-action { min-height: 34px; font-size: 0.78rem; }
 }
+
+.home-sos-test-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: min(100%, 420px);
+  margin: 10px auto 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(249, 115, 22, 0.28);
+  border-radius: 16px;
+  background: #fff7ed;
+  color: #7c2d12;
+  box-shadow: 0 8px 20px rgba(124, 45, 18, 0.08);
+}
+.home-sos-test-toggle strong,
+.home-sos-test-toggle small { display: block; }
+.home-sos-test-toggle strong { font-size: 0.95rem; }
+.home-sos-test-toggle small { margin-top: 2px; font-size: 0.78rem; line-height: 1.25; }
+.home-sos-test-toggle input { width: 42px; height: 24px; accent-color: #f97316; flex: 0 0 auto; }
