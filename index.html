@@ -100,7 +100,7 @@
                 <p class="eyebrow">SafeMe SOS</p>
                 <h3 id="active-sos-title">SOS ενεργό</h3>
                 <p class="active-sos-intro" id="active-sos-intro">Το μήνυμα έκτακτης ανάγκης ετοιμάστηκε. Άνοιξε την αποστολή για να ενημερώσεις τις επαφές σου.</p>
-                <p class="active-sos-test-mode" id="active-sos-test-mode-label" hidden>Λειτουργία δοκιμής SOS</p>
+                <p class="active-sos-test-mode" id="active-sos-test-mode-label" hidden>Δοκιμή SOS</p>
               </div>
 
               <div class="active-sos-emergency-actions" aria-label="Άμεσες ενέργειες SOS">
@@ -109,18 +109,18 @@
                 <p class="active-sos-location-note" id="active-sos-location-note" aria-live="polite">Η τοποθεσία προστέθηκε στο μήνυμα SOS.</p>
                 <div class="active-sos-backup-actions" aria-label="Εφεδρικές ενέργειες SOS">
                   <a class="ghost-button" id="active-sos-call-112" href="tel:112">Κλήση 112</a>
-                  <button class="ghost-button" id="copy-active-sos-message" type="button">Αντιγραφή μηνύματος</button>
-                  <a class="ghost-button" id="active-sos-whatsapp" href="#" target="_blank" rel="noopener" hidden>Αποστολή με WhatsApp</a>
-                  <a class="ghost-button" id="active-sos-email" href="#" hidden>Αποστολή με Email</a>
+                  <button class="ghost-button" id="copy-active-sos-message" type="button">Αντιγραφή</button>
+                  <a class="ghost-button" id="active-sos-whatsapp" href="#" target="_blank" rel="noopener" hidden>WhatsApp</a>
+                  <a class="ghost-button" id="active-sos-email" href="#" hidden>Email</a>
                 </div>
               </div>
 
-              <p class="active-sos-tracking-ready" id="active-sos-tracking-ready">Tracking link έτοιμο</p>
+              <p class="active-sos-tracking-ready" id="active-sos-tracking-ready">Live tracking έτοιμο</p>
 
               <div class="active-sos-compact-actions" aria-label="Ενέργειες τοποθεσίας SOS">
                 <button class="ghost-button" id="share-active-sos-location" type="button">Κοινή χρήση τοποθεσίας</button>
-                <button class="ghost-button" id="copy-active-sos-tracking" type="button">Αντιγραφή tracking link</button>
-                <button class="ghost-button" id="update-active-sos-location" type="button">Ενημέρωση τοποθεσίας τώρα</button>
+                <button class="ghost-button" id="copy-active-sos-tracking" type="button">Αντιγραφή</button>
+                <button class="ghost-button" id="update-active-sos-location" type="button">Ενημέρωση GPS</button>
               </div>
 
               <p class="active-sos-feedback" id="active-sos-feedback" aria-live="polite"></p>
@@ -128,12 +128,12 @@
               <details class="active-sos-disclosure active-sos-info">
                 <summary>Πληροφορίες SOS</summary>
                 <dl class="active-sos-details">
-                  <div><dt>Status</dt><dd id="active-sos-status">active</dd></div>
-                  <div><dt>Started time</dt><dd id="active-sos-started">—</dd></div>
-                  <div><dt>Latest location time</dt><dd id="active-sos-latest-location-time">—</dd></div>
-                  <div><dt>Last Supabase sync time</dt><dd id="active-sos-last-live-update">—</dd></div>
-                  <div><dt>Live update status</dt><dd id="active-sos-live-update-state">—</dd></div>
-                  <div><dt>Tracking link</dt><dd id="active-sos-tracking-status">—</dd></div>
+                  <div><dt>Κατάσταση</dt><dd id="active-sos-status">active</dd></div>
+                  <div><dt>Έναρξη</dt><dd id="active-sos-started">—</dd></div>
+                  <div><dt>Τελευταία τοποθεσία</dt><dd id="active-sos-latest-location-time">—</dd></div>
+                  <div><dt>Τελευταίος συγχρονισμός</dt><dd id="active-sos-last-live-update">—</dd></div>
+                  <div><dt>Live ενημέρωση</dt><dd id="active-sos-live-update-state">—</dd></div>
+                  <div><dt>Live tracking</dt><dd id="active-sos-tracking-status">—</dd></div>
                   <div><dt>Τοποθεσία</dt><dd id="active-sos-location">Χωρίς τοποθεσία</dd></div>
                 </dl>
                 <p class="active-sos-live-note" id="active-sos-live-note">Η αυτόματη ενημέρωση δουλεύει όσο η εφαρμογή μένει ανοιχτή. Αν GPS, χάρτης ή sync αποτύχουν, κράτα ανοιχτό αυτό το screen και χρησιμοποίησε copy/share ή κλήση.</p>
@@ -159,16 +159,16 @@
               <section class="sos-contact-notify" id="sos-contact-notify" aria-labelledby="sos-contact-notify-title">
                 <div class="sos-contact-notify-header">
                   <div>
-                    <p class="eyebrow">Emergency contacts</p>
+                    <p class="eyebrow">Επαφές έκτακτης ανάγκης</p>
                     <h4 id="sos-contact-notify-title">Επαφές έκτακτης ανάγκης</h4>
                     <p>Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται.</p>
                   </div>
-                  <button class="danger-button sos-notify-primary" id="notify-all-sos-contacts" type="button">Ειδοποίηση όλων των επαφών</button>
+                  <button class="danger-button sos-notify-primary" id="notify-all-sos-contacts" type="button">Αποστολή SMS σε όλες τις επαφές</button>
                 </div>
                 <p class="sos-contact-warning" id="sos-contact-warning" aria-live="polite"></p>
                 <div class="sos-contact-list" id="sos-contact-list" aria-live="polite"></div>
                 <section class="sos-notification-history" aria-labelledby="sos-notification-history-title">
-                  <h5 id="sos-notification-history-title">Notification history</h5>
+                  <h5 id="sos-notification-history-title">Ιστορικό ειδοποιήσεων</h5>
                   <div id="sos-notification-history-list" class="sos-notification-history-list"></div>
                 </section>
               </section>
@@ -682,7 +682,7 @@
         <div class="sos-action-buttons contact-invite-actions">
           <button class="danger-button" id="contact-invite-sms" type="button">Αποστολή με SMS</button>
           <button class="secondary-button" id="contact-invite-whatsapp" type="button">Αποστολή με WhatsApp</button>
-          <button class="ghost-button" id="contact-invite-copy" type="button">Αντιγραφή μηνύματος</button>
+          <button class="ghost-button" id="contact-invite-copy" type="button">Αντιγραφή</button>
         </div>
       </div>
     </div>
@@ -694,7 +694,7 @@
           <span class="modal-icon">🆘</span>
           <p class="eyebrow">SafeMe SOS</p>
           <h2 id="sos-action-title">Το SOS ενεργοποιήθηκε</h2>
-          <p class="sos-test-mode-label" id="sos-test-mode-label" hidden>Λειτουργία δοκιμής SOS</p>
+          <p class="sos-test-mode-label" id="sos-test-mode-label" hidden>Δοκιμή SOS</p>
           <p id="sos-action-description">Ετοιμάσαμε μήνυμα βοήθειας με την τοποθεσία σου.</p>
           <section class="emergency-call-section modal-emergency-calls" aria-labelledby="sos-emergency-call-title">
             <h3 id="sos-emergency-call-title">Άμεση κλήση έκτακτης ανάγκης</h3>
@@ -709,7 +709,7 @@
           <div class="sos-action-buttons">
             <button class="danger-button" id="sos-send-sms" type="button">Αποστολή με SMS</button>
             <button class="secondary-button" id="sos-send-whatsapp" type="button">Αποστολή με WhatsApp</button>
-            <button class="ghost-button" id="sos-copy-tracking" type="button" hidden>Αντιγραφή tracking link</button>
+            <button class="ghost-button" id="sos-copy-tracking" type="button" hidden>Αντιγραφή</button>
             <button class="ghost-button" id="sos-copy-message" type="button">Αντιγραφή μήνυμα SOS</button>
             <button class="ghost-button" id="sos-native-share" type="button">Κοινή χρήση</button>
             <button class="ghost-button" type="button" data-close-sos>Κλείσιμο</button>

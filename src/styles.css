@@ -695,10 +695,10 @@ body.modal-open { overflow: hidden; }
 
 .active-sos-card {
   display: grid;
-  gap: 16px;
+  gap: 12px;
   width: min(100%, 900px);
-  margin: 28px auto 0;
-  padding: clamp(20px, 4vw, 30px);
+  margin: 20px auto 0;
+  padding: clamp(16px, 3vw, 24px);
   text-align: left;
   background: linear-gradient(145deg, rgba(255, 228, 230, 0.98), rgba(255, 255, 255, 0.94));
   border: 2px solid rgba(225, 29, 72, 0.34);
@@ -716,18 +716,18 @@ body.modal-open { overflow: hidden; }
 .active-sos-card h3 {
   margin: 0;
   color: #9f1239;
-  font-size: clamp(1.75rem, 4vw, 2.45rem);
+  font-size: clamp(1.55rem, 3vw, 2.15rem);
   letter-spacing: -0.05em;
   text-transform: uppercase;
 }
 .active-sos-intro {
   margin: 0;
-  padding: 14px 16px;
+  padding: 10px 12px;
   color: #991b1b;
   background: #fff1f2;
   border: 2px solid rgba(239, 35, 60, 0.22);
   border-radius: 18px;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 950;
   line-height: 1.45;
 }
@@ -834,7 +834,7 @@ body.modal-open { overflow: hidden; }
 
 .sos-notify-primary,
 .active-sos-actions .active-sos-primary-action {
-  min-height: 72px;
+  min-height: 64px;
   font-size: 1.08rem;
   box-shadow: 0 18px 42px rgba(239, 35, 60, 0.28);
 }
@@ -1968,8 +1968,8 @@ body.tracking-mode .modal-backdrop {
 }
 
 .sos-contact-notify {
-  margin: 22px 0;
-  padding: 18px;
+  margin: 12px 0;
+  padding: 14px;
   text-align: left;
   background: #fff7f7;
   border: 1px solid rgba(239, 35, 60, 0.28);
@@ -1987,15 +1987,15 @@ body.tracking-mode .modal-backdrop {
 .sos-contact-notify p { color: #7f1d1d; }
 .compact-danger-button { margin-top: 0; white-space: nowrap; }
 .sos-contact-warning {
-  margin: 12px 0;
+  margin: 8px 0;
   color: #9f1239;
   font-weight: 900;
 }
-.sos-contact-list { display: grid; gap: 12px; }
+.sos-contact-list { display: grid; gap: 8px; }
 .sos-contact-notify-card,
 .sos-contact-empty,
 .sos-notification-history-item {
-  padding: 14px;
+  padding: 10px 12px;
   background: rgba(255,255,255,0.9);
   border: 1px solid rgba(239, 35, 60, 0.16);
   border-radius: 18px;
@@ -2007,13 +2007,20 @@ body.tracking-mode .modal-backdrop {
 .sos-contact-missing,
 .missing-contact-inline { color: #be123c; font-weight: 900; }
 .sos-contact-notify-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
 }
 .sos-contact-notify-actions a,
-.sos-contact-notify-actions button { margin: 0; width: 100%; text-align: center; text-decoration: none; }
+.sos-contact-notify-actions button {
+  width: auto;
+  min-height: 36px;
+  margin: 0;
+  padding: 8px 11px;
+  text-align: center;
+  text-decoration: none;
+}
 .sos-contact-notify-actions [aria-disabled="true"] {
   opacity: 0.48;
   pointer-events: none;
@@ -2035,8 +2042,7 @@ body.tracking-mode .modal-backdrop {
 .sos-notification-empty { margin: 0; }
 
 @media (max-width: 720px) {
-  .sos-contact-notify-header,
-  .sos-contact-notify-actions { grid-template-columns: 1fr; flex-direction: column; }
+  .sos-contact-notify-header { gap: 10px; }
   .compact-danger-button { width: 100%; }
 }
 
@@ -2534,7 +2540,7 @@ body.tracking-mode .modal-backdrop {
 }
 .active-sos-primary-action {
   width: 100%;
-  min-height: 76px;
+  min-height: 66px;
   margin-top: 0;
   font-size: 1.12rem;
 }
@@ -2553,13 +2559,14 @@ body.tracking-mode .modal-backdrop {
   border-radius: 14px;
 }
 .active-sos-backup-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .active-sos-backup-actions .ghost-button {
-  width: 100%;
-  min-height: 48px;
+  width: auto;
+  min-height: 38px;
+  padding: 8px 12px;
   margin-top: 0;
   justify-content: center;
   text-align: center;
@@ -2569,21 +2576,26 @@ body.tracking-mode .modal-backdrop {
 .active-sos-tracking-ready {
   width: fit-content;
   margin: 0;
-  padding: 8px 12px;
-  color: #7f1d1d;
-  background: rgba(255, 255, 255, 0.76);
-  border: 1px solid rgba(239, 35, 60, 0.18);
+  padding: 4px 0;
+  color: #64748b;
+  background: transparent;
+  border: 0;
   border-radius: 999px;
-  font-weight: 900;
+  font-size: 0.84rem;
+  font-weight: 800;
 }
 .active-sos-compact-actions {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .active-sos-compact-actions .ghost-button,
 .active-sos-debug-actions .ghost-button,
 .active-sos-debug-actions .danger-outline-button,
 .active-sos-end-action {
-  min-height: 50px;
+  width: auto;
+  min-height: 38px;
+  padding: 8px 12px;
   margin-top: 0;
 }
 .active-sos-disclosure {
@@ -2625,16 +2637,29 @@ body.tracking-mode .modal-backdrop {
 
 @media (max-width: 640px) {
   .active-sos-card {
-    gap: 12px;
-    margin-top: 20px;
-    padding: 16px;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 12px;
   }
-  .active-sos-card h3 { font-size: 1.75rem; }
-  .active-sos-intro { padding: 12px 14px; }
-  .active-sos-call-actions,
-  .active-sos-compact-actions,
-  .active-sos-backup-actions { grid-template-columns: 1fr; }
-  .emergency-action-button { min-height: 60px; }
+  .active-sos-card h3 { font-size: 1.45rem; }
+  .active-sos-intro { padding: 8px 10px; font-size: 0.92rem; }
+  .active-sos-primary-action { min-height: 58px; font-size: 1rem; }
+  .active-sos-backup-actions .ghost-button,
+  .active-sos-compact-actions .ghost-button,
+  .active-sos-debug-actions .ghost-button,
+  .active-sos-debug-actions .danger-outline-button {
+    flex: 1 1 auto;
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+  .sos-contact-notify { padding: 12px; border-radius: 18px; }
+  .sos-contact-notify-actions a,
+  .sos-contact-notify-actions button {
+    flex: 1 1 auto;
+    font-size: 0.86rem;
+  }
+  .emergency-action-button { min-height: 52px; }
 }
 
 .local-profile-status {

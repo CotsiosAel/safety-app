@@ -802,13 +802,13 @@ function renderSosContactNotifications() {
     notifyAllSosContactsActionButton.textContent = hasSmsCapableContacts ? 'Αποστολή SMS σε όλες τις επαφές' : 'Προσθήκη επαφής';
   }
   sosContactWarning.textContent = isSosTestMode
-    ? 'Λειτουργία δοκιμής SOS: δεν ετοιμάζεται πραγματικό μήνυμα έκτακτης ανάγκης.'
+    ? ''
     : !trackingUrl
-      ? 'Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται. Δεν υπάρχει active tracking link.'
+      ? 'Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται. Δεν υπάρχει live tracking.'
       : contacts.length === 0
         ? 'Δεν υπάρχουν έμπιστες επαφές.'
         : !hasSmsCapableContacts
-          ? 'Δεν υπάρχουν emergency contacts με αριθμό τηλεφώνου. Πρόσθεσε αριθμούς για να ετοιμαστεί SMS προς όλες τις επαφές.'
+          ? 'Δεν υπάρχουν επαφές έκτακτης ανάγκης με αριθμό τηλεφώνου. Πρόσθεσε αριθμούς για να ετοιμαστεί SMS προς όλες τις επαφές.'
           : 'Το SafeMe ετοιμάζει έτοιμο SMS προς όλες τις επαφές με αριθμό τηλεφώνου. Η αποστολή γίνεται από τη συσκευή σου.';
 
   if (contacts.length === 0) {
@@ -824,13 +824,13 @@ function renderSosContactNotifications() {
     const hasEmail = Boolean(contact.email);
     return `
       <article class="sos-contact-notify-card">
-        <div><strong>${escapeHtml(contact.name)}</strong><span>${escapeHtml(contact.relationship || 'Emergency contact')}</span></div>
-        ${!hasPhone && !hasEmail ? '<p class="sos-contact-missing">Missing contact details</p>' : ''}
+        <div><strong>${escapeHtml(contact.name)}</strong><span>${escapeHtml(contact.relationship || 'Επαφή έκτακτης ανάγκης')}</span></div>
+        ${!hasPhone && !hasEmail ? '<p class="sos-contact-missing">Λείπουν στοιχεία επικοινωνίας</p>' : ''}
         <div class="sos-contact-notify-actions">
-          <a class="danger-button" href="${escapeHtml(getSmsLink(contact, message))}" data-sos-notify-index="${index}" data-sos-method="SMS" ${!hasPhone ? 'aria-disabled="true" tabindex="-1"' : ''}>Send SMS</a>
-          <a class="ghost-button" href="${escapeHtml(getWhatsappLink(message, contact))}" target="_blank" rel="noopener" data-sos-notify-index="${index}" data-sos-method="WhatsApp" ${!hasPhone ? 'aria-disabled="true" tabindex="-1"' : ''}>Open WhatsApp</a>
-          <a class="ghost-button" href="${escapeHtml(getEmailLink(contact, message))}" data-sos-notify-index="${index}" data-sos-method="Email" ${!hasEmail ? 'aria-disabled="true" tabindex="-1"' : ''}>Send Email</a>
-          <button class="ghost-button" type="button" data-sos-copy-contact="${index}">Copy emergency message</button>
+          <a class="danger-button" href="${escapeHtml(getSmsLink(contact, message))}" data-sos-notify-index="${index}" data-sos-method="SMS" ${!hasPhone ? 'aria-disabled="true" tabindex="-1"' : ''}>Αποστολή SMS</a>
+          <a class="ghost-button" href="${escapeHtml(getWhatsappLink(message, contact))}" target="_blank" rel="noopener" data-sos-notify-index="${index}" data-sos-method="WhatsApp" ${!hasPhone ? 'aria-disabled="true" tabindex="-1"' : ''}>Άνοιγμα WhatsApp</a>
+          <a class="ghost-button" href="${escapeHtml(getEmailLink(contact, message))}" data-sos-notify-index="${index}" data-sos-method="Email" ${!hasEmail ? 'aria-disabled="true" tabindex="-1"' : ''}>Αποστολή Email</a>
+          <button class="ghost-button" type="button" data-sos-copy-contact="${index}">Αντιγραφή μηνύματος</button>
         </div>
       </article>`;
   }).join('');
@@ -838,7 +838,7 @@ function renderSosContactNotifications() {
 }
 
 async function notifyAllSosContacts() {
-  if (isSosTestMode) { renderActiveSosSession('Λειτουργία δοκιμής SOS: δεν ετοιμάστηκε πραγματικό μήνυμα έκτακτης ανάγκης.'); return; }
+  if (isSosTestMode) { renderActiveSosSession(); return; }
   const message = getActiveSosEmergencyMessage();
   const smsCapableContacts = getSmsCapableSosContacts();
 
@@ -2263,7 +2263,9 @@ function renderActiveSosSession(message = '') {
   renderActiveSosDiagnostics();
   if (activeSosLiveStatus) activeSosLiveStatus.hidden = false;
   if (activeSosIntro) {
-    activeSosIntro.textContent = 'Το μήνυμα έκτακτης ανάγκης ετοιμάστηκε. Άνοιξε την αποστολή για να ενημερώσεις τις επαφές σου.';
+    activeSosIntro.textContent = activeSosSession.testMode
+      ? 'Δεν αποστέλλεται πραγματικό μήνυμα έκτακτης ανάγκης.'
+      : 'Άνοιξε την αποστολή για να ενημερώσεις άμεσα τις επαφές σου.';
   }
   updateActiveSosEmergencyActions();
   if (activeSosTestModeLabel) {
@@ -2271,11 +2273,11 @@ function renderActiveSosSession(message = '') {
   }
   if (activeSosTrackingReady) {
     activeSosTrackingReady.textContent = activeSosSession.shareToken
-      ? 'Tracking link έτοιμο'
-      : 'Tracking link μη διαθέσιμο';
+      ? 'Live tracking έτοιμο'
+      : 'Live tracking μη διαθέσιμο σε αυτή τη δοκιμή.';
   }
   activeSosStarted.textContent = formatSosEventDate(activeSosSession.startedAt);
-  activeSosStatus.textContent = activeSosSession.testMode ? 'Λειτουργία δοκιμής SOS' : activeSosSession.status;
+  activeSosStatus.textContent = activeSosSession.testMode ? 'Δοκιμή SOS' : activeSosSession.status;
   if (activeSosLatestLocationTime) {
     activeSosLatestLocationTime.textContent = activeSosSession.latestLocationAt
       ? formatSosEventDate(activeSosSession.latestLocationAt)
@@ -2295,11 +2297,11 @@ function renderActiveSosSession(message = '') {
   if (activeSosTrackingStatus) {
     if (activeSosSession.shareToken) {
       const trackingUrl = getSosTrackingUrl(activeSosSession.shareToken);
-      activeSosTrackingStatus.innerHTML = `<a href="${escapeHtml(trackingUrl)}" target="_blank" rel="noopener">Άνοιγμα public tracking link</a><br><small>${escapeHtml(trackingUrl)}</small>`;
+      activeSosTrackingStatus.innerHTML = `<a href="${escapeHtml(trackingUrl)}" target="_blank" rel="noopener">Άνοιγμα live tracking</a><br><small>${escapeHtml(trackingUrl)}</small>`;
     } else {
       activeSosTrackingStatus.textContent = currentUser
-        ? 'Δεν δημιουργήθηκε link. Χρησιμοποίησε SMS/WhatsApp και δοκίμασε live sync.'
-        : 'Live tracking: απαιτεί σύνδεση. Το SOS μένει ενεργό τοπικά σε αυτή τη συσκευή.';
+        ? 'Live tracking μη διαθέσιμο σε αυτή τη δοκιμή.'
+        : 'Live tracking μη διαθέσιμο σε αυτή τη δοκιμή.';
     }
   }
 
@@ -2318,14 +2320,12 @@ function renderActiveSosSession(message = '') {
   }
   copyActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
   copyActiveSosTrackingButton.textContent = activeSosSession.shareToken
-    ? 'Αντιγραφή tracking link'
-    : 'Συνδέσου για live tracking';
+    ? 'Αντιγραφή'
+    : 'Live tracking μη διαθέσιμο';
   disableActiveSosTrackingButton.disabled = !activeSosSession.shareToken;
-  activeSosFeedback.textContent = message || (activeSosSession.testMode
-    ? 'Λειτουργία δοκιμής SOS. Δεν πρόκειται για πραγματική ανάγκη.'
-    : isActiveSosSessionRestored
+  activeSosFeedback.textContent = activeSosSession.testMode ? '' : (message || (isActiveSosSessionRestored
     ? 'Υπάρχει ήδη ενεργό SOS από προηγούμενη χρήση. Αν ήταν δοκιμή, πάτησε Τερματισμός SOS.'
-    : 'Το SOS είναι ενεργό. Κράτα την εφαρμογή ανοιχτή, αντέγραψε/μοιράσου το tracking link και κάλεσε 112 αν υπάρχει άμεσος κίνδυνος.');
+    : 'Το SOS είναι ενεργό. Κράτα την εφαρμογή ανοιχτή, χρησιμοποίησε SMS και κάλεσε 112 αν υπάρχει άμεσος κίνδυνος.'));
   renderSafetyStatusCard();
   renderSosContactNotifications();
 }
@@ -3209,8 +3209,8 @@ function showSosActionPanel(message, contact, historyMessage = '') {
   sosCopyTrackingButton.hidden = !preparedSosTrackingUrl && !shouldPromptLoginForTracking;
   sosCopyTrackingButton.disabled = !preparedSosTrackingUrl;
   sosCopyTrackingButton.textContent = preparedSosTrackingUrl
-    ? 'Αντιγραφή tracking link'
-    : 'Συνδέσου για live tracking';
+    ? 'Αντιγραφή'
+    : 'Live tracking μη διαθέσιμο';
   if (sosModal) sosModal.hidden = false;
   document.body.classList.add('modal-open');
   sosActionPanel.hidden = false;
