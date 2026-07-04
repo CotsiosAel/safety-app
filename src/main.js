@@ -4163,16 +4163,19 @@ function renderProfile() {
   const hasProfile = hasCompleteLocalProfile();
   const displayName = getProfileValue('name', 'Συμπλήρωσε το προφίλ σου');
 
-  document.querySelector('#profile-local-status')?.classList.toggle('signed-in', Boolean(currentUser || hasProfile));
+  document.querySelector('#profile-local-status')?.classList.toggle('signed-in', Boolean(currentUser));
   const accountStatusLabel = document.querySelector('#profile-account-label');
   const localStatusText = document.querySelector('#profile-local-status-text');
   const localStatusHint = document.querySelector('#profile-local-status-hint');
-  if (accountStatusLabel) accountStatusLabel.textContent = currentUser ? 'Συνδεδεμένος' : 'Τοπικό προφίλ';
+  if (accountStatusLabel) {
+    accountStatusLabel.textContent = currentUser ? 'Συνδεδεμένος' : 'Τοπικό προφίλ';
+    accountStatusLabel.classList.toggle('signed-in', Boolean(currentUser));
+  }
   if (localStatusText) localStatusText.textContent = currentUser ? `Συνδεδεμένος • ${currentUser.email || 'χωρίς email'}` : 'Δεν είσαι συνδεδεμένος.';
   if (localStatusText) localStatusText.title = currentUser ? (currentUser.email || '') : '';
   if (localStatusHint) localStatusHint.textContent = currentUser
     ? 'Συγχρονισμός ενεργός'
-    : 'Το SOS λειτουργεί τοπικά, αλλά οι επαφές και το ιστορικό δεν συγχρονίζονται.';
+    : 'Το SOS λειτουργεί τοπικά, αλλά οι επαφές, το ιστορικό και το live tracking δεν συγχρονίζονται.';
   if (profileStatusLoginButton) profileStatusLoginButton.hidden = Boolean(currentUser);
 
   profileName.textContent = displayName;

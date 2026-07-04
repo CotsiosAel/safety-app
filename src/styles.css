@@ -3206,12 +3206,17 @@ body.tracking-mode .modal-backdrop {
   width: fit-content;
   margin-top: 10px;
   padding: 6px 10px;
-  color: #166534;
-  background: #dcfce7;
-  border: 1px solid rgba(22, 163, 74, 0.18);
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid rgba(100, 116, 139, 0.2);
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 950;
+}
+.profile-status-badge.signed-in {
+  color: #166534;
+  background: #dcfce7;
+  border-color: rgba(22, 163, 74, 0.18);
 }
 .profile-edit-section {
   margin-top: 22px;
