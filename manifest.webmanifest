@@ -1,11 +1,11 @@
 {
   "name": "SafeMe",
   "short_name": "SafeMe",
-  "description": "SafeMe είναι μια ελληνική και αγγλική εφαρμογή προσωπικής ασφάλειας για άμεσο SOS, έμπιστες επαφές και κοινοποίηση τοποθεσίας σε περίπτωση ανάγκης.",
+  "description": "Personal safety app with SOS, trusted contacts, and location sharing.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f4f7fb",
+  "background_color": "#f8fafc",
   "theme_color": "#0f172a",
   "icons": [
     {

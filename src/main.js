@@ -51,10 +51,9 @@ async function initializeSupabaseClient() {
 }
 
 const SOS_TRACKING_BASE_URL = 'https://safety-app-vert.vercel.app/';
-const APP_VERSION = 'safe-me-ui-events-2026-07-04';
+const APP_VERSION = 'startup-reliability-2026-07-03';
 const APP_VERSION_URL = './version.json';
 const EMERGENCY_PWA_RESET_VERSION = APP_VERSION;
-const APP_VERSION_STORAGE_KEY = 'safeme-current-app-version';
 const UPDATE_STORAGE_KEYS = [
   'updateAvailable',
   'pwaUpdateAvailable',
@@ -74,47 +73,10 @@ function clearStoredAppUpdateFlags() {
   });
 }
 
-function replaceUrlWithVersion(params) {
-  params.set('v', APP_VERSION);
-  const query = params.toString();
-  return `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
-}
-
-async function clearOldSafeMeCaches() {
-  if (!('caches' in window)) return;
-  const keys = await caches.keys();
-  await Promise.all(
-    keys
-      .filter((key) => key.startsWith('safeme-') || key.startsWith('safe-me-') || key.includes('safeme'))
-      .map((key) => caches.delete(key)),
-  );
-}
-
-function selfHealStaleAppVersion() {
-  let storedVersion = null;
-  try {
-    storedVersion = localStorage.getItem(APP_VERSION_STORAGE_KEY);
-  } catch {}
-
-  if (storedVersion === APP_VERSION) return;
-
-  clearStoredAppUpdateFlags();
-
-  clearOldSafeMeCaches()
-    .catch((error) => console.warn('[SafeMe] Could not clear old app caches during version self-heal', error));
-
-  try {
-    localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION);
-  } catch (error) {
-    console.warn('[SafeMe] Could not store current app version during boot', error);
-  }
-}
-
 try {
   clearStoredAppUpdateFlags();
-  selfHealStaleAppVersion();
 } catch (error) {
-  console.warn('[SafeMe] Could not complete cache/version self-heal during boot', error);
+  console.warn('[SafeMe] Could not clear stale update flags during boot', error);
 }
 
 async function runEmergencyPwaResetIfRequested() {
@@ -124,7 +86,8 @@ async function runEmergencyPwaResetIfRequested() {
   const resetKey = `pwa-reset-complete-${EMERGENCY_PWA_RESET_VERSION}`;
   if (sessionStorage.getItem(resetKey) === '1') {
     params.delete('resetPwa');
-    window.history.replaceState({}, '', replaceUrlWithVersion(params));
+    params.set('v', EMERGENCY_PWA_RESET_VERSION);
+    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}${window.location.hash}`);
     return false;
   }
 
@@ -150,12 +113,10 @@ async function runEmergencyPwaResetIfRequested() {
   }
 
   clearStoredAppUpdateFlags();
-  try {
-    localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION);
-  } catch {}
   const cleanParams = new URLSearchParams(window.location.search);
   cleanParams.delete('resetPwa');
-  window.location.replace(replaceUrlWithVersion(cleanParams));
+  cleanParams.set('v', EMERGENCY_PWA_RESET_VERSION);
+  window.location.replace(`${window.location.pathname}?${cleanParams.toString()}${window.location.hash}`);
   return true;
 }
 
@@ -202,7 +163,6 @@ const storageKeys = {
   notificationHistory: 'safety-app-sos-notification-history',
   endedSosSession: 'safety-app-ended-sos-session',
   rememberedEmail: 'safeme_remembered_email',
-  installHelpDismissed: 'safeme-install-help-dismissed',
 };
 
 
@@ -510,201 +470,12 @@ const homeContactsStatus = document.querySelector('#home-contacts-status');
 const homeLocationStatus = document.querySelector('#home-location-status');
 const homeSosModeStatus = document.querySelector('#home-sos-mode-status');
 const homeReadinessMessage = document.querySelector('#home-readiness-message');
-const installHelpCard = document.querySelector('#install-help-card');
-const installHelpDismissButton = document.querySelector('#install-help-dismiss');
-const standaloneStatus = document.querySelector('#standalone-status');
 const homeTestModeBadge = document.querySelector('#home-test-mode-badge');
 const homeTestModeHelper = document.querySelector('#home-test-mode-helper');
 const accountReadinessText = document.querySelector('#account-readiness-text');
 const homeLoginSyncCta = document.querySelector('#home-login-sync-cta');
 const homeAddContactCta = document.querySelector('#home-add-contact-cta');
 const safetyToolsTestSosButton = document.querySelector('#safety-tools-test-sos');
-
-const criticalButtonChecks = [
-  ['SOS', '#sos-button'],
-  ['Σύνδεση για συγχρονισμό', '#account-sync-login-button'],
-  ['Μοίρασμα θέσης', '#share-location-button'],
-  ['Ενημέρωση GPS', '#refresh-location-button'],
-  ['Προσθήκη επαφής', '#contacts-add-cta'],
-  ['Αποθήκευση επαφής', '#contact-form button[type="submit"]'],
-  ['Αποθήκευση προφίλ', '#profile-form button[type="submit"]'],
-  ['Σύνδεση', '#auth-submit-button'],
-  ['Αποσύνδεση', '#auth-logout-button'],
-  ['Κλήση 112', '#active-sos-call-112'],
-  ['Post-SOS SMS', '#notify-all-sos-contacts-action'],
-  ['Τερματισμός SOS', '#end-active-sos'],
-  ['Profile accordions', '[data-profile-accordion] .profile-accordion-button'],
-  ['Contacts accordions', '[data-contacts-accordion] .profile-accordion-button'],
-  ['Settings accordions', '.settings-panel-toggle'],
-];
-
-
-const CRITICAL_CLICK_ACTIONS = new Set([
-  'navigate-home',
-  'navigate-contacts',
-  'navigate-safety-tools',
-  'navigate-profile',
-  'navigate-settings',
-  'activate-sos',
-  'post-sos-primary-sms',
-  'terminate-sos',
-  'call-112',
-  'call-199',
-  'copy-sos-message',
-  'copy-sos-tracking',
-  'share-location',
-  'share-sos-message',
-  'update-gps',
-  'open-add-contact',
-  'close-add-contact',
-  'save-contact',
-  'edit-contact',
-  'delete-contact',
-  'set-primary-contact',
-  'open-contact-invite',
-  'toggle-contacts-section',
-  'toggle-profile-section',
-  'toggle-settings-section',
-  'open-login',
-  'login',
-  'logout',
-  'toggle-password-visibility',
-  'toggle-remember-email',
-  'toggle-sos-test-mode',
-]);
-
-function isTapDebugEnabled() {
-  try {
-    const params = new URLSearchParams(window.location.search);
-    return params.has('debugTaps') || localStorage.getItem('safeme-debug-taps') === '1';
-  } catch {
-    return false;
-  }
-}
-
-function logTappedAction(action) {
-  if (isTapDebugEnabled()) console.log(`Tapped action: ${action}`);
-}
-
-function getContactActionIndex(button) {
-  return Number(button.dataset.contactIndex ?? button.dataset.index);
-}
-
-function toggleContactsSectionButton(button) {
-  const card = button.closest('[data-contacts-accordion]');
-  if (!card) return;
-  const isOpen = button.getAttribute('aria-expanded') === 'true';
-  contactsAccordionCards.forEach((item) => setContactsAccordionOpen(item, false));
-  setContactsAccordionOpen(card, !isOpen);
-  updateContactsAddCtaLabel();
-}
-
-function toggleProfileSectionButton(button) {
-  const card = button.closest('[data-profile-accordion]');
-  if (!card) return;
-  const isOpen = button.getAttribute('aria-expanded') === 'true';
-  profileAccordionCards.forEach((item) => setProfileAccordionOpen(item, false));
-  setProfileAccordionOpen(card, !isOpen);
-}
-
-let lastHandledMobileTap = { action: '', time: 0 };
-
-function shouldIgnoreInteractiveTapTarget(target) {
-  return Boolean(target?.closest('input, textarea, select, [contenteditable="true"]'));
-}
-
-function handleCriticalAction(actionElement, event, { source = 'click' } = {}) {
-  if (!actionElement) return false;
-  const action = actionElement.dataset.action;
-  if (!CRITICAL_CLICK_ACTIONS.has(action)) return false;
-
-  if (action === lastHandledMobileTap.action && Date.now() - lastHandledMobileTap.time < 700) {
-    event?.preventDefault();
-    event?.stopImmediatePropagation?.();
-    return true;
-  }
-
-  logTappedAction(action);
-
-  if (actionElement.matches('[disabled], [aria-disabled="true"]')) {
-    event?.preventDefault();
-    return true;
-  }
-
-  const stopHandledTap = () => {
-    event?.preventDefault();
-    event?.stopImmediatePropagation?.();
-  };
-
-  switch (action) {
-    case 'navigate-home': stopHandledTap(); showPage('home'); break;
-    case 'navigate-contacts': stopHandledTap(); showPage('contacts'); break;
-    case 'navigate-safety-tools': stopHandledTap(); showPage('safety-tools'); break;
-    case 'navigate-profile': stopHandledTap(); showPage('profile'); break;
-    case 'navigate-settings': stopHandledTap(); showPage('settings'); break;
-    case 'activate-sos': stopHandledTap(); activateSosFromMainButton(); break;
-    case 'post-sos-primary-sms': stopHandledTap(); actionElement.id === 'sos-send-sms' ? sendPreparedSosSms() : notifyAllSosContacts(); break;
-    case 'terminate-sos': stopHandledTap(); endActiveSosSession(); break;
-    case 'copy-sos-message': stopHandledTap(); (preparedSosMessage ? copyPreparedSosMessage() : copyActiveSosMessage()); break;
-    case 'copy-sos-tracking': stopHandledTap(); (preparedSosTrackingUrl ? copyPreparedSosTrackingLink() : copyActiveSosTrackingLink()); break;
-    case 'share-location': stopHandledTap(); shareLocation(); break;
-    case 'share-sos-message': stopHandledTap(); sharePreparedSosMessage(); break;
-    case 'update-gps': stopHandledTap(); actionElement.id === 'settings-refresh-location' ? refreshLocationFromSettings() : (activeSosSession ? updateActiveSosLocation() : refreshLocation()); break;
-    case 'open-add-contact': stopHandledTap(); actionElement.closest('#contacts') ? toggleContactsAddForm() : focusContactForm(); break;
-    case 'close-add-contact': stopHandledTap(); closeContactsAddForm(); break;
-    case 'save-contact': stopHandledTap(); contactsForm?.requestSubmit(); break;
-    case 'open-contact-invite': stopHandledTap(); openContactInviteModal(getContactActionIndex(actionElement)); break;
-    case 'edit-contact': stopHandledTap(); editContact(getContactActionIndex(actionElement)); break;
-    case 'delete-contact': stopHandledTap(); deleteContact(getContactActionIndex(actionElement)); break;
-    case 'set-primary-contact': stopHandledTap(); setPrimaryContact(getContactActionIndex(actionElement)); break;
-    case 'toggle-contacts-section': stopHandledTap(); toggleContactsSectionButton(actionElement); break;
-    case 'toggle-profile-section': stopHandledTap(); toggleProfileSectionButton(actionElement); break;
-    case 'toggle-settings-section': stopHandledTap(); toggleSettingsPanel(actionElement); break;
-    case 'open-login': stopHandledTap(); openProfileAuthCard(); break;
-    case 'login': stopHandledTap(); authForm?.requestSubmit(); break;
-    case 'logout': stopHandledTap(); logout(); break;
-    case 'toggle-password-visibility': stopHandledTap(); togglePasswordVisibility(); break;
-    case 'toggle-remember-email':
-    case 'toggle-sos-test-mode':
-      return false;
-    case 'call-112':
-    case 'call-199':
-      return false;
-    default:
-      return false;
-  }
-
-  if (source !== 'click') lastHandledMobileTap = { action, time: Date.now() };
-  return true;
-}
-
-function handleCriticalDelegatedClick(event) {
-  if (shouldIgnoreInteractiveTapTarget(event.target)) return;
-  handleCriticalAction(event.target.closest('[data-action]'), event, { source: 'click' });
-}
-
-function handleCriticalDelegatedMobileTap(event) {
-  if (event.type === 'pointerup' && event.pointerType && event.pointerType !== 'touch') return;
-  if (shouldIgnoreInteractiveTapTarget(event.target)) return;
-  handleCriticalAction(event.target.closest('[data-action]'), event, { source: event.type });
-}
-
-function safeInitStep(label, callback) {
-  try {
-    callback();
-  } catch (error) {
-    console.warn(`[SafeMe] Init step failed: ${label}`, error);
-  }
-}
-
-function warnMissingCriticalButtons() {
-  const isDevelopmentHost = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
-  if (!isDevelopmentHost) return;
-  criticalButtonChecks.forEach(([label, selector]) => {
-    if (!document.querySelector(selector)) console.warn(`[SafeMe] Missing button: ${label} (${selector})`);
-  });
-}
-
 const profileAccordionCards = Array.from(document.querySelectorAll('[data-profile-accordion]'));
 const profileDetailsSummary = document.querySelector('#profile-details-summary');
 const profileSosSummary = document.querySelector('#profile-sos-summary');
@@ -908,43 +679,6 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 
-function isSafeMeStandaloneMode() {
-  return window.matchMedia?.('(display-mode: standalone)')?.matches
-    || window.navigator.standalone === true;
-}
-
-function getMobileInstallPlatform() {
-  const ua = window.navigator.userAgent || '';
-  if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
-  if (/Android/i.test(ua)) return 'android';
-  return 'other';
-}
-
-function updateStandaloneExperience() {
-  const standalone = isSafeMeStandaloneMode();
-  const dismissed = localStorage.getItem(storageKeys.installHelpDismissed) === '1';
-  const canPromptMobileInstall = window.matchMedia?.('(max-width: 820px)')?.matches || navigator.maxTouchPoints > 0;
-  const platform = getMobileInstallPlatform();
-
-  document.body.classList.toggle('is-standalone', standalone);
-  document.body.classList.toggle('is-browser-mode', !standalone);
-  document.body.dataset.installPlatform = platform;
-
-  if (installHelpCard) installHelpCard.hidden = standalone || dismissed || !canPromptMobileInstall;
-  if (standaloneStatus) standaloneStatus.hidden = !standalone;
-
-  if (onlineStatusPill) {
-    onlineStatusPill.classList.toggle('standalone-mode', standalone);
-    onlineStatusPill.innerHTML = `<span aria-hidden="true"></span> ${navigator.onLine === false ? 'Offline' : standalone ? 'Εφαρμογή' : 'Online'}`;
-    onlineStatusPill.setAttribute('aria-label', navigator.onLine === false ? 'Η εφαρμογή είναι offline' : standalone ? 'Άνοιγμα ως εφαρμογή' : 'Η εφαρμογή είναι online');
-    onlineStatusPill.title = navigator.onLine === false
-      ? 'Η εφαρμογή είναι offline'
-      : standalone
-        ? 'Άνοιγμα ως εφαρμογή'
-        : 'Η εφαρμογή είναι online';
-  }
-}
-
 function isActiveSosInProgress() {
   return activeSosSession?.status === 'active';
 }
@@ -1030,13 +764,11 @@ function setupAppFreshnessChecks() {
   window.addEventListener('online', () => {
     renderSettingsSummary();
     renderHomeReadinessCards();
-    updateStandaloneExperience();
     checkForAppUpdate({ force: true });
     if (currentUser) autoRefreshAccountContactsFromSupabase('online').catch((error) => console.warn('[SafeMe] Online contacts refresh failed', error));
     if (hasRequestedLocationPermission) refreshLocation();
   });
-  window.addEventListener('offline', () => { renderSettingsSummary(); renderHomeReadinessCards(); updateStandaloneExperience(); });
-  window.matchMedia?.('(display-mode: standalone)')?.addEventListener?.('change', updateStandaloneExperience);
+  window.addEventListener('offline', () => { renderSettingsSummary(); renderHomeReadinessCards(); });
 }
 
 
@@ -1214,7 +946,7 @@ function renderSosContactNotifications() {
           : 'Το SafeMe ετοιμάζει έτοιμο SMS προς όλες τις επαφές με αριθμό τηλεφώνου. Η αποστολή γίνεται από τη συσκευή σου.';
 
   if (contacts.length === 0) {
-    sosContactList.innerHTML = '<article class="sos-contact-empty"><strong>Δεν υπάρχουν έμπιστες επαφές.</strong><p>Πρόσθεσε μία επαφή για να ετοιμαστεί SMS.</p><button class="ghost-button" type="button" data-action="open-add-contact" data-sos-open-contacts>Προσθήκη επαφής</button></article>';
+    sosContactList.innerHTML = '<article class="sos-contact-empty"><strong>Δεν υπάρχουν έμπιστες επαφές.</strong><p>Πρόσθεσε μία επαφή για να ετοιμαστεί SMS.</p><button class="ghost-button" type="button" data-sos-open-contacts>Προσθήκη επαφής</button></article>';
     renderSosNotificationHistory();
     return;
   }
@@ -2213,7 +1945,7 @@ function handleSetupChecklistAction(event) {
 
 function handleOnlineStatusClick() {
   showPage('safety-tools');
-  showLocationMessage(navigator.onLine === false ? 'Offline: το SafeMe συνεχίζει με τοπικά δεδομένα και εφεδρικές ενέργειες SOS.' : 'Η εφαρμογή είναι online. Για συγχρονισμό λογαριασμού, συνδέσου από το Προφίλ.');
+  showLocationMessage('Η εφαρμογή είναι online. Για συγχρονισμό λογαριασμού, συνδέσου από το Προφίλ.');
   focusElementAfterScroll(currentLocationCard || locationText);
 }
 
@@ -2722,14 +2454,12 @@ function renderSafetyStatusCard() {
   const hasActiveSos = activeSosSession?.status === 'active';
   const hasActiveSafeWalk = activeSafeWalk?.status === 'active';
   const hasActiveCheckIn = activeCheckIn?.status === 'active';
-  const hasContacts = contacts.length > 0;
-  const hasLocation = Boolean(currentLocation);
   const status = hasActiveSos ? 'sos' : hasActiveSafeWalk ? 'safe-walk' : hasActiveCheckIn ? 'checkin' : 'normal';
   const copy = {
     normal: {
-      icon: '🛡️',
-      title: 'Κατάσταση SafeMe',
-      description: hasContacts && hasLocation ? 'Έτοιμο για SOS' : 'Χρειάζονται βασικά βήματα',
+      icon: '💗',
+      title: 'Κατάσταση',
+      description: 'Ασφαλής και διαθέσιμη για check-in',
     },
     'safe-walk': {
       icon: '🚶',
@@ -4056,10 +3786,10 @@ function renderContacts() {
           </div>
           <div class="contact-actions">
             ${phoneForLink ? `<a href="tel:${escapeHtml(phoneForLink)}" class="call-link">Κλήση · ${escapeHtml(formatPhone(contact.phone))}</a>` : '<span class="missing-contact-inline">Missing phone</span>'}
-            <button class="ghost-button contact-invite-button" type="button" data-action="open-contact-invite" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true" title="Περίμενε να ολοκληρωθεί ο συγχρονισμός επαφών"' : ''}>Ενημέρωση</button>
-            <button class="ghost-button edit-contact-button" type="button" data-action="edit-contact" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true" title="Περίμενε να ολοκληρωθεί ο συγχρονισμός επαφών"' : ''}>Επεξεργασία</button>
-            <button class="secondary-button primary-contact-button" type="button" data-action="set-primary-contact" data-contact-index="${index}" ${isPrimary ? 'disabled aria-disabled="true" title="Αυτή είναι ήδη η κύρια επαφή SOS"' : (isContactsMutationInProgress ? 'disabled aria-disabled="true" title="Περίμενε να ολοκληρωθεί ο συγχρονισμός επαφών"' : '')}>Κύρια</button>
-            <button class="danger-outline-button delete-contact-button" type="button" data-action="delete-contact" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true" title="Περίμενε να ολοκληρωθεί ο συγχρονισμός επαφών"' : ''}>Διαγραφή</button>
+            <button class="ghost-button contact-invite-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Ενημέρωση</button>
+            <button class="ghost-button edit-contact-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Επεξεργασία</button>
+            <button class="secondary-button primary-contact-button" type="button" data-contact-index="${index}" ${isPrimary || isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Κύρια</button>
+            <button class="danger-outline-button delete-contact-button" type="button" data-contact-index="${index}" ${isContactsMutationInProgress ? 'disabled aria-disabled="true"' : ''}>Διαγραφή</button>
           </div>
         </article>
       `;
@@ -4527,8 +4257,9 @@ function renderAccountSyncStatus() {
     : 'Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.';
   if (accountSyncLoginButton) accountSyncLoginButton.hidden = signedIn;
   if (sosAccountStatus) {
-    sosAccountStatus.textContent = signedIn ? 'Συγχρονισμός SOS ενεργός.' : '';
-    sosAccountStatus.hidden = !signedIn;
+    sosAccountStatus.textContent = signedIn
+      ? 'Λογαριασμός ενεργός: τα στοιχεία SOS συγχρονίζονται.'
+      : 'Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.';
     sosAccountStatus.classList.toggle('signed-in', signedIn);
   }
 }
@@ -5134,12 +4865,6 @@ function clearSafeMeData() {
 
 if (!window.__safeMeUiEventsBound) {
 
-safeInitStep('central delegated critical click handler', () => {
-  document.addEventListener('click', handleCriticalDelegatedClick, true);
-  document.addEventListener('pointerup', handleCriticalDelegatedMobileTap, true);
-  document.addEventListener('touchend', handleCriticalDelegatedMobileTap, true);
-});
-
 navButtons.forEach((button) => {
   button.addEventListener('click', () => showPage(button.dataset.page));
 });
@@ -5205,10 +4930,6 @@ sosHistoryCollapseButton?.addEventListener('click', () => {
   isSosHistoryExpanded = false;
   isSosHistoryShowingAll = false;
   renderSosHistory();
-});
-installHelpDismissButton?.addEventListener('click', () => {
-  localStorage.setItem(storageKeys.installHelpDismissed, '1');
-  updateStandaloneExperience();
 });
 onlineStatusPill?.addEventListener('click', handleOnlineStatusClick);
 contactsForm?.addEventListener('submit', addContact);
@@ -5319,7 +5040,6 @@ renderSetupChecklist();
 renderHealthPage();
 renderSosHistory();
 renderActiveSosSession();
-warnMissingCriticalButtons();
 restoreSafeWalkOnLoad();
 restoreCheckInOnLoad();
 refreshLocationPermissionStatus();
@@ -5410,7 +5130,6 @@ function startSafeMeWhenDomReady() {
       }
     } else {
       bindStartupNavigationFallback();
-      updateStandaloneExperience();
       initializeSafeMeApp();
     }
   };
