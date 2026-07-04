@@ -607,60 +607,86 @@ function toggleProfileSectionButton(button) {
   setProfileAccordionOpen(card, !isOpen);
 }
 
-function handleCriticalDelegatedClick(event) {
-  const actionElement = event.target.closest('[data-action]');
-  if (!actionElement) return;
+let lastHandledMobileTap = { action: '', time: 0 };
+
+function shouldIgnoreInteractiveTapTarget(target) {
+  return Boolean(target?.closest('input, textarea, select, [contenteditable="true"]'));
+}
+
+function handleCriticalAction(actionElement, event, { source = 'click' } = {}) {
+  if (!actionElement) return false;
   const action = actionElement.dataset.action;
-  if (!CRITICAL_CLICK_ACTIONS.has(action)) return;
+  if (!CRITICAL_CLICK_ACTIONS.has(action)) return false;
+
+  if (action === lastHandledMobileTap.action && Date.now() - lastHandledMobileTap.time < 700) {
+    event?.preventDefault();
+    event?.stopImmediatePropagation?.();
+    return true;
+  }
 
   logTappedAction(action);
 
   if (actionElement.matches('[disabled], [aria-disabled="true"]')) {
-    event.preventDefault();
-    return;
+    event?.preventDefault();
+    return true;
   }
 
-  const stopHandledClick = () => {
-    event.preventDefault();
-    event.stopImmediatePropagation();
+  const stopHandledTap = () => {
+    event?.preventDefault();
+    event?.stopImmediatePropagation?.();
   };
 
   switch (action) {
-    case 'navigate-home': stopHandledClick(); showPage('home'); break;
-    case 'navigate-contacts': stopHandledClick(); showPage('contacts'); break;
-    case 'navigate-safety-tools': stopHandledClick(); showPage('safety-tools'); break;
-    case 'navigate-profile': stopHandledClick(); showPage('profile'); break;
-    case 'navigate-settings': stopHandledClick(); showPage('settings'); break;
-    case 'activate-sos': stopHandledClick(); activateSosFromMainButton(); break;
-    case 'post-sos-primary-sms': stopHandledClick(); actionElement.id === 'sos-send-sms' ? sendPreparedSosSms() : notifyAllSosContacts(); break;
-    case 'terminate-sos': stopHandledClick(); endActiveSosSession(); break;
-    case 'copy-sos-message': stopHandledClick(); (preparedSosMessage ? copyPreparedSosMessage() : copyActiveSosMessage()); break;
-    case 'copy-sos-tracking': stopHandledClick(); (preparedSosTrackingUrl ? copyPreparedSosTrackingLink() : copyActiveSosTrackingLink()); break;
-    case 'share-location': stopHandledClick(); shareLocation(); break;
-    case 'share-sos-message': stopHandledClick(); sharePreparedSosMessage(); break;
-    case 'update-gps': stopHandledClick(); actionElement.id === 'settings-refresh-location' ? refreshLocationFromSettings() : (activeSosSession ? updateActiveSosLocation() : refreshLocation()); break;
-    case 'open-add-contact': stopHandledClick(); actionElement.closest('#contacts') ? toggleContactsAddForm() : focusContactForm(); break;
-    case 'close-add-contact': stopHandledClick(); closeContactsAddForm(); break;
-    case 'save-contact': stopHandledClick(); contactsForm?.requestSubmit(); break;
-    case 'open-contact-invite': stopHandledClick(); openContactInviteModal(getContactActionIndex(actionElement)); break;
-    case 'edit-contact': stopHandledClick(); editContact(getContactActionIndex(actionElement)); break;
-    case 'delete-contact': stopHandledClick(); deleteContact(getContactActionIndex(actionElement)); break;
-    case 'set-primary-contact': stopHandledClick(); setPrimaryContact(getContactActionIndex(actionElement)); break;
-    case 'toggle-contacts-section': stopHandledClick(); toggleContactsSectionButton(actionElement); break;
-    case 'toggle-profile-section': stopHandledClick(); toggleProfileSectionButton(actionElement); break;
-    case 'toggle-settings-section': stopHandledClick(); toggleSettingsPanel(actionElement); break;
-    case 'open-login': stopHandledClick(); openProfileAuthCard(); break;
-    case 'login': stopHandledClick(); authForm?.requestSubmit(); break;
-    case 'logout': stopHandledClick(); logout(); break;
-    case 'toggle-password-visibility': stopHandledClick(); togglePasswordVisibility(); break;
-    case 'toggle-remember-email': logTappedAction(action); break;
-    case 'toggle-sos-test-mode': logTappedAction(action); break;
+    case 'navigate-home': stopHandledTap(); showPage('home'); break;
+    case 'navigate-contacts': stopHandledTap(); showPage('contacts'); break;
+    case 'navigate-safety-tools': stopHandledTap(); showPage('safety-tools'); break;
+    case 'navigate-profile': stopHandledTap(); showPage('profile'); break;
+    case 'navigate-settings': stopHandledTap(); showPage('settings'); break;
+    case 'activate-sos': stopHandledTap(); activateSosFromMainButton(); break;
+    case 'post-sos-primary-sms': stopHandledTap(); actionElement.id === 'sos-send-sms' ? sendPreparedSosSms() : notifyAllSosContacts(); break;
+    case 'terminate-sos': stopHandledTap(); endActiveSosSession(); break;
+    case 'copy-sos-message': stopHandledTap(); (preparedSosMessage ? copyPreparedSosMessage() : copyActiveSosMessage()); break;
+    case 'copy-sos-tracking': stopHandledTap(); (preparedSosTrackingUrl ? copyPreparedSosTrackingLink() : copyActiveSosTrackingLink()); break;
+    case 'share-location': stopHandledTap(); shareLocation(); break;
+    case 'share-sos-message': stopHandledTap(); sharePreparedSosMessage(); break;
+    case 'update-gps': stopHandledTap(); actionElement.id === 'settings-refresh-location' ? refreshLocationFromSettings() : (activeSosSession ? updateActiveSosLocation() : refreshLocation()); break;
+    case 'open-add-contact': stopHandledTap(); actionElement.closest('#contacts') ? toggleContactsAddForm() : focusContactForm(); break;
+    case 'close-add-contact': stopHandledTap(); closeContactsAddForm(); break;
+    case 'save-contact': stopHandledTap(); contactsForm?.requestSubmit(); break;
+    case 'open-contact-invite': stopHandledTap(); openContactInviteModal(getContactActionIndex(actionElement)); break;
+    case 'edit-contact': stopHandledTap(); editContact(getContactActionIndex(actionElement)); break;
+    case 'delete-contact': stopHandledTap(); deleteContact(getContactActionIndex(actionElement)); break;
+    case 'set-primary-contact': stopHandledTap(); setPrimaryContact(getContactActionIndex(actionElement)); break;
+    case 'toggle-contacts-section': stopHandledTap(); toggleContactsSectionButton(actionElement); break;
+    case 'toggle-profile-section': stopHandledTap(); toggleProfileSectionButton(actionElement); break;
+    case 'toggle-settings-section': stopHandledTap(); toggleSettingsPanel(actionElement); break;
+    case 'open-login': stopHandledTap(); openProfileAuthCard(); break;
+    case 'login': stopHandledTap(); authForm?.requestSubmit(); break;
+    case 'logout': stopHandledTap(); logout(); break;
+    case 'toggle-password-visibility': stopHandledTap(); togglePasswordVisibility(); break;
+    case 'toggle-remember-email':
+    case 'toggle-sos-test-mode':
+      return false;
     case 'call-112':
     case 'call-199':
-      break;
+      return false;
     default:
-      break;
+      return false;
   }
+
+  if (source !== 'click') lastHandledMobileTap = { action, time: Date.now() };
+  return true;
+}
+
+function handleCriticalDelegatedClick(event) {
+  if (shouldIgnoreInteractiveTapTarget(event.target)) return;
+  handleCriticalAction(event.target.closest('[data-action]'), event, { source: 'click' });
+}
+
+function handleCriticalDelegatedMobileTap(event) {
+  if (event.type === 'pointerup' && event.pointerType && event.pointerType !== 'touch') return;
+  if (shouldIgnoreInteractiveTapTarget(event.target)) return;
+  handleCriticalAction(event.target.closest('[data-action]'), event, { source: event.type });
 }
 
 function safeInitStep(label, callback) {
@@ -5110,6 +5136,8 @@ if (!window.__safeMeUiEventsBound) {
 
 safeInitStep('central delegated critical click handler', () => {
   document.addEventListener('click', handleCriticalDelegatedClick, true);
+  document.addEventListener('pointerup', handleCriticalDelegatedMobileTap, true);
+  document.addEventListener('touchend', handleCriticalDelegatedMobileTap, true);
 });
 
 navButtons.forEach((button) => {

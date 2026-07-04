@@ -58,7 +58,7 @@
           </div>
           <div class="topbar-actions">
             <button class="status-pill" id="online-status-pill" type="button" title="Η εφαρμογή είναι online" aria-label="Η εφαρμογή είναι online"><span aria-hidden="true"></span> Online</button>
-            <button class="auth-indicator signed-out" id="auth-indicator" type="button" aria-live="polite" aria-label="Χωρίς σύνδεση. Άνοιγμα σύνδεσης στο Προφίλ">Χωρίς σύνδεση</button>
+            <button class="auth-indicator signed-out" id="auth-indicator" type="button" data-action="open-login" aria-live="polite" aria-label="Χωρίς σύνδεση. Άνοιγμα σύνδεσης στο Προφίλ">Χωρίς σύνδεση</button>
             <button class="ghost-button" id="share-location-button" type="button" data-action="share-location">Μοιράσου θέση</button>
           </div>
         </header>
@@ -469,7 +469,7 @@
               <h3 id="profile-local-status-text">Δεν είσαι συνδεδεμένος.</h3>
               <p id="profile-local-status-hint">Το SOS λειτουργεί τοπικά, αλλά οι επαφές και το ιστορικό δεν συγχρονίζονται.</p>
             </div>
-            <button class="primary-button inline-button" id="profile-status-login-button" type="button">Σύνδεση για συγχρονισμό</button>
+            <button class="primary-button inline-button" id="profile-status-login-button" type="button" data-action="open-login">Σύνδεση για συγχρονισμό</button>
           </section>
 
           <form class="profile-accordion-form" id="profile-form">
