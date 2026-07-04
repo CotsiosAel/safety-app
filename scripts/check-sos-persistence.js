@@ -18,6 +18,10 @@ const requiredPatterns = [
   ['post-SOS active title', 'SOS ενεργό'],
   ['post-SOS primary SMS action', 'Αποστολή SMS σε όλες τις επαφές'],
   ['post-SOS safety send note', 'Για λόγους ασφαλείας, το κινητό σου μπορεί να ζητήσει να πατήσεις αποστολή μέσα στο SMS app.'],
+  ['post-SOS compact test badge', 'Δοκιμή SOS'],
+  ['post-SOS single test note', 'Δεν αποστέλλεται πραγματικό μήνυμα έκτακτης ανάγκης.'],
+  ['post-SOS diagnostics collapsed toggle', '<summary>Διαγνωστικά</summary>'],
+  ['post-SOS muted tracking unavailable state', 'Live tracking μη διαθέσιμο σε αυτή τη δοκιμή.'],
   ['no-contact post-SOS add contact action', 'Προσθήκη επαφής'],
   ['no-contact post-SOS 112 backup', 'id="active-sos-call-112" href="tel:112"'],
   ['honest PWA send limitation text', 'Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται.'],
@@ -64,6 +68,27 @@ for (const [label, pattern] of [
     console.error(`Forbidden SOS persistence regression found: ${label}`);
     process.exit(1);
   }
+}
+
+const forbiddenPostSosUiPatterns = [
+  ['English Send SMS label', 'Send SMS'],
+  ['English Open WhatsApp label', 'Open WhatsApp'],
+  ['English Send Email label', 'Send Email'],
+  ['English copy emergency message label', 'Copy emergency message'],
+  ['English Emergency contacts label', 'Emergency contacts'],
+  ['confusing unavailable tracking label', 'Tracking link μη διαθέσιμο'],
+];
+
+for (const [label, pattern] of forbiddenPostSosUiPatterns) {
+  if (source.includes(pattern) || markup.includes(pattern) || styles.includes(pattern)) {
+    console.error(`Post-SOS mobile UI regression found: ${label}: ${pattern}`);
+    process.exit(1);
+  }
+}
+
+if (markup.includes('<details class="active-sos-disclosure active-sos-debug" open')) {
+  console.error('Active SOS diagnostics must be collapsed by default.');
+  process.exit(1);
 }
 
 const forbiddenCountdownPatterns = [
