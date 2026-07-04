@@ -2,9 +2,10 @@
 <html lang="el">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="SafeMe personal safety app with SOS, trusted contacts, and location sharing." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="SafeMe προσωπική ασφάλεια / personal safety app with SOS, trusted contacts, and location sharing." />
     <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -108,6 +109,19 @@
             <p class="sos-account-status" id="sos-account-status" aria-live="polite">Λειτουργία χωρίς σύνδεση: το SOS θα χρησιμοποιήσει μόνο τα στοιχεία αυτής της συσκευής.</p>
             <p class="sos-status" id="sos-status">Πάτησε SOS μία φορά για άμεση ενεργοποίηση.</p>
             <p class="home-readiness-message" id="home-readiness-message" aria-live="polite">Το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό.</p>
+
+            <section class="install-help-card" id="install-help-card" aria-labelledby="install-help-title" hidden>
+              <div>
+                <p class="eyebrow">PWA / Home Screen</p>
+                <h3 id="install-help-title">Πρόσθεσε το SafeMe στην αρχική οθόνη</h3>
+                <p>Για πιο γρήγορη πρόσβαση σε περίπτωση ανάγκης, πρόσθεσε το SafeMe στην αρχική οθόνη του κινητού σου.</p>
+                <p class="install-help-ios">Πάτησε Κοινή χρήση → Προσθήκη στην οθόνη Αφετηρίας.</p>
+                <p class="install-help-android">Πάτησε το μενού ⋮ → Προσθήκη στην αρχική οθόνη.</p>
+              </div>
+              <button class="install-help-dismiss" id="install-help-dismiss" type="button" aria-label="Απόκρυψη οδηγιών εγκατάστασης">×</button>
+            </section>
+
+            <p class="standalone-status" id="standalone-status" hidden>Άνοιγμα ως εφαρμογή</p>
 
 
             <section class="active-sos-card" id="active-sos-section" aria-labelledby="active-sos-title" hidden>
