@@ -706,6 +706,21 @@
               </div>
             </article>
 
+            <article class="settings-panel settings-help-panel">
+              <button class="settings-panel-toggle" id="settings-help-toggle" type="button" aria-expanded="false" aria-controls="settings-help-panel">
+                <span><strong>Άμεση βοήθεια</strong><small>112 και SOS ενέργειες</small></span>
+                <span class="settings-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div class="settings-panel-body" id="settings-help-panel" role="region" aria-labelledby="settings-help-toggle" hidden>
+                <p>Γρήγορη πρόσβαση σε επίσημες κλήσεις έκτακτης ανάγκης όταν χρειάζεσαι άμεση βοήθεια.</p>
+                <div class="settings-emergency-actions" aria-label="Γρήγορες κλήσεις έκτακτης ανάγκης">
+                  <a class="emergency-call-button" href="tel:112">Κλήση 112</a>
+                  <a class="emergency-call-button" href="tel:199">Κλήση 199</a>
+                </div>
+                <p>Χρησιμοποίησε τις κλήσεις έκτακτης ανάγκης μόνο σε πραγματική ανάγκη.</p>
+              </div>
+            </article>
+
             <article class="settings-panel settings-panel-danger">
               <button class="settings-panel-toggle" id="settings-advanced-toggle" type="button" aria-expanded="false" aria-controls="settings-advanced-panel">
                 <span><strong>Προχωρημένες ενέργειες</strong><small>Ενέργειες διαχείρισης</small></span>
@@ -719,11 +734,6 @@
                 </div>
               </div>
             </article>
-          </div>
-
-          <div class="settings-emergency-actions" aria-label="Γρήγορες κλήσεις έκτακτης ανάγκης">
-            <a class="emergency-call-button" href="tel:112">Κλήση 112</a>
-            <a class="emergency-call-button" href="tel:199">Κλήση 199</a>
           </div>
           <p class="build-marker">Build: settings-accordion-mobile</p>
           <p class="save-status" id="settings-status" aria-live="polite"></p>
