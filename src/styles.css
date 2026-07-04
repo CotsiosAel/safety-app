@@ -3204,6 +3204,8 @@ body.tracking-mode .modal-backdrop {
 .contacts-add-cta { width: auto; white-space: nowrap; }
 .contacts-accordion-card { width: 100%; }
 .contacts-accordion-card .contact-form-compact { margin: 0; border: 0; box-shadow: none; padding: 14px 0 0; }
+.contact-form-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.contact-form-actions .inline-button { margin-top: 0; }
 .danger-accordion .profile-accordion-button strong { color: #be123c; }
 .contacts-empty-add { margin-top: 16px; }
 .contact-card { display: flex; }

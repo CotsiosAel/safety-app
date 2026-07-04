@@ -258,7 +258,7 @@
           <div class="card-list" id="contacts-list" tabindex="-1" aria-live="polite"></div>
 
           <section class="profile-accordion-card contacts-accordion-card" data-contacts-accordion="add">
-            <button class="profile-accordion-button" id="contacts-add-toggle" type="button" aria-expanded="false" aria-controls="contacts-add-panel"><span><strong>Προσθήκη επαφής</strong><small>Όνομα, σχέση, τηλέφωνο</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+            <button class="profile-accordion-button contacts-add-hidden-toggle" id="contacts-add-toggle" type="button" aria-expanded="false" aria-controls="contacts-add-panel" hidden><span><strong>Προσθήκη επαφής</strong><small>Όνομα, σχέση, τηλέφωνο</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
             <div class="profile-accordion-panel" id="contacts-add-panel" role="region" aria-labelledby="contacts-add-toggle" hidden>
               <form class="form-card contact-form-compact" id="contact-form" tabindex="-1">
                 <div class="form-grid">
@@ -279,7 +279,7 @@
                     <input name="email" type="email" placeholder="π.χ. name@example.com" />
                   </label>
                 </div>
-                <button class="primary-button inline-button" type="submit">Αποθήκευση επαφής</button>
+                <div class="contact-form-actions"><button class="primary-button inline-button" type="submit">Αποθήκευση επαφής</button><button class="ghost-button inline-button" type="button" data-close-add-contact>Κλείσιμο</button></div>
               </form>
             </div>
           </section>
