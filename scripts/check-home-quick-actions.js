@@ -25,6 +25,33 @@ for (const [label, pattern] of markupRequirements) {
   }
 }
 
+
+const homeReadinessIndex = markup.indexOf('id="home-readiness-card"');
+const sosButtonIndex = markup.indexOf('id="sos-button"');
+const readinessDetailsIndex = markup.indexOf('class="home-readiness-summary"');
+if (!(homeReadinessIndex >= 0 && sosButtonIndex > homeReadinessIndex && readinessDetailsIndex > sosButtonIndex)) {
+  console.error('Home mobile order must keep compact status chips before SOS and readiness details after SOS.');
+  process.exit(1);
+}
+
+const forbiddenEnglishLabels = ['SAFEME READINESS', 'SafeMe readiness'];
+for (const label of forbiddenEnglishLabels) {
+  if (markup.includes(label) || source.includes(label)) {
+    console.error(`Home contains untranslated readiness label: ${label}`);
+    process.exit(1);
+  }
+}
+
+if ((markup.match(/Δεν αποστέλλεται πραγματικό μήνυμα έκτακτης ανάγκης\./g) || []).length !== 1) {
+  console.error('Test mode helper should appear exactly once in Home markup.');
+  process.exit(1);
+}
+
+if (!markup.includes('Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.')) {
+  console.error('Signed-out Home notice must use compact local-mode copy.');
+  process.exit(1);
+}
+
 const sourceRequirements = [
   ['document delegated quick action listener', "document.addEventListener('click'"],
   ['delegated data-open-tool lookup', "event.target.closest('[data-open-tool]')"],
@@ -40,9 +67,9 @@ const sourceRequirements = [
   ['contacts CTA opens add form', 'focusContactForm()'],
   ['GPS refresh uses existing logic', 'refreshLocation()'],
   ['readiness ready message', 'Το SafeMe είναι έτοιμο για χρήση.'],
-  ['signed-out readiness message', 'Το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό επαφών και ιστορικού.'],
-  ['no-contact readiness message', 'Πρόσθεσε έμπιστες επαφές για γρήγορη ειδοποίηση.'],
-  ['missing location readiness message', 'Ενημέρωσε GPS για να προστεθεί τοποθεσία στο SOS.'],
+  ['signed-out readiness message', 'Το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό.'],
+  ['no-contact readiness message', 'Πρόσθεσε έμπιστες επαφές.'],
+  ['missing location readiness message', 'Ενημέρωσε GPS για τοποθεσία SOS.'],
 ];
 
 for (const [label, pattern] of sourceRequirements) {

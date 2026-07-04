@@ -1870,7 +1870,7 @@ function renderSetupChecklist() {
     setupChecklist.innerHTML = `
       <div class="setup-checklist-compact-content">
         <div>
-          <p class="eyebrow">SafeMe readiness</p>
+          <p class="eyebrow">Ετοιμότητα SafeMe</p>
           <h3 id="setup-checklist-title">Το SafeMe είναι έτοιμο</h3>
           <p>Έχεις ολοκληρώσει τα βασικά βήματα ασφάλειας.</p>
         </div>
@@ -1884,7 +1884,7 @@ function renderSetupChecklist() {
   setupChecklist.innerHTML = `
     <div class="setup-checklist-header">
       <div>
-        <p class="eyebrow">SafeMe readiness</p>
+        <p class="eyebrow">Ετοιμότητα SafeMe</p>
         <h3 id="setup-checklist-title">Πρώτα βήματα ασφάλειας</h3>
         <p>Για χρήση SOS ολοκλήρωσε πρώτα τα βήματα με τη σειρά. Μπορείς πάντα να επεξεργαστείς επαφές και προφίλ.</p>
       </div>
@@ -2410,11 +2410,11 @@ function renderHomeReadinessCards() {
   if (homeAccountStatus) homeAccountStatus.textContent = hasAccount ? 'Συνδεδεμένος' : 'Τοπικό προφίλ';
   if (homeContactsStatus) homeContactsStatus.textContent = `${contacts.length} έμπιστες επαφές`;
   if (homeLocationStatus) {
-    homeLocationStatus.textContent = hasLocation ? 'Τοποθεσία διαθέσιμη' : 'Χρειάζεται ενημέρωση GPS';
+    homeLocationStatus.textContent = hasLocation ? 'Τοποθεσία διαθέσιμη' : 'Χρειάζεται GPS';
     homeLocationStatus.classList.toggle('warning', !hasLocation);
   }
   if (homeSosModeStatus) {
-    homeSosModeStatus.textContent = isSosTestMode ? 'Δοκιμή SOS ενεργή' : 'Πραγματικό SOS';
+    homeSosModeStatus.textContent = isSosTestMode ? 'Δοκιμή SOS' : 'Πραγματικό SOS';
     homeSosModeStatus.classList.toggle('test', isSosTestMode);
   }
   if (homeTestModeBadge) homeTestModeBadge.hidden = !isSosTestMode;
@@ -2422,25 +2422,25 @@ function renderHomeReadinessCards() {
 
   if (homeReadinessMessage) {
     homeReadinessMessage.textContent = !hasAccount
-      ? 'Το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό επαφών και ιστορικού.'
+      ? 'Το SOS λειτουργεί τοπικά. Συνδέσου για συγχρονισμό.'
       : !hasContacts
-        ? 'Πρόσθεσε έμπιστες επαφές για γρήγορη ειδοποίηση.'
+        ? 'Πρόσθεσε έμπιστες επαφές.'
         : !hasLocation
-          ? 'Ενημέρωσε GPS για να προστεθεί τοποθεσία στο SOS.'
+          ? 'Ενημέρωσε GPS για τοποθεσία SOS.'
           : 'Το SafeMe είναι έτοιμο για χρήση.';
   }
 
   if (contactsReadinessText) {
     contactsReadinessText.textContent = hasContacts
       ? `${contacts.length} έμπιστες επαφές${primaryContact?.name ? ` • κύρια: ${primaryContact.name}` : ''}.`
-      : 'Δεν υπάρχουν επαφές. Πρόσθεσε έμπιστες επαφές για γρήγορη ειδοποίηση.';
+      : 'Πρόσθεσε έμπιστες επαφές.';
   }
   if (homeAddContactCta) homeAddContactCta.hidden = hasContacts;
 
   if (locationReadinessText) {
     locationReadinessText.textContent = hasLocation
       ? `Τοποθεσία διαθέσιμη${currentLocation.accuracy ? ` • ακρίβεια περίπου ${Math.round(currentLocation.accuracy)}μ.` : ''}.`
-      : 'Χρειάζεται ενημέρωση GPS για να προστεθεί τοποθεσία στο SOS.';
+      : 'Ενημέρωσε GPS για τοποθεσία SOS.';
   }
 
   if (accountReadinessText) accountReadinessText.textContent = hasAccount ? 'Συγχρονισμός ενεργός' : 'Τοπική λειτουργία';
@@ -4251,12 +4251,12 @@ function renderAccountSyncStatus() {
   if (accountSyncTitle) accountSyncTitle.title = signedIn ? (currentUser.email || '') : '';
   if (accountSyncMessage) accountSyncMessage.textContent = signedIn
     ? 'Συγχρονισμός ενεργός'
-    : 'Το SOS λειτουργεί τοπικά, αλλά οι επαφές και το ιστορικό δεν συγχρονίζονται.';
+    : 'Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.';
   if (accountSyncLoginButton) accountSyncLoginButton.hidden = signedIn;
   if (sosAccountStatus) {
     sosAccountStatus.textContent = signedIn
       ? 'Λογαριασμός ενεργός: τα στοιχεία SOS συγχρονίζονται.'
-      : 'Λειτουργία χωρίς σύνδεση: το SOS θα χρησιμοποιήσει μόνο τα στοιχεία αυτής της συσκευής.';
+      : 'Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.';
     sosAccountStatus.classList.toggle('signed-in', signedIn);
   }
 }
