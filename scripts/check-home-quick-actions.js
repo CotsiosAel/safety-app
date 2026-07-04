@@ -68,8 +68,8 @@ const sourceRequirements = [
   ['GPS refresh uses existing logic', 'refreshLocation()'],
   ['readiness ready message', 'Το SafeMe είναι έτοιμο για χρήση.'],
   ['signed-out readiness message', 'Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.'],
-  ['no-contact readiness message', 'Πρόσθεσε έμπιστες επαφές.'],
-  ['missing location readiness message', 'Ενημέρωσε GPS για τοποθεσία SOS.'],
+  ['no-contact Home shortcut copy avoids duplicate setup prompt', 'Άνοιγμα λίστας και προσθήκης.'],
+  ['missing location Home shortcut copy avoids duplicate setup prompt', 'Άνοιγμα ελέγχου τοποθεσίας.'],
 ];
 
 for (const [label, pattern] of sourceRequirements) {
