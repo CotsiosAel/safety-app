@@ -331,7 +331,7 @@ const PASSWORD_RESET_REDIRECT_URL = 'https://safety-app-vert.vercel.app/';
 
 const authStatusMessages = {
   signedOut: 'Χωρίς σύνδεση. Τα στοιχεία αποθηκεύονται με ασφάλεια μόνο σε αυτή τη συσκευή.',
-  signedIn: 'Συνδέθηκες επιτυχώς. Τα στοιχεία σου συγχρονίζονται με ασφάλεια.',
+  signedIn: 'Συγχρονισμός ενεργός.',
   signupSuccess: 'Ο λογαριασμός δημιουργήθηκε. Έλεγξε το email σου για επιβεβαίωση πριν συνδεθείς.',
   logoutSuccess: 'Αποσυνδέθηκες επιτυχώς.',
   passwordResetSent: 'Σου στείλαμε email για επαναφορά κωδικού, αν υπάρχει λογαριασμός με αυτό το email.',
@@ -421,6 +421,7 @@ const authSignupTab = document.querySelector('#auth-signup-tab');
 const authSubmitButton = document.querySelector('#auth-submit-button');
 const authTitle = document.querySelector('#auth-title');
 const authHelper = document.querySelector('#auth-helper');
+const authLiveTrackingNote = document.querySelector('.auth-live-tracking-note');
 const authSwitchModeButton = document.querySelector('#auth-switch-mode');
 const authSecondaryLinks = document.querySelector('#auth-secondary-links');
 const authForgotPasswordButton = document.querySelector('#auth-forgot-password');
@@ -3807,10 +3808,10 @@ function renderProfile() {
   const accountStatusLabel = document.querySelector('#profile-account-label');
   const localStatusText = document.querySelector('#profile-local-status-text');
   const localStatusHint = document.querySelector('#profile-local-status-hint');
-  if (accountStatusLabel) accountStatusLabel.textContent = currentUser ? 'ΛΟΓΑΡΙΑΣΜΟΣ SAFEME' : 'ΤΟΠΙΚΟ ΠΡΟΦΙΛ';
-  if (localStatusText) localStatusText.textContent = currentUser ? 'Συνδεδεμένος' : 'Δεν είσαι συνδεδεμένος';
+  if (accountStatusLabel) accountStatusLabel.textContent = currentUser ? 'Λογαριασμός SafeMe' : 'ΤΟΠΙΚΟ ΠΡΟΦΙΛ';
+  if (localStatusText) localStatusText.textContent = currentUser ? 'Ενεργός' : 'Δεν είσαι συνδεδεμένος';
   if (localStatusHint) localStatusHint.textContent = currentUser
-    ? 'Το προφίλ συγχρονίζεται με τον λογαριασμό Supabase και κρατά τοπικό αντίγραφο.'
+    ? 'Supabase + τοπικό αντίγραφο'
     : 'Τα στοιχεία αποθηκεύονται μόνο σε αυτή τη συσκευή.';
 
   profileName.textContent = displayName;
@@ -3964,9 +3965,10 @@ function syncRememberedEmailPreference(email) {
 function renderAccountSyncStatus() {
   const signedIn = Boolean(currentUser);
   if (accountSyncBanner) accountSyncBanner.classList.toggle('signed-in', signedIn), accountSyncBanner.classList.toggle('signed-out', !signedIn);
-  if (accountSyncTitle) accountSyncTitle.textContent = signedIn ? `Συνδεδεμένος ως: ${currentUser.email || 'χωρίς email'}` : 'Δεν είσαι συνδεδεμένος.';
+  if (accountSyncTitle) accountSyncTitle.textContent = signedIn ? `Συνδεδεμένος • ${currentUser.email || 'χωρίς email'}` : 'Δεν είσαι συνδεδεμένος.';
+  if (accountSyncTitle) accountSyncTitle.title = signedIn ? (currentUser.email || '') : '';
   if (accountSyncMessage) accountSyncMessage.textContent = signedIn
-    ? 'Οι επαφές και το ιστορικό συγχρονίζονται με τον λογαριασμό σου.'
+    ? 'Συγχρονισμός ενεργός'
     : 'Το SOS μπορεί να λειτουργήσει τοπικά σε αυτή τη συσκευή, αλλά οι επαφές και το ιστορικό δεν συγχρονίζονται με τον λογαριασμό σου.';
   if (accountSyncLoginButton) accountSyncLoginButton.hidden = signedIn;
   if (sosAccountStatus) {
@@ -4017,6 +4019,7 @@ function renderAuth() {
   authSignupTab.hidden = signedIn;
   authSignedIn.hidden = !signedIn;
   authUserEmail.textContent = userEmail;
+  authUserEmail.title = userEmail;
   authEmail.disabled = signedIn;
   authPassword.disabled = signedIn;
   authRepeatPassword.disabled = hideSignupFields;
@@ -4024,10 +4027,14 @@ function renderAuth() {
   authPassword.required = !signedIn;
   authRepeatPassword.required = !signedIn && isSignup;
   authSubmitButton.textContent = isSignup ? 'Δημιουργία λογαριασμού' : 'Σύνδεση';
-  if (authTitle) authTitle.textContent = isSignup ? 'Δημιουργία λογαριασμού' : 'Σύνδεση';
-  if (authHelper) authHelper.textContent = isSignup
-    ? 'Φτιάξε λογαριασμό για συγχρονισμό επαφών και ιστορικού SOS.'
-    : 'Συνδέσου για συγχρονισμό επαφών και ιστορικού SOS.';
+  if (authTitle) authTitle.textContent = signedIn ? 'Λογαριασμός' : (isSignup ? 'Δημιουργία λογαριασμού' : 'Σύνδεση');
+  if (authHelper) {
+    authHelper.hidden = signedIn;
+    authHelper.textContent = isSignup
+      ? 'Φτιάξε λογαριασμό για συγχρονισμό επαφών και ιστορικού SOS.'
+      : 'Συνδέσου για συγχρονισμό επαφών και ιστορικού SOS.';
+  }
+  if (authLiveTrackingNote) authLiveTrackingNote.hidden = signedIn;
   if (authSwitchModeButton) authSwitchModeButton.textContent = isSignup
     ? 'Έχεις ήδη λογαριασμό; Σύνδεση'
     : 'Δεν έχεις λογαριασμό; Δημιουργία';

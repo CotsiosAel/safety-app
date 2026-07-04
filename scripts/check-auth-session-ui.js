@@ -15,6 +15,9 @@ const requiredPatterns = [
   ['login fields hidden only for real auth', 'authFields.hidden = signedIn;'],
   ['signed-in panel hidden unless real auth', 'authSignedIn.hidden = !signedIn;'],
   ['local storage mode explains device-only data', "storageMode.textContent = signedIn ? 'Supabase + τοπικό αντίγραφο' : 'Τοπικό προφίλ σε αυτή τη συσκευή';"],
+  ['compact signed-in banner copy exists', "`Συνδεδεμένος • ${currentUser.email || 'χωρίς email'}`"],
+  ['signed-in auth card title is compact', "authTitle) authTitle.textContent = signedIn ? 'Λογαριασμός'"],
+  ['signed-in account card is compact', "localStatusHint) localStatusHint.textContent = currentUser\n    ? 'Supabase + τοπικό αντίγραφο'"],
   ['login mobile helper copy exists', "'Συνδέσου για συγχρονισμό επαφών και ιστορικού SOS.'"],
   ['register mobile helper copy exists', "'Φτιάξε λογαριασμό για συγχρονισμό επαφών και ιστορικού SOS.'"],
   ['login/register switch link is wired', "authSwitchModeButton?.addEventListener('click', () => setAuthMode(authMode === 'signup' ? 'login' : 'signup'));"],
@@ -47,6 +50,9 @@ const stylePatterns = [
   ['mobile hides oversized auth tabs', '.auth-mode-tabs {\n    display: none;'],
   ['password toggle stays compact on mobile', '.password-toggle {\n    right: 6px;\n    width: auto;'],
   ['email input protects overflow', '#auth-email {'],
+  ['signed-in email uses ellipsis', '.auth-signed-in strong,'],
+  ['account banner email uses ellipsis', '.account-sync-banner strong {'],
+  ['mobile signed-in account card is compact', '.account-sync-banner.signed-in {'],
 ];
 
 for (const [label, pattern] of stylePatterns) {
@@ -57,6 +63,7 @@ for (const [label, pattern] of stylePatterns) {
 }
 
 const forbiddenPatterns = [
+  'LOCAL DEMO ACCOUNT',
   'indicatorSignedIn = signedIn || hasLocalDemoProfile',
   "authIndicator.classList.toggle('signed-in', indicatorSignedIn)",
   'Συνδεδεμένος με τοπικό demo προφίλ',
