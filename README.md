@@ -59,6 +59,7 @@ Public Privacy Policy URL placeholder: `/privacy-policy.html`
 Public Terms of Use URL placeholder: `/terms-of-use.html`
 Support page: `/support.html`
 Store listing draft: `docs/store-listing-draft.md`
+MVP stable checkpoint: `docs/mvp-stable-checkpoint.md`
 
 
 ## Account/auth foundation
