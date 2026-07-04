@@ -163,6 +163,7 @@ const storageKeys = {
   notificationHistory: 'safety-app-sos-notification-history',
   endedSosSession: 'safety-app-ended-sos-session',
   rememberedEmail: 'safeme_remembered_email',
+  installHelpDismissed: 'safeme-install-help-dismissed',
 };
 
 
@@ -470,6 +471,9 @@ const homeContactsStatus = document.querySelector('#home-contacts-status');
 const homeLocationStatus = document.querySelector('#home-location-status');
 const homeSosModeStatus = document.querySelector('#home-sos-mode-status');
 const homeReadinessMessage = document.querySelector('#home-readiness-message');
+const installHelpCard = document.querySelector('#install-help-card');
+const installHelpDismissButton = document.querySelector('#install-help-dismiss');
+const standaloneStatus = document.querySelector('#standalone-status');
 const homeTestModeBadge = document.querySelector('#home-test-mode-badge');
 const homeTestModeHelper = document.querySelector('#home-test-mode-helper');
 const accountReadinessText = document.querySelector('#account-readiness-text');
@@ -679,6 +683,43 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 
+function isSafeMeStandaloneMode() {
+  return window.matchMedia?.('(display-mode: standalone)')?.matches
+    || window.navigator.standalone === true;
+}
+
+function getMobileInstallPlatform() {
+  const ua = window.navigator.userAgent || '';
+  if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+  if (/Android/i.test(ua)) return 'android';
+  return 'other';
+}
+
+function updateStandaloneExperience() {
+  const standalone = isSafeMeStandaloneMode();
+  const dismissed = localStorage.getItem(storageKeys.installHelpDismissed) === '1';
+  const canPromptMobileInstall = window.matchMedia?.('(max-width: 820px)')?.matches || navigator.maxTouchPoints > 0;
+  const platform = getMobileInstallPlatform();
+
+  document.body.classList.toggle('is-standalone', standalone);
+  document.body.classList.toggle('is-browser-mode', !standalone);
+  document.body.dataset.installPlatform = platform;
+
+  if (installHelpCard) installHelpCard.hidden = standalone || dismissed || !canPromptMobileInstall;
+  if (standaloneStatus) standaloneStatus.hidden = !standalone;
+
+  if (onlineStatusPill) {
+    onlineStatusPill.classList.toggle('standalone-mode', standalone);
+    onlineStatusPill.innerHTML = `<span aria-hidden="true"></span> ${navigator.onLine === false ? 'Offline' : standalone ? 'Εφαρμογή' : 'Online'}`;
+    onlineStatusPill.setAttribute('aria-label', navigator.onLine === false ? 'Η εφαρμογή είναι offline' : standalone ? 'Άνοιγμα ως εφαρμογή' : 'Η εφαρμογή είναι online');
+    onlineStatusPill.title = navigator.onLine === false
+      ? 'Η εφαρμογή είναι offline'
+      : standalone
+        ? 'Άνοιγμα ως εφαρμογή'
+        : 'Η εφαρμογή είναι online';
+  }
+}
+
 function isActiveSosInProgress() {
   return activeSosSession?.status === 'active';
 }
@@ -764,11 +805,13 @@ function setupAppFreshnessChecks() {
   window.addEventListener('online', () => {
     renderSettingsSummary();
     renderHomeReadinessCards();
+    updateStandaloneExperience();
     checkForAppUpdate({ force: true });
     if (currentUser) autoRefreshAccountContactsFromSupabase('online').catch((error) => console.warn('[SafeMe] Online contacts refresh failed', error));
     if (hasRequestedLocationPermission) refreshLocation();
   });
-  window.addEventListener('offline', () => { renderSettingsSummary(); renderHomeReadinessCards(); });
+  window.addEventListener('offline', () => { renderSettingsSummary(); renderHomeReadinessCards(); updateStandaloneExperience(); });
+  window.matchMedia?.('(display-mode: standalone)')?.addEventListener?.('change', updateStandaloneExperience);
 }
 
 
@@ -1945,7 +1988,7 @@ function handleSetupChecklistAction(event) {
 
 function handleOnlineStatusClick() {
   showPage('safety-tools');
-  showLocationMessage('Η εφαρμογή είναι online. Για συγχρονισμό λογαριασμού, συνδέσου από το Προφίλ.');
+  showLocationMessage(navigator.onLine === false ? 'Offline: το SafeMe συνεχίζει με τοπικά δεδομένα και εφεδρικές ενέργειες SOS.' : 'Η εφαρμογή είναι online. Για συγχρονισμό λογαριασμού, συνδέσου από το Προφίλ.');
   focusElementAfterScroll(currentLocationCard || locationText);
 }
 
@@ -4931,6 +4974,10 @@ sosHistoryCollapseButton?.addEventListener('click', () => {
   isSosHistoryShowingAll = false;
   renderSosHistory();
 });
+installHelpDismissButton?.addEventListener('click', () => {
+  localStorage.setItem(storageKeys.installHelpDismissed, '1');
+  updateStandaloneExperience();
+});
 onlineStatusPill?.addEventListener('click', handleOnlineStatusClick);
 contactsForm?.addEventListener('submit', addContact);
 contactsForm?.addEventListener('click', (event) => {
@@ -5130,6 +5177,7 @@ function startSafeMeWhenDomReady() {
       }
     } else {
       bindStartupNavigationFallback();
+      updateStandaloneExperience();
       initializeSafeMeApp();
     }
   };
