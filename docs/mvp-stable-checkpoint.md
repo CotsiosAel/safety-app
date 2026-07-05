@@ -46,7 +46,7 @@
 
 - Βελτίωση του κειμένου του SOS message.
 - Προσθήκη πιο καθαρής καθοδήγησης για test mode.
-- Προσθήκη support email όταν είναι διαθέσιμο.
+- Χρήση επίσημου support email: get.safeme@outlook.com.
 - Προετοιμασία screenshots για store listing.
 - Μελλοντικό σύστημα i18n για Ελληνικά/Αγγλικά.
 - Μελλοντικός σχεδιασμός native app και store review.
