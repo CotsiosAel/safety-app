@@ -2139,6 +2139,10 @@ function getLocationUrl(location) {
   return `https://maps.google.com/?q=${location.latitude},${location.longitude}`;
 }
 
+function getNavigationUrl(location) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}&travelmode=driving`;
+}
+
 function formatLocation(location) {
   return `Πλάτος ${location.latitude.toFixed(5)}, μήκος ${location.longitude.toFixed(5)}`;
 }
@@ -2394,6 +2398,7 @@ function buildSosMessage(location = currentLocation, shareToken = activeSosSessi
   const longitude = Number(location?.longitude);
   const hasLocation = Number.isFinite(latitude) && Number.isFinite(longitude);
   const locationUrl = hasLocation ? getLocationUrl({ latitude, longitude }) : '';
+  const navigationUrl = hasLocation ? getNavigationUrl({ latitude, longitude }) : '';
   const coordinatesText = hasLocation
     ? `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
     : '';
@@ -2404,30 +2409,27 @@ function buildSosMessage(location = currentLocation, shareToken = activeSosSessi
   const sentAt = new Intl.DateTimeFormat('el-GR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
   const lines = [];
 
-  lines.push(getSosMessageIntro(), '');
-
   if (isSosTestMode) {
-    lines.push('Αυτό είναι δοκιμαστικό μήνυμα. Δεν υπάρχει πραγματική ανάγκη.', '');
+    lines.push(getSosMessageIntro(), 'Αυτό είναι δοκιμαστικό μήνυμα. Δεν υπάρχει πραγματική ανάγκη.', '');
   } else {
-    lines.push('Χρειάζομαι βοήθεια. Αυτή είναι ειδοποίηση έκτακτης ανάγκης από το SafeMe.', '');
+    lines.push('SOS! Χρειάζομαι βοήθεια.', '');
   }
 
   if (profile?.name?.trim()) lines.push(`Όνομα: ${profile.name.trim()}`);
   if (profile?.phone?.trim()) lines.push(`Τηλέφωνο: ${profile.phone.trim()}`);
+  if (profile?.name?.trim() || profile?.phone?.trim()) lines.push('');
 
-  lines.push('Τοποθεσία:');
   if (hasLocation) {
-    lines.push(locationUrl);
+    lines.push('Η τοποθεσία μου είναι εδώ:', locationUrl, '');
+    lines.push('Πλοήγηση προς εμένα:', navigationUrl, '');
     lines.push(`Συντεταγμένες: ${coordinatesText}`);
     if (locationUpdatedAt) lines.push(`Ώρα τοποθεσίας: ${locationUpdatedAt}`);
   } else {
-    lines.push('Δεν είναι διαθέσιμη αυτή τη στιγμή.');
+    lines.push('Τοποθεσία:', 'Δεν είναι διαθέσιμη αυτή τη στιγμή.');
   }
 
   if (trackingUrl) {
     lines.push('', isSosTestMode ? 'Δοκιμαστικό live tracking:' : 'Live tracking:', trackingUrl);
-  } else if (locationUrl) {
-    lines.push('', 'Google Maps:', locationUrl);
   }
 
   if (!isSosTestMode) {

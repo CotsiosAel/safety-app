@@ -126,12 +126,14 @@ const sosMessageBody = source.slice(sosMessageStart, sosMessageEnd);
 
 for (const [label, pattern] of [
   ['real SOS SafeMe heading', '🚨 SOS από SafeMe'],
-  ['real SOS emergency copy', 'Χρειάζομαι βοήθεια. Αυτή είναι ειδοποίηση έκτακτης ανάγκης από το SafeMe.'],
+  ['real SOS emergency copy', 'SOS! Χρειάζομαι βοήθεια.'],
   ['real SOS 112 fallback', 'Αν δεν μπορείς να επικοινωνήσεις μαζί μου, κάλεσε άμεσα το 112 ή τις αρμόδιες αρχές.'],
   ['test SOS SafeMe heading', '🧪 ΔΟΚΙΜΗ SafeMe SOS'],
   ['test SOS clearly states no emergency', 'Αυτό είναι δοκιμαστικό μήνυμα. Δεν υπάρχει πραγματική ανάγκη.'],
-  ['location section label', 'Τοποθεσία:'],
-  ['location/maps link is included when available', 'lines.push(locationUrl);'],
+  ['simple location section label', 'Η τοποθεσία μου είναι εδώ:'],
+  ['navigation section label', 'Πλοήγηση προς εμένα:'],
+  ['location/maps link is included when available', 'locationUrl'],
+  ['driving navigation link is included when available', 'navigationUrl'],
   ['notification timestamp label', 'Ώρα ειδοποίησης:'],
 ]) {
   if (!source.includes(pattern) && !sosMessageBody.includes(pattern)) {
