@@ -869,14 +869,37 @@ function getActiveSosEmergencyMessage() {
   return buildSosMessage(currentLocation, activeSosSession?.shareToken);
 }
 
+function normalizeSmsRecipient(phone) {
+  return normalizePhone(String(phone || '').trim().replace(/\s+/g, ' '));
+}
+
+function getUniqueSmsRecipients(recipients = []) {
+  const seenRecipients = new Set();
+
+  return recipients.reduce((uniqueRecipients, recipient) => {
+    const normalizedRecipient = normalizeSmsRecipient(recipient);
+    if (!normalizedRecipient || seenRecipients.has(normalizedRecipient)) return uniqueRecipients;
+
+    seenRecipients.add(normalizedRecipient);
+    uniqueRecipients.push(normalizedRecipient);
+    return uniqueRecipients;
+  }, []);
+}
+
 function getSmsCapableSosContacts() {
-  return contacts.filter((contact) => normalizePhone(contact.phone || ''));
+  const seenPhones = new Set();
+
+  return contacts.filter((contact) => {
+    const normalizedPhone = normalizeSmsRecipient(contact.phone || '');
+    if (!normalizedPhone || seenPhones.has(normalizedPhone)) return false;
+
+    seenPhones.add(normalizedPhone);
+    return true;
+  });
 }
 
 function getGroupSmsRecipients() {
-  return getSmsCapableSosContacts()
-    .map((contact) => normalizePhone(contact.phone || ''))
-    .filter(Boolean);
+  return getUniqueSmsRecipients(getSmsCapableSosContacts().map((contact) => contact.phone));
 }
 
 function getEmailCapableSosContacts() {
@@ -898,8 +921,11 @@ function isRemoteSosSession(session = activeSosSession) {
 }
 
 function openSmsComposer(message, recipients = []) {
-  const cleanRecipients = recipients.map((recipient) => normalizePhone(recipient || '')).filter(Boolean);
+  const cleanRecipients = getUniqueSmsRecipients(recipients);
+  if (cleanRecipients.length === 0) return false;
+
   window.location.href = `sms:${cleanRecipients.join(',')}?&body=${encodeURIComponent(message)}`;
+  return true;
 }
 
 function logSosNotification(contact, method, status) {
@@ -993,16 +1019,16 @@ async function notifyAllSosContacts() {
   const message = getActiveSosEmergencyMessage();
   const smsCapableContacts = getSmsCapableSosContacts();
 
-  if (isSosTestMode) {
-    logSosNotification(null, 'SMS', 'Άνοιξε');
-    renderActiveSosSession('Άνοιξε το SMS για δοκιμή. Πάτησε αποστολή μόνο αν θέλεις να σταλεί το δοκιμαστικό μήνυμα.');
-    openSmsComposer(message);
+  if (smsCapableContacts.length === 0) {
+    showPage('contacts');
+    renderActiveSosSession('Δεν υπάρχουν έμπιστες επαφές με αριθμό τηλεφώνου. Πρόσθεσε επαφή για να ετοιμαστεί SMS SOS.');
     return;
   }
 
-  if (smsCapableContacts.length === 0) {
-    showPage('contacts');
-    renderActiveSosSession('Δεν υπάρχουν έμπιστες επαφές. Πρόσθεσε επαφή για να ετοιμαστεί SMS SOS.');
+  if (isSosTestMode) {
+    logSosNotification(null, 'SMS', 'Άνοιξε');
+    renderActiveSosSession('Άνοιξε το SMS για δοκιμή προς όλες τις επαφές. Πάτησε αποστολή μόνο αν θέλεις να σταλεί το δοκιμαστικό μήνυμα.');
+    openSmsComposer(message, smsCapableContacts.map((contact) => contact.phone));
     return;
   }
 
@@ -2320,7 +2346,7 @@ function buildSosMessage(location = currentLocation, shareToken = activeSosSessi
 }
 
 function getSmsLink(contact, message) {
-  const phone = contact ? normalizePhone(contact.phone) : '';
+  const phone = contact ? normalizeSmsRecipient(contact.phone) : '';
   return `sms:${phone}?&body=${encodeURIComponent(message)}`;
 }
 
@@ -3611,8 +3637,16 @@ function sendPreparedSosSms() {
   if (!preparedSosMessage) return;
 
   if (isSosTestMode) {
-    openSmsComposer(preparedSosMessage);
-    sosActionFeedback.textContent = 'Άνοιξε το SMS για δοκιμή. Πάτησε αποστολή μόνο αν θέλεις να σταλεί το δοκιμαστικό μήνυμα.';
+    const smsCapableContacts = getSmsCapableSosContacts();
+    if (smsCapableContacts.length === 0) {
+      showPage('contacts');
+      sosActionFeedback.textContent = 'Δεν υπάρχουν έμπιστες επαφές με αριθμό τηλεφώνου. Πρόσθεσε επαφή για να ετοιμαστεί δοκιμαστικό SMS.';
+      sosStatus.textContent = sosActionFeedback.textContent;
+      return;
+    }
+
+    openSmsComposer(preparedSosMessage, smsCapableContacts.map((contact) => contact.phone));
+    sosActionFeedback.textContent = 'Άνοιξε το SMS για δοκιμή προς όλες τις επαφές. Πάτησε αποστολή μόνο αν θέλεις να σταλεί το δοκιμαστικό μήνυμα.';
     sosStatus.textContent = sosActionFeedback.textContent;
     return;
   }
