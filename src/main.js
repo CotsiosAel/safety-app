@@ -333,7 +333,8 @@ const PASSWORD_RESET_REDIRECT_URL = 'https://safety-app-vert.vercel.app/';
 const authStatusMessages = {
   signedOut: 'Χωρίς σύνδεση. Τα στοιχεία αποθηκεύονται με ασφάλεια μόνο σε αυτή τη συσκευή.',
   signedIn: 'Συγχρονισμός ενεργός.',
-  signupSuccess: 'Ο λογαριασμός δημιουργήθηκε. Έλεγξε το email σου για επιβεβαίωση πριν συνδεθείς.',
+  signupSuccess: 'Ο λογαριασμός δημιουργήθηκε και είσαι συνδεδεμένη.',
+  signupPendingConfirmation: 'Αν αυτό είναι νέο email, έλεγξε το inbox σου για επιβεβαίωση. Αν έχεις ήδη λογαριασμό, πάτησε Σύνδεση.',
   logoutSuccess: 'Αποσυνδέθηκες επιτυχώς.',
   passwordResetSent: 'Σου στείλαμε email για επαναφορά κωδικού, αν υπάρχει λογαριασμός με αυτό το email.',
   passwordResetReady: 'Άνοιξε η φόρμα για να ορίσεις νέο κωδικό.',
@@ -4412,15 +4413,18 @@ function getFriendlyAuthErrorMessage(error) {
     return 'Δεν υπάρχει σύνδεση με την υπηρεσία σύνδεσης.';
   }
 
-  if (rawMessage.includes('already registered') || rawMessage.includes('user already registered')) {
-    return 'Υπάρχει ήδη λογαριασμός με αυτό το email. Δοκίμασε σύνδεση ή επαναφορά κωδικού.';
+  if (rawMessage.includes('user already registered')
+    || rawMessage.includes('already exists')
+    || rawMessage.includes('email already registered')
+    || rawMessage.includes('already registered')) {
+    return 'Υπάρχει ήδη λογαριασμός με αυτό το email. Πάτησε Σύνδεση ή χρησιμοποίησε ‘Ξέχασα τον κωδικό μου’.';
   }
 
   if (rawMessage.includes('password')) {
     return 'Ο κωδικός δεν έγινε δεκτός. Χρησιμοποίησε τουλάχιστον 6 χαρακτήρες.';
   }
 
-  return `Σφάλμα σύνδεσης: ${details.message || 'Άγνωστο σφάλμα'}`;
+  return 'Δεν ολοκληρώθηκε η ενέργεια σύνδεσης. Δοκίμασε ξανά σε λίγο.';
 }
 
 function warnAuthError(error) {
@@ -4984,7 +4988,7 @@ async function handleAuthSubmit(event) {
     authPassword.value = '';
     authRepeatPassword.value = '';
     showAuthMessage(isSignup
-      ? authStatusMessages.signupSuccess
+      ? (data.session ? authStatusMessages.signupSuccess : authStatusMessages.signupPendingConfirmation)
       : authStatusMessages.signedIn);
     renderAuth();
     if (!isSignup || data.session) await loadSupabaseData();
