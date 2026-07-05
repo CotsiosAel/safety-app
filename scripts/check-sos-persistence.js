@@ -40,6 +40,52 @@ for (const [label, pattern] of requiredPatterns) {
   }
 }
 
+
+
+const publicTrackingStart = source.indexOf('async function fetchPublicTrackingSession()');
+const publicTrackingEnd = source.indexOf('function initializeSafeMeAppUnsafe()', publicTrackingStart);
+const publicTrackingBody = source.slice(publicTrackingStart, publicTrackingEnd);
+
+for (const [label, pattern] of [
+  ['public tracking waits for Supabase during startup', 'await initializeSupabaseClient();'],
+  ['public tracking keeps lightweight startup branch', 'if (hasTrackingTokenParam) {'],
+  ['public tracking missing token error is specific', "Το tracking link δεν είναι έγκυρο."],
+  ['public tracking Supabase/network error is specific', "Δεν μπόρεσε να φορτώσει το live tracking. Δοκίμασε ανανέωση."],
+  ['public tracking no-session error is specific', "Το tracking link δεν βρέθηκε ή έχει λήξει."],
+  ['public tracking ended state remains visible', "Το SOS έχει τερματιστεί."],
+  ['public tracking active state remains visible', "Υπάρχει ενεργό SOS."],
+  ['public tracking developer diagnostics exist', "console.warn('[SafeMe] Public tracking error'"],
+  ['public tracking diagnostics do not expose token', 'trackingTokenPresent: Boolean(trackingToken)'],
+  ['public tracking auto-refreshes active sessions', 'window.setInterval(fetchPublicTrackingSession, 20000)'],
+]) {
+  if (!source.includes(pattern)) {
+    console.error(`Missing public tracking regression safeguard: ${label}`);
+    process.exit(1);
+  }
+}
+
+if (publicTrackingBody.includes('Το tracking link δεν είναι πλέον διαθέσιμο.')) {
+  console.error('Public tracking errors must not collapse into the old generic unavailable message.');
+  process.exit(1);
+}
+
+const publicTrackingStartupStart = source.indexOf('function startSafeMeWhenDomReady()');
+const publicTrackingStartupEnd = source.indexOf("window.addEventListener('pageshow'", publicTrackingStartupStart);
+const publicTrackingStartupBody = source.slice(publicTrackingStartupStart, publicTrackingStartupEnd);
+const publicTrackingStartupBranchStart = publicTrackingStartupBody.indexOf('if (hasTrackingTokenParam) {');
+const publicTrackingStartupBranchEnd = publicTrackingStartupBody.indexOf('} else {', publicTrackingStartupBranchStart);
+const publicTrackingStartupBranch = publicTrackingStartupBody.slice(publicTrackingStartupBranchStart, publicTrackingStartupBranchEnd);
+
+if (publicTrackingStartupBranch.indexOf('await initializeSupabaseClient();') > publicTrackingStartupBranch.indexOf('await initializePublicTrackingMode();')) {
+  console.error('Public tracking startup must initialize Supabase before initializePublicTrackingMode().');
+  process.exit(1);
+}
+
+if (publicTrackingStartupBranch.includes('initializeSafeMeApp();')) {
+  console.error('Public tracking startup must not initialize the normal app UI.');
+  process.exit(1);
+}
+
 const loadSupabaseStart = source.indexOf('async function loadSupabaseData()');
 const loadSupabaseEnd = source.indexOf('async function handleAuthSubmit', loadSupabaseStart);
 const loadSupabaseBody = source.slice(loadSupabaseStart, loadSupabaseEnd);

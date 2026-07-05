@@ -30,6 +30,7 @@ function createOfflineSupabaseClient() {
       resetPasswordForEmail: async () => ({ error: offlineError }),
       updateUser: async () => ({ error: offlineError }),
     },
+    rpc: async () => ({ data: null, error: offlineError }),
   };
 }
 
@@ -290,9 +291,29 @@ function renderPublicTrackingPage(state) {
 }
 let publicTrackingRefreshTimer = null;
 
+function warnPublicTrackingError(error, details = {}) {
+  console.warn('[SafeMe] Public tracking error', {
+    message: error?.message || String(error || ''),
+    status: error?.status || error?.details?.status || null,
+    code: error?.code || null,
+    isSupabaseReady,
+    trackingTokenPresent: Boolean(trackingToken),
+    ...details,
+  });
+}
+
 async function fetchPublicTrackingSession() {
   if (!trackingToken) {
-    renderPublicTrackingPage({ error: 'Το tracking link δεν είναι πλέον διαθέσιμο.' });
+    const error = new Error('Missing public tracking token');
+    warnPublicTrackingError(error, { code: 'missing_token' });
+    renderPublicTrackingPage({ error: 'Το tracking link δεν είναι έγκυρο.' });
+    return;
+  }
+
+  if (!isSupabaseReady || typeof supabase?.rpc !== 'function') {
+    const error = new Error('Supabase is not ready for public tracking');
+    warnPublicTrackingError(error, { code: 'supabase_not_ready' });
+    renderPublicTrackingPage({ error: 'Δεν μπόρεσε να φορτώσει το live tracking. Δοκίμασε ανανέωση.' });
     return;
   }
 
@@ -306,7 +327,10 @@ async function fetchPublicTrackingSession() {
     if (error) throw error;
 
     const session = normalizePublicSosSession(Array.isArray(data) ? data[0] : data);
-    if (!session) throw new Error('Το tracking link δεν είναι πλέον διαθέσιμο.');
+    if (!session) {
+      renderPublicTrackingPage({ error: 'Το tracking link δεν βρέθηκε ή έχει λήξει.' });
+      return;
+    }
 
     renderPublicTrackingPage({ session, refreshedAt: new Date().toISOString() });
 
@@ -317,14 +341,15 @@ async function fetchPublicTrackingSession() {
   } catch (error) {
     window.clearInterval(publicTrackingRefreshTimer);
     publicTrackingRefreshTimer = null;
-    renderPublicTrackingPage({ error: 'Το tracking link δεν είναι πλέον διαθέσιμο.' });
+    warnPublicTrackingError(error);
+    renderPublicTrackingPage({ error: 'Δεν μπόρεσε να φορτώσει το live tracking. Δοκίμασε ανανέωση.' });
   }
 }
 
-function initializePublicTrackingMode() {
+async function initializePublicTrackingMode() {
   document.body.classList.add('tracking-mode');
   renderPublicTrackingPage({ loading: true });
-  fetchPublicTrackingSession();
+  await fetchPublicTrackingSession();
 }
 
 function initializeSafeMeAppUnsafe() {
@@ -5356,13 +5381,22 @@ function initializeSafeMeApp() {
 }
 
 function startSafeMeWhenDomReady() {
-  const start = () => {
+  const start = async () => {
     if (hasTrackingTokenParam) {
+      document.body.classList.add('tracking-mode');
+      renderPublicTrackingPage({ loading: true });
       try {
-        initializePublicTrackingMode();
+        await initializeSupabaseClient();
+        if (!isSupabaseReady) {
+          const error = new Error('Supabase SDK did not initialize for public tracking');
+          warnPublicTrackingError(error, { code: 'supabase_startup_failed' });
+          renderPublicTrackingPage({ error: 'Δεν μπόρεσε να φορτώσει η υπηρεσία live tracking. Έλεγξε σύνδεση και δοκίμασε ανανέωση.' });
+          return;
+        }
+        await initializePublicTrackingMode();
       } catch (error) {
-        console.warn('[SafeMe] Public tracking startup failed', error);
-        clearStartupBlockingState();
+        warnPublicTrackingError(error, { code: 'startup_exception' });
+        renderPublicTrackingPage({ error: 'Δεν μπόρεσε να φορτώσει η υπηρεσία live tracking. Έλεγξε σύνδεση και δοκίμασε ανανέωση.' });
       } finally {
         clearStartupBlockingState();
       }
