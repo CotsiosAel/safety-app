@@ -898,18 +898,69 @@ function getSmsCapableSosContacts() {
   });
 }
 
-function getGroupSmsRecipients() {
-  return getUniqueSmsRecipients(getSmsCapableSosContacts().map((contact) => contact.phone));
+
+function getContactDisplayName(contact) {
+  return contact?.name?.trim() || 'επαφή';
+}
+
+function getActiveSosSmsQueueMode() {
+  return isSosTestMode ? 'test' : 'live';
+}
+
+function getActiveSosSmsQueueSignature(contactsList) {
+  return contactsList.map((contact) => normalizeSmsRecipient(contact.phone)).join('|');
+}
+
+function resetActiveSosSmsQueue() {
+  const queueContacts = getSmsCapableSosContacts();
+  activeSosSmsQueue = {
+    mode: getActiveSosSmsQueueMode(),
+    signature: getActiveSosSmsQueueSignature(queueContacts),
+    contacts: queueContacts,
+    openedCount: 0,
+    lastSmsContact: null,
+  };
+  renderSosContactNotifications();
+}
+
+function ensureActiveSosSmsQueue() {
+  const queueContacts = getSmsCapableSosContacts();
+  const mode = getActiveSosSmsQueueMode();
+  const signature = getActiveSosSmsQueueSignature(queueContacts);
+  if (!activeSosSmsQueue || activeSosSmsQueue.mode !== mode || activeSosSmsQueue.signature !== signature) {
+    activeSosSmsQueue = {
+      mode,
+      signature,
+      contacts: queueContacts,
+      openedCount: 0,
+      lastSmsContact: null,
+    };
+  }
+  return activeSosSmsQueue;
+}
+
+function getActiveSosSmsQueueButtonLabel(queue = ensureActiveSosSmsQueue()) {
+  const total = queue.contacts.length;
+  if (!total) return 'Προσθήκη επαφής';
+  if (queue.openedCount >= total) return 'Ολοκληρώθηκε η σειρά SMS';
+  const contact = queue.contacts[queue.openedCount];
+  const prefix = queue.mode === 'test' ? 'Δοκιμή SMS' : 'SMS';
+  return `${prefix} ${queue.openedCount + 1}/${total} προς ${getContactDisplayName(contact)}`;
+}
+
+function getActiveSosSmsQueueProgressText(queue = ensureActiveSosSmsQueue()) {
+  const total = queue.contacts.length;
+  const opened = Math.min(queue.openedCount, total);
+  const status = total && opened >= total
+    ? 'Ολοκληρώθηκε η σειρά SMS.'
+    : queue.lastSmsContact
+      ? `Άνοιξε SMS προς ${getContactDisplayName(queue.lastSmsContact)}. Αν το έστειλες, συνέχισε στην επόμενη επαφή.`
+      : 'Το SafeMe θα ανοίξει SMS για κάθε επαφή, μία-μία.';
+  return `Επαφές SMS: ${opened} από ${total} άνοιξε. ${status} Το SafeMe άνοιξε το SMS. Πρέπει να πατήσεις αποστολή μέσα στην εφαρμογή μηνυμάτων.`;
 }
 
 function getEmailCapableSosContacts() {
   return contacts.filter((contact) => contact.email);
-}
-
-function getGroupSmsLink(message) {
-  const recipients = getGroupSmsRecipients();
-
-  return `sms:${recipients.join(',')}?&body=${encodeURIComponent(message)}`;
 }
 
 function isValidUuid(value) {
@@ -920,11 +971,11 @@ function isRemoteSosSession(session = activeSosSession) {
   return Boolean(currentUser && session && isValidUuid(session.id) && session.userId === currentUser.id);
 }
 
-function openSmsComposer(message, recipients = []) {
-  const cleanRecipients = getUniqueSmsRecipients(recipients);
-  if (cleanRecipients.length === 0) return false;
+function openSmsComposer(message, recipient) {
+  const cleanRecipient = normalizeSmsRecipient(Array.isArray(recipient) ? recipient[0] : recipient);
+  if (!cleanRecipient) return false;
 
-  window.location.href = `sms:${cleanRecipients.join(',')}?&body=${encodeURIComponent(message)}`;
+  window.location.href = `sms:${cleanRecipient}?&body=${encodeURIComponent(message)}`;
   return true;
 }
 
@@ -969,25 +1020,25 @@ function renderSosContactNotifications() {
   const trackingUrl = getSosTrackingUrl(activeSosSession?.shareToken);
   const smsCapableContacts = getSmsCapableSosContacts();
   const hasSmsCapableContacts = smsCapableContacts.length > 0;
-  notifyAllSosContactsButton.disabled = !hasSmsCapableContacts || isSosTestMode;
-  notifyAllSosContactsButton.textContent = hasSmsCapableContacts ? 'Αποστολή SMS σε όλες τις επαφές' : 'Προσθήκη επαφής';
+  const smsQueue = ensureActiveSosSmsQueue();
+  notifyAllSosContactsButton.disabled = !hasSmsCapableContacts;
+  notifyAllSosContactsButton.textContent = getActiveSosSmsQueueButtonLabel(smsQueue);
   if (notifyAllSosContactsActionButton) {
-    notifyAllSosContactsActionButton.disabled = !isSosTestMode && !hasSmsCapableContacts;
-    notifyAllSosContactsActionButton.textContent = isSosTestMode
-      ? 'Δοκιμή αποστολής SMS'
-      : hasSmsCapableContacts
-        ? 'Αποστολή SMS σε όλες τις επαφές'
-        : 'Προσθήκη επαφής';
+    notifyAllSosContactsActionButton.disabled = !hasSmsCapableContacts;
+    notifyAllSosContactsActionButton.textContent = getActiveSosSmsQueueButtonLabel(smsQueue);
   }
-  sosContactWarning.textContent = isSosTestMode
-    ? ''
+  const baseSosContactWarning = isSosTestMode
+    ? 'Δοκιμαστική σειρά SMS. Το μήνυμα γράφει καθαρά ότι είναι δοκιμή.'
     : !trackingUrl
       ? 'Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται. Δεν υπάρχει live tracking.'
       : contacts.length === 0
         ? 'Δεν υπάρχουν έμπιστες επαφές.'
         : !hasSmsCapableContacts
           ? 'Δεν υπάρχουν επαφές έκτακτης ανάγκης με αριθμό τηλεφώνου. Πρόσθεσε αριθμούς για να ετοιμαστεί SMS προς όλες τις επαφές.'
-          : 'Το SafeMe ετοιμάζει έτοιμο SMS προς όλες τις επαφές με αριθμό τηλεφώνου. Η αποστολή γίνεται από τη συσκευή σου.';
+          : 'Το SafeMe ετοιμάζει SMS προς κάθε επαφή με αριθμό τηλεφώνου, μία-μία. Η αποστολή γίνεται από τη συσκευή σου.';
+  sosContactWarning.textContent = hasSmsCapableContacts
+    ? `${baseSosContactWarning} ${getActiveSosSmsQueueProgressText(smsQueue)}`
+    : baseSosContactWarning;
 
   if (contacts.length === 0) {
     sosContactList.innerHTML = '<article class="sos-contact-empty"><strong>Δεν υπάρχουν έμπιστες επαφές.</strong><p>Πρόσθεσε μία επαφή για να ετοιμαστεί SMS.</p><button class="ghost-button" type="button" data-sos-open-contacts>Προσθήκη επαφής</button></article>';
@@ -1011,30 +1062,45 @@ function renderSosContactNotifications() {
           <button class="ghost-button" type="button" data-sos-copy-contact="${index}">Αντιγραφή</button>
         </div>
       </article>`;
-  }).join('');
+  }).join('') + (hasSmsCapableContacts ? '<article class="sos-contact-notify-card"><div><strong>Σειρά SMS</strong><span>' + escapeHtml(getActiveSosSmsQueueProgressText(smsQueue)) + '</span></div><div class="sos-contact-notify-actions"><button class="ghost-button" type="button" data-sos-reset-sms-queue>Επαναφορά σειράς SMS</button></div></article>' : '');
   renderSosNotificationHistory();
 }
 
 async function notifyAllSosContacts() {
   const message = getActiveSosEmergencyMessage();
-  const smsCapableContacts = getSmsCapableSosContacts();
+  const smsQueue = ensureActiveSosSmsQueue();
 
-  if (smsCapableContacts.length === 0) {
+  if (smsQueue.contacts.length === 0) {
     showPage('contacts');
     renderActiveSosSession('Δεν υπάρχουν έμπιστες επαφές με αριθμό τηλεφώνου. Πρόσθεσε επαφή για να ετοιμαστεί SMS SOS.');
     return;
   }
 
-  if (isSosTestMode) {
-    logSosNotification(null, 'SMS', 'Άνοιξε');
-    renderActiveSosSession('Άνοιξε το SMS για δοκιμή προς όλες τις επαφές. Πάτησε αποστολή μόνο αν θέλεις να σταλεί το δοκιμαστικό μήνυμα.');
-    openSmsComposer(message, smsCapableContacts.map((contact) => contact.phone));
+  if (smsQueue.openedCount >= smsQueue.contacts.length) {
+    renderActiveSosSession('Άνοιξαν SMS για όλες τις επαφές. Ολοκληρώθηκε η σειρά SMS.');
+    renderSosContactNotifications();
     return;
   }
 
-  logSosNotification(null, 'SMS', 'Άνοιξε');
-  renderActiveSosSession('Άνοιξε έτοιμο SMS προς όλες τις επαφές. Πάτησε αποστολή για να φύγει το SOS.');
-  openSmsComposer(message, smsCapableContacts.map((contact) => contact.phone));
+  const contact = smsQueue.contacts[smsQueue.openedCount];
+  const contactName = getContactDisplayName(contact);
+  const opened = openSmsComposer(message, contact.phone);
+  if (!opened) {
+    renderActiveSosSession(`Δεν μπόρεσε να ανοίξει SMS προς ${contactName}. Έλεγξε τον αριθμό και συνέχισε.`);
+    renderSosContactNotifications();
+    return;
+  }
+
+  smsQueue.openedCount += 1;
+  smsQueue.lastSmsContact = contact;
+  logSosNotification(contact, 'SMS', 'Άνοιξε');
+
+  if (smsQueue.openedCount >= smsQueue.contacts.length) {
+    renderActiveSosSession(`Άνοιξε SMS προς ${contactName}. Το SafeMe άνοιξε το SMS. Πρέπει να πατήσεις αποστολή μέσα στην εφαρμογή μηνυμάτων. Άνοιξαν SMS για όλες τις επαφές.`);
+  } else {
+    renderActiveSosSession(`Άνοιξε SMS προς ${contactName}. Αν το έστειλες, συνέχισε στην επόμενη επαφή. Το SafeMe άνοιξε το SMS. Πρέπει να πατήσεις αποστολή μέσα στην εφαρμογή μηνυμάτων.`);
+  }
+  renderSosContactNotifications();
 }
 
 function loadJson(key, fallback) {
@@ -1131,6 +1197,7 @@ let activeSosDiagnostics = {
 };
 let locationPermissionStatus = null;
 let sosNotificationHistory = loadJson(storageKeys.notificationHistory, []);
+let activeSosSmsQueue = null;
 let lastEndedSosSession = loadJson(storageKeys.endedSosSession, null);
 let waitingServiceWorker = null;
 let hasAppUpdateAvailable = false;
@@ -1196,6 +1263,7 @@ function clearActiveSosRuntimeState({ message = 'Το προηγούμενο SOS
   isActiveSosSessionRestored = false;
   isAutoUpdatingActiveSosLocation = false;
   activeSosLastAutoUpdateAt = null;
+  activeSosSmsQueue = null;
   clearLegacyActiveSosStorage();
   renderActiveSosSession();
   sosButton?.classList.remove('activated');
@@ -2588,15 +2656,12 @@ function renderSafetyStatusCard() {
 function updateActiveSosEmergencyActions() {
   const message = getActiveSosEmergencyMessage();
   const hasSmsCapableContacts = getSmsCapableSosContacts().length > 0;
+  const smsQueue = ensureActiveSosSmsQueue();
   const emailContacts = getEmailCapableSosContacts();
 
   if (notifyAllSosContactsActionButton) {
-    notifyAllSosContactsActionButton.textContent = isSosTestMode
-      ? 'Δοκιμή αποστολής SMS'
-      : hasSmsCapableContacts
-        ? 'Αποστολή SMS σε όλες τις επαφές'
-        : 'Προσθήκη επαφής';
-    notifyAllSosContactsActionButton.disabled = !isSosTestMode && !hasSmsCapableContacts;
+    notifyAllSosContactsActionButton.textContent = getActiveSosSmsQueueButtonLabel(smsQueue);
+    notifyAllSosContactsActionButton.disabled = !hasSmsCapableContacts;
   }
   if (activeSosLocationNote) {
     activeSosLocationNote.textContent = currentLocation || hasSosLocation(activeSosSession)
@@ -3645,8 +3710,8 @@ function sendPreparedSosSms() {
       return;
     }
 
-    openSmsComposer(preparedSosMessage, smsCapableContacts.map((contact) => contact.phone));
-    sosActionFeedback.textContent = 'Άνοιξε το SMS για δοκιμή προς όλες τις επαφές. Πάτησε αποστολή μόνο αν θέλεις να σταλεί το δοκιμαστικό μήνυμα.';
+    notifyAllSosContacts();
+    sosActionFeedback.textContent = getActiveSosSmsQueueProgressText(ensureActiveSosSmsQueue());
     sosStatus.textContent = sosActionFeedback.textContent;
     return;
   }
@@ -5169,6 +5234,12 @@ sosContactList?.addEventListener('click', async (event) => {
   if (disabledAction) { event.preventDefault(); return; }
   const openContactsButton = event.target.closest('[data-sos-open-contacts]');
   if (openContactsButton) { focusContactForm(); return; }
+  const resetSmsQueueButton = event.target.closest('[data-sos-reset-sms-queue]');
+  if (resetSmsQueueButton) {
+    resetActiveSosSmsQueue();
+    renderActiveSosSession('Η σειρά SMS επανήλθε στην πρώτη επαφή.');
+    return;
+  }
   const copyButton = event.target.closest('[data-sos-copy-contact]');
   if (copyButton) {
     const contact = contacts[Number(copyButton.dataset.sosCopyContact)];
