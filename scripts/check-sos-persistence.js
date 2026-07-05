@@ -119,6 +119,39 @@ for (const [label, pattern] of [
   }
 }
 
+const sosRecipientStart = source.indexOf('function normalizeSmsRecipient(');
+const sosRecipientEnd = source.indexOf('function getEmailCapableSosContacts()', sosRecipientStart);
+const sosRecipientBody = source.slice(sosRecipientStart, sosRecipientEnd);
+
+for (const [label, pattern] of [
+  ['SMS recipient normalizer trims and collapses whitespace', "String(phone || '').trim().replace(/\\s+/g, ' ')"],
+  ['SMS recipient dedupe helper exists', 'function getUniqueSmsRecipients(recipients = [])'],
+  ['SMS recipient dedupe tracks normalized phones', 'seenRecipients.has(normalizedRecipient)'],
+  ['SOS contact collection dedupes duplicate primary phone', 'seenPhones.has(normalizedPhone)'],
+  ['SOS contact collection keeps all unique contact phones', 'return contacts.filter((contact) => {'],
+  ['group SMS recipients use unique contact phones', 'return getUniqueSmsRecipients(getSmsCapableSosContacts().map((contact) => contact.phone));'],
+]) {
+  if (!sosRecipientBody.includes(pattern)) {
+    console.error(`Missing SOS SMS recipient dedupe safeguard: ${label}`);
+    process.exit(1);
+  }
+}
+
+const notifyAllStart = source.indexOf('async function notifyAllSosContacts()');
+const notifyAllEnd = source.indexOf('function loadJson', notifyAllStart);
+const notifyAllBody = source.slice(notifyAllStart, notifyAllEnd);
+
+for (const [label, pattern] of [
+  ['notify-all blocks empty SMS-capable contacts', 'if (smsCapableContacts.length === 0)'],
+  ['notify-all test mode uses trusted contact recipients', 'openSmsComposer(message, smsCapableContacts.map((contact) => contact.phone));'],
+  ['notify-all empty state guides user to add phone contact', 'Δεν υπάρχουν έμπιστες επαφές με αριθμό τηλεφώνου'],
+]) {
+  if (!notifyAllBody.includes(pattern)) {
+    console.error(`Missing notify-all SOS SMS safeguard: ${label}`);
+    process.exit(1);
+  }
+}
+
 const requiredPolishPatterns = [
   ['test mode primary action label', 'Δοκιμή αποστολής SMS'],
   ['real mode primary action label remains', 'Αποστολή SMS σε όλες τις επαφές'],
