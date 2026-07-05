@@ -4389,7 +4389,18 @@ function getAuthErrorDetails(error) {
   };
 }
 
-function getFriendlyAuthErrorMessage(error) {
+function isExistingAccountSignupError(details) {
+  const rawMessage = details.message.toLowerCase();
+  const rawCode = details.code.toLowerCase();
+
+  return rawCode === 'user_already_exists'
+    || rawMessage.includes('user already registered')
+    || rawMessage.includes('already exists')
+    || rawMessage.includes('email already registered')
+    || rawMessage.includes('user_already_exists');
+}
+
+function getFriendlyAuthErrorMessage(error, options = {}) {
   const details = getAuthErrorDetails(error);
   const rawMessage = details.message.toLowerCase();
 
@@ -4413,10 +4424,7 @@ function getFriendlyAuthErrorMessage(error) {
     return 'Δεν υπάρχει σύνδεση με την υπηρεσία σύνδεσης.';
   }
 
-  if (rawMessage.includes('user already registered')
-    || rawMessage.includes('already exists')
-    || rawMessage.includes('email already registered')
-    || rawMessage.includes('already registered')) {
+  if (options.isSignup && isExistingAccountSignupError(details)) {
     return 'Υπάρχει ήδη λογαριασμός με αυτό το email. Πάτησε Σύνδεση ή χρησιμοποίησε ‘Ξέχασα τον κωδικό μου’.';
   }
 
@@ -4994,7 +5002,7 @@ async function handleAuthSubmit(event) {
     if (!isSignup || data.session) await loadSupabaseData();
   } catch (error) {
     warnAuthError(error);
-    showAuthMessage(getFriendlyAuthErrorMessage(error), true);
+    showAuthMessage(getFriendlyAuthErrorMessage(error, { isSignup: authMode === 'signup' }), true);
   } finally {
     setAuthLoading(false);
   }
