@@ -125,16 +125,21 @@ const sosMessageEnd = source.indexOf('function getSmsLink', sosMessageStart);
 const sosMessageBody = source.slice(sosMessageStart, sosMessageEnd);
 
 for (const [label, pattern] of [
-  ['real SOS SafeMe heading', '🚨 SOS από SafeMe'],
-  ['real SOS emergency copy', 'SOS! Χρειάζομαι βοήθεια.'],
-  ['real SOS 112 fallback', 'Αν δεν μπορείς να επικοινωνήσεις μαζί μου, κάλεσε άμεσα το 112 ή τις αρμόδιες αρχές.'],
+  ['real SOS SafeMe heading', '🚨 SOS SafeMe'],
+  ['real SOS emergency copy', 'Χρειάζομαι βοήθεια ΤΩΡΑ.'],
   ['test SOS SafeMe heading', '🧪 ΔΟΚΙΜΗ SafeMe SOS'],
-  ['test SOS clearly states no emergency', 'Αυτό είναι δοκιμαστικό μήνυμα. Δεν υπάρχει πραγματική ανάγκη.'],
-  ['simple location section label', 'Η τοποθεσία μου είναι εδώ:'],
-  ['navigation section label', 'Πλοήγηση προς εμένα:'],
-  ['location/maps link is included when available', 'locationUrl'],
-  ['driving navigation link is included when available', 'navigationUrl'],
-  ['notification timestamp label', 'Ώρα ειδοποίησης:'],
+  ['test SOS clearly states no emergency', 'Δεν υπάρχει πραγματική ανάγκη.'],
+  ['Apple Maps named location URL', 'https://maps.apple.com/?ll=${lat},${lng}&q=SafeMe%20SOS%20Location'],
+  ['Apple Maps navigation URL', 'https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d'],
+  ['Google Maps fallback URL', 'https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}'],
+  ['Google Maps driving navigation fallback URL', 'https://www.google.com/maps/dir/?api=1&destination=${lat}%2C${lng}&travelmode=driving'],
+  ['current location section label', '📍 Τοποθεσία μου:'],
+  ['test location section label', '📍 Τοποθεσία δοκιμής:'],
+  ['navigation section label', '🧭 Πλοήγηση προς εμένα:'],
+  ['test navigation section label', '🧭 Πλοήγηση προς το σημείο:'],
+  ['Google Maps fallback message label', 'Αν δεν ανοίξει σωστά, δοκίμασε Google Maps:'],
+  ['coordinates label', 'Συντεταγμένες:'],
+  ['notification timestamp label', '🕒 Ώρα ειδοποίησης:'],
 ]) {
   if (!source.includes(pattern) && !sosMessageBody.includes(pattern)) {
     console.error(`Missing SOS message wording safeguard: ${label}`);
@@ -142,18 +147,8 @@ for (const [label, pattern] of [
   }
 }
 
-const testMessageBranchStart = sosMessageBody.indexOf('if (isSosTestMode) {');
-const realMessageBranchStart = sosMessageBody.indexOf('if (!isSosTestMode) {');
-const testMessageBranch = sosMessageBody.slice(testMessageBranchStart, realMessageBranchStart);
-const realMessageBranch = sosMessageBody.slice(realMessageBranchStart);
-
-if (testMessageBranch.includes('112')) {
-  console.error('Test SOS message must not include real-emergency 112 escalation copy.');
-  process.exit(1);
-}
-
-if (!realMessageBranch.includes('112')) {
-  console.error('Real SOS message must include 112 escalation copy only outside test mode.');
+if (sosMessageBody.includes('112')) {
+  console.error('SOS SMS/share message must focus on sender location links and not add 112 escalation copy.');
   process.exit(1);
 }
 
