@@ -60,6 +60,7 @@ Public Terms of Use URL placeholder: `/terms-of-use.html`
 Support page: `/support.html`
 Store listing draft: `docs/store-listing-draft.md`
 MVP stable checkpoint: `docs/mvp-stable-checkpoint.md`
+Emergency Broadcast future plan: `docs/emergency-broadcast-plan.md`
 
 
 ## Account/auth foundation
