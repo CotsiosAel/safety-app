@@ -111,7 +111,7 @@ if (!realMessageBranch.includes('112')) {
 
 for (const [label, pattern] of [
   ['individual SMS composer remains prepared-only', 'return `sms:${phone}?&body=${encodeURIComponent(message)}`;'],
-  ['group SMS composer remains prepared-only', 'return `sms:${recipients.join(',')}?&body=${encodeURIComponent(message)}`;'],
+  ['single-recipient composer avoids group SMS URLs', 'window.location.href = `sms:${cleanRecipient}?&body=${encodeURIComponent(message)}`;'],
 ]) {
   if (!source.includes(pattern)) {
     console.error(`Missing prepared SMS composer safeguard: ${label}`);
@@ -129,7 +129,7 @@ for (const [label, pattern] of [
   ['SMS recipient dedupe tracks normalized phones', 'seenRecipients.has(normalizedRecipient)'],
   ['SOS contact collection dedupes duplicate primary phone', 'seenPhones.has(normalizedPhone)'],
   ['SOS contact collection keeps all unique contact phones', 'return contacts.filter((contact) => {'],
-  ['group SMS recipients use unique contact phones', 'return getUniqueSmsRecipients(getSmsCapableSosContacts().map((contact) => contact.phone));'],
+  ['SMS queue signature uses unique contact phones', 'return contactsList.map((contact) => normalizeSmsRecipient(contact.phone)).join('|');'],
 ]) {
   if (!sosRecipientBody.includes(pattern)) {
     console.error(`Missing SOS SMS recipient dedupe safeguard: ${label}`);
@@ -142,8 +142,9 @@ const notifyAllEnd = source.indexOf('function loadJson', notifyAllStart);
 const notifyAllBody = source.slice(notifyAllStart, notifyAllEnd);
 
 for (const [label, pattern] of [
-  ['notify-all blocks empty SMS-capable contacts', 'if (smsCapableContacts.length === 0)'],
-  ['notify-all test mode uses trusted contact recipients', 'openSmsComposer(message, smsCapableContacts.map((contact) => contact.phone));'],
+  ['notify-all blocks empty SMS-capable contacts', 'if (smsQueue.contacts.length === 0)'],
+  ['notify-all opens the current queue contact only', 'const contact = smsQueue.contacts[smsQueue.openedCount];'],
+  ['notify-all advances the sequential SMS queue', 'smsQueue.openedCount += 1;'],
   ['notify-all empty state guides user to add phone contact', 'Δεν υπάρχουν έμπιστες επαφές με αριθμό τηλεφώνου'],
 ]) {
   if (!notifyAllBody.includes(pattern)) {
@@ -153,7 +154,7 @@ for (const [label, pattern] of [
 }
 
 const requiredPolishPatterns = [
-  ['test mode primary action label', 'Δοκιμή αποστολής SMS'],
+  ['test mode sequential SMS action label', 'Δοκιμή SMS'],
   ['real mode primary action label remains', 'Αποστολή SMS σε όλες τις επαφές'],
   ['SOS information disclosure', '<summary>Πληροφορίες SOS</summary>'],
   ['tracking unavailable note inside SOS information', 'Live tracking μη διαθέσιμο σε αυτή τη δοκιμή.'],
