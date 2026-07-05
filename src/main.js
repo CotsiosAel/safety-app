@@ -2135,12 +2135,31 @@ function handleOnlineStatusClick() {
   focusElementAfterScroll(currentLocationCard || locationText);
 }
 
+function getRoundedCoordinates(location) {
+  return {
+    lat: Number(location.latitude).toFixed(6),
+    lng: Number(location.longitude).toFixed(6),
+  };
+}
+
+function getAppleMapsPinUrl(location) {
+  const { lat, lng } = getRoundedCoordinates(location);
+  return `https://maps.apple.com/?ll=${lat},${lng}&q=SafeMe%20SOS%20Location`;
+}
+
+function getAppleMapsNavigationUrl(location) {
+  const { lat, lng } = getRoundedCoordinates(location);
+  return `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`;
+}
+
 function getLocationUrl(location) {
-  return `https://maps.google.com/?q=${location.latitude},${location.longitude}`;
+  const { lat, lng } = getRoundedCoordinates(location);
+  return `https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`;
 }
 
 function getNavigationUrl(location) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}&travelmode=driving`;
+  const { lat, lng } = getRoundedCoordinates(location);
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat}%2C${lng}&travelmode=driving`;
 }
 
 function formatLocation(location) {
@@ -2397,49 +2416,45 @@ function buildSosMessage(location = currentLocation, shareToken = activeSosSessi
   const latitude = Number(location?.latitude);
   const longitude = Number(location?.longitude);
   const hasLocation = Number.isFinite(latitude) && Number.isFinite(longitude);
-  const locationUrl = hasLocation ? getLocationUrl({ latitude, longitude }) : '';
-  const navigationUrl = hasLocation ? getNavigationUrl({ latitude, longitude }) : '';
-  const coordinatesText = hasLocation
-    ? `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
-    : '';
-  const locationUpdatedAt = location?.updatedAt
-    ? new Intl.DateTimeFormat('el-GR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(location.updatedAt))
-    : '';
-  const trackingUrl = getSosTrackingUrl(shareToken);
-  const sentAt = new Intl.DateTimeFormat('el-GR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
+  const alertTime = new Intl.DateTimeFormat('el-GR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
   const lines = [];
 
   if (isSosTestMode) {
-    lines.push(getSosMessageIntro(), 'Αυτό είναι δοκιμαστικό μήνυμα. Δεν υπάρχει πραγματική ανάγκη.', '');
+    lines.push('🧪 ΔΟΚΙΜΗ SafeMe SOS', 'Δεν υπάρχει πραγματική ανάγκη.', '');
   } else {
-    lines.push('SOS! Χρειάζομαι βοήθεια.', '');
+    lines.push('🚨 SOS SafeMe', 'Χρειάζομαι βοήθεια ΤΩΡΑ.', '');
   }
 
-  if (profile?.name?.trim()) lines.push(`Όνομα: ${profile.name.trim()}`);
-  if (profile?.phone?.trim()) lines.push(`Τηλέφωνο: ${profile.phone.trim()}`);
-  if (profile?.name?.trim() || profile?.phone?.trim()) lines.push('');
-
   if (hasLocation) {
-    lines.push('Η τοποθεσία μου είναι εδώ:', locationUrl, '');
-    lines.push('Πλοήγηση προς εμένα:', navigationUrl, '');
-    lines.push(`Συντεταγμένες: ${coordinatesText}`);
-    if (locationUpdatedAt) lines.push(`Ώρα τοποθεσίας: ${locationUpdatedAt}`);
+    const location = { latitude, longitude };
+    const { lat, lng } = getRoundedCoordinates(location);
+    const appleMapsPinLink = getAppleMapsPinUrl(location);
+    const appleMapsNavigationLink = getAppleMapsNavigationUrl(location);
+    const googleMapsPinLink = getLocationUrl(location);
+    const googleMapsNavigationLink = getNavigationUrl(location);
+
+    if (isSosTestMode) {
+      lines.push('📍 Τοποθεσία δοκιμής:', appleMapsPinLink, '');
+      lines.push('🧭 Πλοήγηση προς το σημείο:', appleMapsNavigationLink, '');
+      lines.push('Google Maps:', googleMapsPinLink, googleMapsNavigationLink, '');
+    } else {
+      lines.push('📍 Τοποθεσία μου:', appleMapsPinLink, '');
+      lines.push('🧭 Πλοήγηση προς εμένα:', appleMapsNavigationLink, '');
+      lines.push('Αν δεν ανοίξει σωστά, δοκίμασε Google Maps:', googleMapsPinLink, googleMapsNavigationLink, '');
+    }
+
+    lines.push(`Συντεταγμένες: ${lat}, ${lng}`);
   } else {
     lines.push('Τοποθεσία:', 'Δεν είναι διαθέσιμη αυτή τη στιγμή.');
   }
 
-  if (trackingUrl) {
-    lines.push('', isSosTestMode ? 'Δοκιμαστικό live tracking:' : 'Live tracking:', trackingUrl);
-  }
-
-  if (!isSosTestMode) {
-    lines.push('', 'Αν δεν μπορείς να επικοινωνήσεις μαζί μου, κάλεσε άμεσα το 112 ή τις αρμόδιες αρχές.');
-  }
-
-  lines.push('', `Ώρα ειδοποίησης: ${sentAt}`);
+  if (profile?.name?.trim()) lines.push('', `👤 Όνομα: ${profile.name.trim()}`);
+  if (profile?.phone?.trim()) lines.push(`📞 Τηλέφωνο: ${profile.phone.trim()}`);
+  lines.push(`🕒 Ώρα ειδοποίησης: ${alertTime}`);
 
   return lines.join('\n');
 }
+
 
 function getSmsLink(contact, message) {
   const phone = contact ? normalizeSmsRecipient(contact.phone) : '';
