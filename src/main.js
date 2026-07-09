@@ -296,6 +296,48 @@ function publicTrackingHasLocation(session) {
     && session?.latestLongitude !== null && session?.latestLongitude !== undefined;
 }
 
+function getRoundedCoordinates(location) {
+  return {
+    lat: Number(location.latitude).toFixed(6),
+    lng: Number(location.longitude).toFixed(6),
+  };
+}
+
+function getAppleMapsPinUrl(location) {
+  const { lat, lng } = getRoundedCoordinates(location);
+  return `https://maps.apple.com/?ll=${lat},${lng}&q=SafeMe%20SOS%20Location`;
+}
+
+function getAppleMapsNavigationUrl(location) {
+  const { lat, lng } = getRoundedCoordinates(location);
+  return `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`;
+}
+
+function getLocationUrl(location) {
+  const { lat, lng } = getRoundedCoordinates(location);
+  return `https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`;
+}
+
+function getNavigationUrl(location) {
+  const { lat, lng } = getRoundedCoordinates(location);
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat}%2C${lng}&travelmode=driving`;
+}
+
+function buildPublicTrackingDiagnosticCode(details = {}) {
+  const segments = ['PT'];
+  const transport = String(details.transport || 'app').replace(/[^a-z0-9]/gi, '').slice(0, 10).toUpperCase() || 'APP';
+  segments.push(transport);
+
+  const code = String(details.code || details.reason || 'unknown')
+    .replace(/[^a-z0-9]/gi, '')
+    .slice(0, 16)
+    .toUpperCase() || 'UNKNOWN';
+  segments.push(code);
+
+  if (details.status) segments.push(String(details.status));
+  return segments.join('-');
+}
+
 function renderPublicTrackingPage(state) {
   const existingPage = document.querySelector('#public-tracking-page');
   const page = existingPage || document.createElement('main');
@@ -320,7 +362,10 @@ function renderPublicTrackingPage(state) {
   }
 
   if (state.error) {
-    renderShell(`<p class="public-tracking-error">${escapeHtml(state.error)}</p>`);
+    const diagnosticMarkup = state.diagnosticCode
+      ? `<p class="public-tracking-diagnostics"><small>Κωδικός διαγνωστικών: ${escapeHtml(state.diagnosticCode)}</small></p>`
+      : '';
+    renderShell(`<p class="public-tracking-error">${escapeHtml(state.error)}</p>${diagnosticMarkup}`);
     return;
   }
 
@@ -392,15 +437,26 @@ function renderPublicTrackingPage(state) {
 let publicTrackingRefreshTimer = null;
 
 function warnPublicTrackingError(error, details = {}) {
-  console.warn('[SafeMe] Public tracking error', {
+  const diagnosticCode = buildPublicTrackingDiagnosticCode({
+    transport: details.transport,
+    code: details.code || error?.code,
+    reason: details.reason,
+    status: details.status || error?.status || error?.details?.status || null,
+  });
+  const payload = {
+    diagnosticCode,
     message: error?.message || String(error || ''),
-    status: error?.status || error?.details?.status || null,
-    code: error?.code || null,
+    status: details.status || error?.status || error?.details?.status || null,
+    code: details.code || error?.code || null,
+    reason: details.reason || null,
+    transport: details.transport || null,
     isSupabaseReady,
     hasSupabaseConfiguration: hasSupabaseConfiguration(),
     trackingTokenPresent: Boolean(trackingToken),
     ...details,
-  });
+  };
+  console.error('[SafeMe] Public tracking error', payload);
+  return diagnosticCode;
 }
 
 function isPublicTrackingPermissionError(error) {
@@ -425,6 +481,23 @@ function isPublicTrackingNetworkError(error) {
     || message.includes('load failed');
 }
 
+function isPublicTrackingRpcError(error) {
+  const code = String(error?.code || '').toUpperCase();
+  const message = String(error?.message || '').toLowerCase();
+  return code.startsWith('PGRST')
+    || message.includes('schema cache')
+    || message.includes('could not find the function')
+    || message.includes('rpc failed');
+}
+
+function isPublicTrackingRenderError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return error instanceof ReferenceError
+    || error instanceof TypeError
+    || message.includes('is not defined')
+    || message.includes('is not a function');
+}
+
 function resolvePublicTrackingLoadError(error, { reason } = {}) {
   if (reason === 'missing_config' || reason === 'supabase_not_ready') {
     return PUBLIC_TRACKING_ERRORS.notReady;
@@ -432,8 +505,14 @@ function resolvePublicTrackingLoadError(error, { reason } = {}) {
   if (isPublicTrackingPermissionError(error)) {
     return PUBLIC_TRACKING_ERRORS.permissionDenied;
   }
+  if (isPublicTrackingRpcError(error)) {
+    return PUBLIC_TRACKING_ERRORS.permissionDenied;
+  }
   if (isPublicTrackingNetworkError(error)) {
     return PUBLIC_TRACKING_ERRORS.networkError;
+  }
+  if (isPublicTrackingRenderError(error)) {
+    return PUBLIC_TRACKING_ERRORS.notReady;
   }
   return PUBLIC_TRACKING_ERRORS.networkError;
 }
@@ -444,7 +523,7 @@ function normalizePublicTrackingRpcResult(data) {
   return null;
 }
 
-async function loadPublicSosSessionByTokenViaRest(token) {
+async function loadPublicSosSessionByTokenViaRest(token, { viaFallback = false } = {}) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_sos_session_by_token`, {
     method: 'POST',
     headers: {
@@ -460,49 +539,68 @@ async function loadPublicSosSessionByTokenViaRest(token) {
     const error = new Error(payload?.message || `RPC failed (${response.status})`);
     error.status = response.status;
     error.code = payload?.code || null;
+    error.transport = viaFallback ? 'rest_fallback' : 'rest';
     throw error;
   }
 
-  return normalizePublicTrackingRpcResult(payload);
+  return {
+    session: normalizePublicTrackingRpcResult(payload),
+    transport: viaFallback ? 'rest_fallback' : 'rest',
+  };
 }
 
 async function loadPublicSosSessionByToken(token) {
   const ready = await ensureSupabaseReady();
+  let sdkError = null;
 
   if (ready && typeof supabase?.rpc === 'function') {
-    const { data, error } = await supabase.rpc('get_sos_session_by_token', { token });
-    if (error) throw error;
-    return normalizePublicTrackingRpcResult(data);
+    try {
+      const { data, error } = await supabase.rpc('get_sos_session_by_token', { token });
+      if (error) throw error;
+      return {
+        session: normalizePublicTrackingRpcResult(data),
+        transport: 'sdk_rpc',
+      };
+    } catch (error) {
+      sdkError = error;
+      error.transport = 'sdk_rpc';
+    }
   }
 
-  return loadPublicSosSessionByTokenViaRest(token);
+  try {
+    return await loadPublicSosSessionByTokenViaRest(token, { viaFallback: Boolean(sdkError) });
+  } catch (restError) {
+    if (sdkError) restError.sdkErrorMessage = sdkError.message;
+    throw restError;
+  }
 }
 
 async function fetchPublicTrackingSession() {
   if (!trackingToken) {
     const error = new Error('Missing public tracking token');
-    warnPublicTrackingError(error, { code: 'missing_token', reason: 'invalid_token' });
-    renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.invalidToken });
+    const diagnosticCode = warnPublicTrackingError(error, { code: 'missing_token', reason: 'invalid_token' });
+    renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.invalidToken, diagnosticCode });
     return;
   }
 
   if (!hasSupabaseConfiguration()) {
     const error = new Error('Missing Supabase configuration for public tracking');
-    warnPublicTrackingError(error, { code: 'missing_config', reason: 'not_ready' });
-    renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.notReady });
+    const diagnosticCode = warnPublicTrackingError(error, { code: 'missing_config', reason: 'not_ready' });
+    renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.notReady, diagnosticCode });
     return;
   }
 
   renderPublicTrackingPage({ loading: true });
 
   try {
-    const session = await loadPublicSosSessionByToken(trackingToken);
+    const { session, transport } = await loadPublicSosSessionByToken(trackingToken);
     if (!session) {
-      warnPublicTrackingError(new Error('No SOS session for token'), {
+      const diagnosticCode = warnPublicTrackingError(new Error('No SOS session for token'), {
         code: 'invalid_token',
         reason: 'invalid_token',
+        transport,
       });
-      renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.invalidToken });
+      renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.invalidToken, diagnosticCode });
       return;
     }
 
@@ -517,11 +615,21 @@ async function fetchPublicTrackingSession() {
     publicTrackingRefreshTimer = null;
 
     let reason = 'network_error';
-    if (isPublicTrackingPermissionError(error)) reason = 'permission_denied';
+    if (isPublicTrackingRenderError(error)) reason = 'render_error';
+    else if (isPublicTrackingPermissionError(error)) reason = 'permission_denied';
+    else if (isPublicTrackingRpcError(error)) reason = 'rpc_error';
     else if (!isSupabaseReady) reason = 'not_ready';
 
-    warnPublicTrackingError(error, { code: error?.code || 'load_failed', reason });
-    renderPublicTrackingPage({ error: resolvePublicTrackingLoadError(error, { reason }) });
+    const diagnosticCode = warnPublicTrackingError(error, {
+      code: error?.code || 'load_failed',
+      reason,
+      status: error?.status || null,
+      transport: error?.transport || null,
+    });
+    renderPublicTrackingPage({
+      error: resolvePublicTrackingLoadError(error, { reason }),
+      diagnosticCode,
+    });
   }
 }
 
@@ -2312,33 +2420,6 @@ function handleOnlineStatusClick() {
   showPage('safety-tools');
   showLocationMessage('Η εφαρμογή είναι online. Για συγχρονισμό λογαριασμού, συνδέσου από το Προφίλ.');
   focusElementAfterScroll(currentLocationCard || locationText);
-}
-
-function getRoundedCoordinates(location) {
-  return {
-    lat: Number(location.latitude).toFixed(6),
-    lng: Number(location.longitude).toFixed(6),
-  };
-}
-
-function getAppleMapsPinUrl(location) {
-  const { lat, lng } = getRoundedCoordinates(location);
-  return `https://maps.apple.com/?ll=${lat},${lng}&q=SafeMe%20SOS%20Location`;
-}
-
-function getAppleMapsNavigationUrl(location) {
-  const { lat, lng } = getRoundedCoordinates(location);
-  return `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`;
-}
-
-function getLocationUrl(location) {
-  const { lat, lng } = getRoundedCoordinates(location);
-  return `https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`;
-}
-
-function getNavigationUrl(location) {
-  const { lat, lng } = getRoundedCoordinates(location);
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat}%2C${lng}&travelmode=driving`;
 }
 
 function formatLocation(location) {
@@ -5589,8 +5670,11 @@ function startSafeMeWhenDomReady() {
       try {
         await initializePublicTrackingMode();
       } catch (error) {
-        warnPublicTrackingError(error, { code: 'startup_exception', reason: 'not_ready' });
-        renderPublicTrackingPage({ error: resolvePublicTrackingLoadError(error, { reason: 'not_ready' }) });
+        const diagnosticCode = warnPublicTrackingError(error, { code: 'startup_exception', reason: 'not_ready' });
+        renderPublicTrackingPage({
+          error: resolvePublicTrackingLoadError(error, { reason: 'not_ready' }),
+          diagnosticCode,
+        });
       } finally {
         clearStartupBlockingState();
       }

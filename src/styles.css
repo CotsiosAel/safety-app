@@ -1078,6 +1078,7 @@ body.tracking-mode .modal-backdrop {
 
 .public-tracking-muted { margin: 0; }
 .public-tracking-error { margin: 0; color: #be123c; }
+.public-tracking-diagnostics { margin: 0.75rem 0 0; color: #64748b; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
 @media (max-width: 760px) {
   .public-tracking-page { place-items: stretch; }
