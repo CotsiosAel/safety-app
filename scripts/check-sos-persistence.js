@@ -50,7 +50,10 @@ for (const [label, pattern] of [
   ['public tracking waits for Supabase during startup', 'await ensureSupabaseReady();'],
   ['public tracking keeps lightweight startup branch', 'if (hasTrackingTokenParam) {'],
   ['public tracking missing token error is specific', "PUBLIC_TRACKING_ERRORS.invalidToken"],
-  ['public tracking Supabase/network error is specific', "PUBLIC_TRACKING_ERRORS.loadFailed"],
+  ['public tracking Supabase not ready error is specific', "PUBLIC_TRACKING_ERRORS.notReady"],
+  ['public tracking RPC permission error is specific', "PUBLIC_TRACKING_ERRORS.permissionDenied"],
+  ['public tracking network error is specific', "PUBLIC_TRACKING_ERRORS.networkError"],
+  ['public tracking REST RPC fallback exists', 'loadPublicSosSessionByTokenViaRest'],
   ['public tracking invalid token error is specific', 'Ο σύνδεσμος SOS δεν είναι έγκυρος.'],
   ['public tracking ended state remains visible', "Το SOS έχει τερματιστεί."],
   ['public tracking active state remains visible', "Υπάρχει ενεργό SOS."],
@@ -84,8 +87,13 @@ if (publicTrackingStartupBranch.indexOf('await initializePublicTrackingMode();')
   process.exit(1);
 }
 
-if (!publicTrackingBody.includes('await ensureSupabaseReady();')) {
-  console.error('Public tracking fetch must await ensureSupabaseReady() before loading the SOS session.');
+if (!publicTrackingBody.includes('loadPublicSosSessionByToken(')) {
+  console.error('Public tracking fetch must load the SOS session through loadPublicSosSessionByToken().');
+  process.exit(1);
+}
+
+if (publicTrackingBody.includes('await ensureSupabaseReady();') && publicTrackingBody.includes("error: PUBLIC_TRACKING_ERRORS.loadFailed")) {
+  console.error('Public tracking must not use the old generic loadFailed message.');
   process.exit(1);
 }
 

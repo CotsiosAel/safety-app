@@ -57,16 +57,38 @@ create policy "trusted contacts owner access" on public.trusted_contacts for all
 create policy "sos events owner access" on public.sos_events for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "active sos owner access" on public.active_sos_sessions for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+-- Public SOS live tracking RPC (anon-safe).
+-- Run this whole block in the Supabase SQL Editor on production.
+-- SECURITY DEFINER is required: anon can execute the function but RLS blocks direct
+-- reads on active_sos_sessions. The definer role reads only the row matching share_token.
 create or replace function public.get_sos_session_by_token(token text)
-returns table(status text, started_at timestamptz, ended_at timestamptz, latest_latitude double precision, latest_longitude double precision, latest_location_at timestamptz)
+returns table(
+  status text,
+  started_at timestamptz,
+  ended_at timestamptz,
+  latest_latitude double precision,
+  latest_longitude double precision,
+  latest_location_at timestamptz
+)
 language sql
 security definer
 set search_path = public
 as $$
-  select s.status, s.started_at, s.ended_at, s.latest_latitude, s.latest_longitude, s.latest_location_at
+  select
+    s.status,
+    s.started_at,
+    s.ended_at,
+    s.latest_latitude,
+    s.latest_longitude,
+    s.latest_location_at
   from public.active_sos_sessions s
-  where s.share_token = token
+  where token is not null
+    and btrim(token) <> ''
+    and s.share_token = token
   limit 1;
 $$;
 
+alter function public.get_sos_session_by_token(text) owner to postgres;
+
+revoke all on function public.get_sos_session_by_token(text) from public;
 grant execute on function public.get_sos_session_by_token(text) to anon, authenticated;
