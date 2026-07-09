@@ -21,5 +21,7 @@ requirePattern(source, "settingsLanguageSelect?.addEventListener('change', handl
 requirePattern(source, 'persistLocale(nextLocale)', 'language choice is persisted on change');
 requirePattern(source, 'profile.preferredLanguage = nextLocale', 'profile preferredLanguage is updated on change');
 requirePattern(source, 'preferredLanguage,', 'saveProfile stores preferredLanguage in the profile object');
+requirePattern(source, 'function applyProfilePreferredLanguage()', 'account load applies stored profile language');
+requirePattern(source, 'applyProfilePreferredLanguage();', 'loadSupabaseData applies profile language after sync');
 
 console.log('Profile preferred language save safeguards are present.');

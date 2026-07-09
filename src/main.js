@@ -2193,6 +2193,20 @@ function syncSettingsLanguageSelect() {
   settingsLanguageSelect.value = profile?.preferredLanguage || getLocale();
 }
 
+function applyProfilePreferredLanguage() {
+  const nextLocale = profile?.preferredLanguage === 'el' ? 'el' : 'en';
+  if (nextLocale === getLocale()) {
+    syncSettingsLanguageSelect();
+    return;
+  }
+
+  persistLocale(nextLocale);
+  setLocale(nextLocale);
+  syncSettingsLanguageSelect();
+  applyStaticTranslations();
+  applyDomBindings();
+}
+
 async function handleSettingsLanguageChange() {
   if (!settingsLanguageSelect) return;
   const nextLocale = settingsLanguageSelect.value;
@@ -5493,6 +5507,7 @@ async function loadSupabaseData() {
     profile = mapProfileFromSupabase(remoteProfile) || null;
     contacts = remoteContactList;
     if (!remoteProfile && !pendingLocalImport) profile = savedLocalProfile;
+    applyProfilePreferredLanguage();
     setContactsSyncState('synced', { lastLoadAt: new Date().toISOString(), remoteCount: contacts.length, lastError: '', message: '' });
     sosHistoryEvents = (remoteSosEvents || []).map(mapSosEventFromSupabase);
     const restoredActiveSosSession = mapActiveSosSessionFromSupabase(remoteActiveSos);

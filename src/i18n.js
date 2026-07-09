@@ -232,6 +232,7 @@ const messages = {
       eyebrow: 'Trusted circle',
       noneYet: 'No contacts yet',
       addContact: 'Add contact',
+      addContactFields: 'Name, relationship, phone',
       addFirstContact: 'Add first contact',
       closeForm: 'Close form',
       name: 'Name',
@@ -288,7 +289,7 @@ const messages = {
       safeWalkDesc: 'Start a monitored trip. If you do not confirm arrival, SafeMe activates SOS.',
       startSafeWalk: 'Start Safe Walk',
       checkIn: 'Safety check-in',
-      checkInDesc: 'Send a quick confirmation that you are OK.',
+      checkInDesc: 'Set a timer. If you do not confirm you are OK in time, SafeMe activates SOS.',
       doCheckIn: 'Check in',
       currentLocation: 'Current location',
       currentLocationDesc: 'View and share your current position with contacts.',
@@ -958,6 +959,7 @@ const messages = {
       eyebrow: 'Trusted circle',
       noneYet: 'Δεν υπάρχουν ακόμα επαφές',
       addContact: 'Προσθήκη επαφής',
+      addContactFields: 'Όνομα, σχέση, τηλέφωνο',
       addFirstContact: 'Προσθήκη πρώτης επαφής',
       closeForm: 'Κλείσιμο φόρμας',
       name: 'Όνομα',
@@ -1014,7 +1016,7 @@ const messages = {
       safeWalkDesc: 'Ξεκίνα μια ασφαλή διαδρομή. Αν δεν επιβεβαιώσεις ότι έφτασες, το SafeMe θα ενεργοποιήσει SOS.',
       startSafeWalk: 'Έναρξη Safe Walk',
       checkIn: 'Check-in Ασφαλείας',
-      checkInDesc: 'Στείλε γρήγορη επιβεβαίωση ότι είσαι καλά.',
+      checkInDesc: 'Ρύθμισε χρονόμετρο. Αν δεν επιβεβαιώσεις ότι είσαι καλά εγκαίρως, το SafeMe ενεργοποιεί SOS.',
       doCheckIn: 'Κάνε Check-in',
       currentLocation: 'Τρέχουσα Τοποθεσία',
       currentLocationDesc: 'Δες και μοιράσου την τρέχουσα θέση σου με τις επαφές σου.',
@@ -1910,7 +1912,7 @@ export function applyDomBindings(root = document) {
   setDomText(root, '#settings-privacy-panel > p:nth-of-type(5)', 'settings.privacy5');
   setDomText(root, '#contacts .contacts-summary-card .eyebrow', 'contacts.eyebrow');
   setDomText(root, '#contacts-sync-toggle small', 'contacts.localMode');
-  setDomText(root, '#contacts-add-toggle small', 'contacts.name');
+  setDomText(root, '#contacts-add-toggle small', 'contacts.addContactFields');
   setDomPlaceholder(root, '#contact-form input[name="name"]', 'contacts.name');
   setDomPlaceholder(root, '#contact-form input[name="relationship"]', 'contacts.relationship');
   setDomPlaceholder(root, '#contact-form input[name="phone"]', 'contacts.phone');
