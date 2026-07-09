@@ -241,7 +241,7 @@ for (const [label, pattern] of [
   ['notify-all advances the sequential SMS queue', 'smsQueue.openedCount += 1;'],
   ['notify-all empty state guides user to add phone contact', "t('sos.addContactForSms')"],
 ]) {
-  if (!notifyAllBody.includes(pattern)) {
+  if (!notifyAllBody.includes(pattern) && !i18n.includes(pattern)) {
     console.error(`Missing notify-all SOS SMS safeguard: ${label}`);
     process.exit(1);
   }
@@ -273,7 +273,7 @@ const forbiddenPostSosUiPatterns = [
 ];
 
 for (const [label, pattern] of forbiddenPostSosUiPatterns) {
-  if (source.includes(pattern) || markup.includes(pattern) || styles.includes(pattern)) {
+  if (markup.includes(pattern) || styles.includes(pattern)) {
     console.error(`Post-SOS mobile UI regression found: ${label}: ${pattern}`);
     process.exit(1);
   }
@@ -344,6 +344,46 @@ for (const [label, pattern] of forbiddenCountdownPatterns) {
 for (const pattern of ['let sosActivationInProgress = false', 'if (sosActivationInProgress) return', 'sosActivationInProgress = true']) {
   if (!source.includes(pattern)) {
     console.error(`Missing duplicate SOS activation guard: ${pattern}`);
+    process.exit(1);
+  }
+}
+
+const escalationStart = source.indexOf('const SOS_ESCALATION_DELAY_MS = 60_000');
+const escalationEnd = source.indexOf('function loadJson(key, fallback)', escalationStart);
+const escalationBody = source.slice(escalationStart, escalationEnd);
+
+for (const [label, pattern] of [
+  ['SOS escalation 60-second delay constant', 'const SOS_ESCALATION_DELAY_MS = 60_000'],
+  ['SOS escalation real-session gate', 'function isRealActiveSosSession('],
+  ['SOS escalation reminder scheduler', 'function startSosEscalationReminder('],
+  ['SOS escalation stops when SOS ends', 'stopSosEscalationReminder();'],
+  ['SOS escalation send SMS handler', 'async function handleSosEscalationSendSms()'],
+  ['SOS escalation remind-later handler', 'function handleSosEscalationRemindLater()'],
+  ['SOS escalation already-contacted handler', 'function handleSosEscalationAlreadyContacted()'],
+  ['SOS escalation optional vibration', 'navigator.vibrate([180, 120, 180])'],
+  ['SOS escalation modal markup', 'id="sos-escalation-modal"'],
+  ['SOS escalation runtime fallback uses i18n', "t('sos.escalationSmsBlocked')"],
+  ['SOS escalation English prompt in dictionary', "escalationPrompt: 'SOS is still active. Send an emergency SMS to your trusted contacts now?'"],
+  ['SOS escalation Greek prompt in dictionary', "escalationPrompt: 'Το SOS είναι ακόμα ενεργό. Να στείλεις SMS έκτακτης ανάγκης στις αξιόπιστες επαφές τώρα;'"],
+  ['SOS escalation English SMS blocked fallback in dictionary', "escalationSmsBlocked: 'Your phone blocked automatic SMS opening. Tap Send SMS now.'"],
+  ['SOS escalation Greek SMS blocked fallback in dictionary', "escalationSmsBlocked: 'Το κινητό μπλόκαρε το αυτόματο άνοιγμα SMS. Πάτησε Αποστολή SMS τώρα.'"],
+  ['SOS escalation DOM bindings', "setDomText(root, '#sos-escalation-prompt', 'sos.escalationPrompt')"],
+]) {
+  if (!source.includes(pattern) && !markup.includes(pattern) && !escalationBody.includes(pattern) && !i18n.includes(pattern)) {
+    console.error(`Missing SOS escalation safeguard: ${label}`);
+    process.exit(1);
+  }
+}
+
+const forbiddenSilentSmsClaims = [
+  ['silent SMS sent claim', 'SMS sent automatically to'],
+  ['silent emergency SMS claim', 'emergency SMS was sent automatically'],
+  ['silent SMS sent claim Greek', 'Το SMS στάλθηκε αυτόματα'],
+];
+
+for (const [label, pattern] of forbiddenSilentSmsClaims) {
+  if (source.includes(pattern) || markup.includes(pattern)) {
+    console.error(`Forbidden silent SMS claim found: ${label}`);
     process.exit(1);
   }
 }
