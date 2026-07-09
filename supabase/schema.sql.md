@@ -68,3 +68,5 @@ as $$
   where s.share_token = token
   limit 1;
 $$;
+
+grant execute on function public.get_sos_session_by_token(text) to anon, authenticated;

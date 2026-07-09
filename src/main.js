@@ -1,8 +1,31 @@
-const SUPABASE_URL = 'https://tkzgaejomyyrhbvfksas.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3';
+const DEFAULT_SUPABASE_URL = 'https://tkzgaejomyyrhbvfksas.supabase.co';
+const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3';
+const CONFIGURED_SUPABASE_URL = '__SAFE_ME_SUPABASE_URL__';
+const CONFIGURED_SUPABASE_PUBLISHABLE_KEY = '__SAFE_ME_SUPABASE_PUBLISHABLE_KEY__';
+
+function resolveSupabaseUrl() {
+  const configured = String(CONFIGURED_SUPABASE_URL || '').trim();
+  if (configured && !configured.startsWith('__SAFE_ME_')) return configured;
+  return DEFAULT_SUPABASE_URL;
+}
+
+function resolveSupabasePublishableKey() {
+  const configured = String(CONFIGURED_SUPABASE_PUBLISHABLE_KEY || '').trim();
+  if (configured && !configured.startsWith('__SAFE_ME_')) return configured;
+  return DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+}
+
+const SUPABASE_URL = resolveSupabaseUrl();
+const SUPABASE_PUBLISHABLE_KEY = resolveSupabasePublishableKey();
+
+const PUBLIC_TRACKING_ERRORS = {
+  invalidToken: 'Ο σύνδεσμος SOS δεν είναι έγκυρος.',
+  loadFailed: 'Δεν μπόρεσε να φορτώσει το live tracking. Δοκίμασε ανανέωση.',
+};
 
 let supabase = createOfflineSupabaseClient();
 let isSupabaseReady = false;
+let supabaseInitPromise = null;
 
 function createOfflineSupabaseClient() {
   const offlineError = { message: 'Supabase is unavailable; SafeMe is running in local demo mode.' };
@@ -34,9 +57,37 @@ function createOfflineSupabaseClient() {
   };
 }
 
-async function initializeSupabaseClient() {
+function hasSupabaseConfiguration() {
+  return Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
+}
+
+async function importSupabaseClientFactory() {
+  const sources = [
+    'https://esm.sh/@supabase/supabase-js@2',
+    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm',
+  ];
+  let lastError = null;
+
+  for (const source of sources) {
+    try {
+      return await import(source);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error('Supabase SDK could not be loaded');
+}
+
+async function initializeSupabaseClientInternal() {
+  if (!hasSupabaseConfiguration()) {
+    isSupabaseReady = false;
+    console.error('[SafeMe] Missing Supabase configuration. Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY for live tracking and account sync.');
+    return false;
+  }
+
   try {
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    const { createClient } = await importSupabaseClientFactory();
     supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: {
         persistSession: true,
@@ -44,11 +95,27 @@ async function initializeSupabaseClient() {
         detectSessionInUrl: true,
       },
     });
-    isSupabaseReady = true;
+    isSupabaseReady = typeof supabase?.rpc === 'function' && typeof supabase?.from === 'function';
+    if (!isSupabaseReady) {
+      console.error('[SafeMe] Supabase client initialized without expected RPC/query methods.');
+    }
+    return isSupabaseReady;
   } catch (error) {
     isSupabaseReady = false;
-    console.warn('[SafeMe] Supabase SDK unavailable; continuing with local demo profile only', error);
+    console.error('[SafeMe] Supabase SDK unavailable; continuing without remote sync', error);
+    return false;
   }
+}
+
+function ensureSupabaseReady() {
+  if (!supabaseInitPromise) {
+    supabaseInitPromise = initializeSupabaseClientInternal();
+  }
+  return supabaseInitPromise;
+}
+
+async function initializeSupabaseClient() {
+  return ensureSupabaseReady();
 }
 
 const SOS_TRACKING_BASE_URL = 'https://safety-app-vert.vercel.app/';
@@ -124,9 +191,33 @@ async function runEmergencyPwaResetIfRequested() {
 
 runEmergencyPwaResetIfRequested();
 
+function parsePublicTrackingToken() {
+  const searchParams = new URLSearchParams(window.location.search);
+  let rawToken = searchParams.get('track');
+  if (rawToken === null) rawToken = searchParams.get('token');
+
+  if (!rawToken && window.location.hash) {
+    const hashValue = window.location.hash.replace(/^#/, '');
+    if (hashValue.includes('=')) {
+      const hashParams = new URLSearchParams(hashValue);
+      rawToken = hashParams.get('track') ?? hashParams.get('token');
+    }
+  }
+
+  if (!rawToken) return '';
+
+  try {
+    return decodeURIComponent(String(rawToken).replace(/\+/g, ' ')).trim();
+  } catch {
+    return String(rawToken).trim();
+  }
+}
+
 const trackingParams = new URLSearchParams(window.location.search);
-const hasTrackingTokenParam = trackingParams.has('track');
-const trackingToken = (trackingParams.get('track') || '').trim();
+const trackingToken = parsePublicTrackingToken();
+const hasTrackingTokenParam = trackingParams.has('track')
+  || trackingParams.has('token')
+  || Boolean(trackingToken);
 
 const pageTitles = {
   home: 'Αρχική σελίδα',
@@ -309,33 +400,40 @@ function warnPublicTrackingError(error, details = {}) {
   });
 }
 
+function normalizePublicTrackingRpcResult(data) {
+  if (Array.isArray(data)) return normalizePublicSosSession(data[0]);
+  if (data && typeof data === 'object') return normalizePublicSosSession(data);
+  return null;
+}
+
+async function loadPublicSosSessionByToken(token) {
+  const { data, error } = await supabase.rpc('get_sos_session_by_token', { token });
+  if (error) throw error;
+  return normalizePublicTrackingRpcResult(data);
+}
+
 async function fetchPublicTrackingSession() {
   if (!trackingToken) {
     const error = new Error('Missing public tracking token');
     warnPublicTrackingError(error, { code: 'missing_token' });
-    renderPublicTrackingPage({ error: 'Το tracking link δεν είναι έγκυρο.' });
-    return;
-  }
-
-  if (!isSupabaseReady || typeof supabase?.rpc !== 'function') {
-    const error = new Error('Supabase is not ready for public tracking');
-    warnPublicTrackingError(error, { code: 'supabase_not_ready' });
-    renderPublicTrackingPage({ error: 'Δεν μπόρεσε να φορτώσει το live tracking. Δοκίμασε ανανέωση.' });
+    renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.invalidToken });
     return;
   }
 
   renderPublicTrackingPage({ loading: true });
 
   try {
-    const { data, error } = await supabase.rpc('get_sos_session_by_token', {
-      token: trackingToken,
-    });
+    const ready = await ensureSupabaseReady();
+    if (!ready || typeof supabase?.rpc !== 'function') {
+      const error = new Error('Supabase is not ready for public tracking');
+      warnPublicTrackingError(error, { code: 'supabase_not_ready' });
+      renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.loadFailed });
+      return;
+    }
 
-    if (error) throw error;
-
-    const session = normalizePublicSosSession(Array.isArray(data) ? data[0] : data);
+    const session = await loadPublicSosSessionByToken(trackingToken);
     if (!session) {
-      renderPublicTrackingPage({ error: 'Το tracking link δεν βρέθηκε ή έχει λήξει.' });
+      renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.invalidToken });
       return;
     }
 
@@ -349,7 +447,7 @@ async function fetchPublicTrackingSession() {
     window.clearInterval(publicTrackingRefreshTimer);
     publicTrackingRefreshTimer = null;
     warnPublicTrackingError(error);
-    renderPublicTrackingPage({ error: 'Δεν μπόρεσε να φορτώσει το live tracking. Δοκίμασε ανανέωση.' });
+    renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.loadFailed });
   }
 }
 
@@ -5415,17 +5513,10 @@ function startSafeMeWhenDomReady() {
       document.body.classList.add('tracking-mode');
       renderPublicTrackingPage({ loading: true });
       try {
-        await initializeSupabaseClient();
-        if (!isSupabaseReady) {
-          const error = new Error('Supabase SDK did not initialize for public tracking');
-          warnPublicTrackingError(error, { code: 'supabase_startup_failed' });
-          renderPublicTrackingPage({ error: 'Δεν μπόρεσε να φορτώσει η υπηρεσία live tracking. Έλεγξε σύνδεση και δοκίμασε ανανέωση.' });
-          return;
-        }
         await initializePublicTrackingMode();
       } catch (error) {
         warnPublicTrackingError(error, { code: 'startup_exception' });
-        renderPublicTrackingPage({ error: 'Δεν μπόρεσε να φορτώσει η υπηρεσία live tracking. Έλεγξε σύνδεση και δοκίμασε ανανέωση.' });
+        renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.loadFailed });
       } finally {
         clearStartupBlockingState();
       }
