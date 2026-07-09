@@ -1,4 +1,4 @@
-import { t, getLocale, getDateLocale, getLanguageLabel, getPublicTrackingError, resolveLocaleFromUrl, readStoredLocale, persistLocale, setLocale, initLocale, registerLocaleChangeHandler, applyStaticTranslations, applyDomBindings, DEFAULT_LOCALE, STORAGE_KEY } from './i18n.js';
+import { t, getLocale, getDateLocale, getLanguageLabel, getPublicTrackingError, resolveLocaleFromUrl, readStoredLocale, persistLocale, persistManualLocale, hasManualLocalePreference, setLocale, initLocale, registerLocaleChangeHandler, applyStaticTranslations, applyDomBindings, DEFAULT_LOCALE, STORAGE_KEY, STORAGE_UPDATED_AT_KEY } from './i18n.js';
 
 const DEFAULT_SUPABASE_URL = 'https://tkzgaejomyyrhbvfksas.supabase.co';
 const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fIAQ-XIpZVUS2AoCdcfTLA_tXY6Ceq3';
@@ -260,6 +260,7 @@ const storageKeys = {
   endedSosSession: 'safety-app-ended-sos-session',
   rememberedEmail: 'safeme_remembered_email',
   preferredLanguage: STORAGE_KEY,
+  preferredLanguageUpdatedAt: STORAGE_UPDATED_AT_KEY,
 };
 
 
@@ -2193,25 +2194,49 @@ function syncSettingsLanguageSelect() {
   settingsLanguageSelect.value = profile?.preferredLanguage || getLocale();
 }
 
-function applyProfilePreferredLanguage() {
-  const nextLocale = profile?.preferredLanguage === 'el' ? 'el' : 'en';
-  if (nextLocale === getLocale()) {
+function applyLocaleFromPreference(nextLocale) {
+  const normalized = nextLocale === 'el' ? 'el' : 'en';
+  if (normalized === getLocale()) {
     syncSettingsLanguageSelect();
     return;
   }
 
-  persistLocale(nextLocale);
-  setLocale(nextLocale);
+  persistLocale(normalized);
+  setLocale(normalized);
   syncSettingsLanguageSelect();
   applyStaticTranslations();
   applyDomBindings();
+}
+
+function syncProfilePreferredLanguageFromLocal(nextLocale) {
+  if (!profile || profile.preferredLanguage === nextLocale) return;
+
+  profile.preferredLanguage = nextLocale;
+  saveJson(storageKeys.profile, profile);
+  if (currentUser) {
+    saveProfileToSupabase().catch((error) => {
+      console.warn('[SafeMe] Could not sync preferred language to Supabase', error);
+    });
+  }
+}
+
+function applyProfilePreferredLanguage() {
+  if (hasManualLocalePreference()) {
+    const nextLocale = readStoredLocale() === 'el' ? 'el' : 'en';
+    syncProfilePreferredLanguageFromLocal(nextLocale);
+    applyLocaleFromPreference(nextLocale);
+    return;
+  }
+
+  const nextLocale = profile?.preferredLanguage === 'el' ? 'el' : 'en';
+  applyLocaleFromPreference(nextLocale);
 }
 
 async function handleSettingsLanguageChange() {
   if (!settingsLanguageSelect) return;
   const nextLocale = settingsLanguageSelect.value;
   if (!nextLocale) return;
-  persistLocale(nextLocale);
+  persistManualLocale(nextLocale);
   if (profile) {
     profile.preferredLanguage = nextLocale;
     saveJson(storageKeys.profile, profile);
