@@ -540,6 +540,8 @@ const messages = {
       checkInTimer: 'Check-in Timer',
       reportDateTime: 'Date/time: {{datetime}}',
     },
+    setup: {
+      completeProfile: 'Complete profile',
       openProfile: 'Open profile',
       addContact: 'Add trusted contact',
       openContacts: 'Open contacts',
@@ -585,6 +587,134 @@ const messages = {
     },
     shareLocation: {
       button: 'Share location',
+    },
+    runtime: {
+      permissionGranted: 'Allowed',
+      permissionBlocked: 'Blocked',
+      errorLabel: 'Error',
+      sosActivated: 'SOS activated.',
+      activeSosStarted: 'Active SOS started.',
+      checkInExpiredSos: 'Check-in expired and SOS was activated locally.',
+      noLiveLocationSupport: 'This device does not support live location.',
+      autoLocationUpdateFailed: 'Automatic location update failed. You can tap update manually.',
+      sosLocationUpdated: 'SOS location updated.',
+      updatingSosLocation: 'Updating SOS location...',
+      noLocationForLiveUpdate: 'No location available for live update yet.',
+      testingLiveSync: 'Testing live sync with Supabase...',
+      liveSyncSuccess: 'Success: live sync updated Supabase now.',
+      requestingGps: 'Requesting new GPS position from browser...',
+      sosMessageCopied: 'SOS message copied.',
+      sosMessageCopyFailed: 'Could not copy SOS message. Try again.',
+      trackingLinkCopied: 'Tracking link copied.',
+      trackingLinkCopyFailed: 'Could not copy tracking link. Try again.',
+      trackingLinkDisabled: 'Tracking link disabled.',
+      endingSos: 'Ending SOS...',
+      sosEndedLocal: 'SOS ended locally.',
+      sosEndedPublic: 'SOS ended. The public tracking link now shows ended/inactive.',
+      activatingSos: 'activating SOS',
+      checkInActiveBlockSafeWalk: 'A check-in is already active. End it before starting Safe Walk.',
+      completeProfileFirst: 'Complete your profile with name and phone first.',
+      addContactFirst: 'Add at least one trusted contact first.',
+      addContactFirstCheckIn: 'Add at least one trusted contact before starting check-in.',
+      refreshLocationFirst: 'Tap Refresh on location and allow Location in the browser first.',
+      safeWalkActiveBlockCheckIn: 'Safe Walk is already active. End it before starting check-in.',
+      destinationNotSet: 'Not set',
+      notYetAvailable: 'Not yet',
+      safeWalkTestStarted: 'Started 1-minute Safe Walk test. Tap “I arrived / I am OK” before it ends.',
+      safeWalkStarted: 'Safe Walk started. Confirm you arrived / are OK before time runs out.',
+      safeWalkCompleted: 'Safe Walk completed. You are safe.',
+      safeWalkCancelled: 'Safe Walk cancelled.',
+      safeWalkRefreshingLocation: 'Refreshing Safe Walk location...',
+      safeWalkLocationUpdated: 'Safe Walk location updated.',
+      safeWalkNoLocation: 'No location available yet.',
+      safeWalkExpiredBackground: 'Safe Walk expired while the app was inactive. Press SOS if you need help.',
+      safeWalkRestored: 'Active Safe Walk was restored on this device.',
+      safeWalkExpiredSos: 'Safe Walk expired and SOS was activated.',
+      checkInStarted: 'Check-in started. Tap “I am OK” before it expires.',
+      checkInCompleted: 'Check-in completed. You are safe.',
+      checkInCancelled: 'Check-in cancelled.',
+      checkInExpiredBackground: 'Check-in expired while the app was inactive. Press SOS if you need help.',
+      checkInRestored: 'Active check-in was restored on this device.',
+      checkInExpiredSos: 'Check-in expired and SOS was activated.',
+      checkInExpiredSosLocal: 'Check-in expired and SOS was activated locally. Sign in for a live tracking link.',
+      unknownTime: 'Unknown time',
+      unknownPermission: 'Unknown',
+      unknownPermissionUnsupported: 'Unknown (not supported by browser)',
+      shareLocationTitle: 'SafeMe location',
+      shareLocationReady: '{{location}} • Location is ready to share.',
+      shareLinkCopied: '{{location}} • Link copied.',
+      myCurrentLocation: 'My current location: {{url}}',
+      smsOpenedAll: 'SMS opened for all contacts. SMS queue completed.',
+      smsOpenFailed: 'Could not open SMS for {{name}}. Check the number and continue.',
+      smsOpenedAllDetail: 'Opened SMS for {{name}}. SafeMe opened SMS. You must tap send in the messaging app. SMS opened for all contacts.',
+      smsOpenedContinue: 'Opened SMS for {{name}}. If you sent it, continue to the next contact. SafeMe opened SMS. You must tap send in the messaging app.',
+      appWillKeepTrying: '{{message}} The app will keep trying while it stays open.',
+      syncErrorSource: 'Error ({{source}})',
+      syncSuccessSource: 'Success ({{source}})',
+      sosNotUpdated: 'SOS was not updated: {{error}}',
+      supabaseLiveSyncError: 'Supabase live sync error: {{error}}',
+      browserReturnedCoords: 'Browser returned coordinates: {{location}}.',
+      trackingDisableFailed: 'Could not disable tracking link: {{error}}',
+      sosEndedNoPublicUpdate: 'SOS ended locally and will not restore after refresh. Public tracking link was not updated: {{error}}',
+      safeWalkInProgress: 'active / in progress',
+      safeWalkExpiredNote: 'Safe Walk expired without confirmation.{{destination}}',
+      destinationPrefix: ' Destination: {{name}}.',
+      activeSosUpdateFailed: '{{message}} Could not update active_sos_sessions: {{error}}',
+      sosHistoryNotSaved: 'SOS was not saved to history.',
+      manualSendNote: '{{message}} SMS or WhatsApp was not sent automatically — choose manual send below.',
+      noSosHistory: 'No SOS history yet.',
+      openLocation: 'Open location',
+      primaryContactLine: 'Primary contact: {{name}} ({{phone}})',
+      smsReadyFor: 'Opened ready SMS for {{name}}. Tap send.',
+      whatsappReady: 'Opened WhatsApp with pre-filled SOS message.',
+      shareOpened: 'SOS share opened.',
+      testTrackingNotCreated: 'Live tracking was not created. Test SOS works locally.',
+      inviteReady: 'Ready message for {{name}}. Choose SMS or WhatsApp and tap send in the app that opens.',
+      inviteSmsReady: 'Opened ready SMS for {{name}}. Tap send if you want to send it.',
+      inviteWhatsappReady: 'Opened WhatsApp with pre-filled message. Choose recipient and tap send.',
+      supabaseErrorPrefix: 'Supabase error: {{error}}',
+      localImportFound: 'Found {{parts}} saved on this device. Do you want to save them to your account?',
+      contactsCount: '{{count}} contact(s)',
+      andJoin: ' and ',
+      sosHistoryLoadFailed: 'Could not load SOS history: {{error}}',
+      opened: 'Opened',
+      noPrimaryContact: 'No primary contact found.',
+      sosLocalOnly: 'SOS works locally on this device. Sign in for a live tracking link.',
+      testModeActive: 'SOS test mode. This is not a real emergency.',
+      copyTrackingLink: 'Copy tracking link',
+      noContactsForTestSms: 'No trusted contacts with a phone number. Add a contact to prepare test SMS.',
+      shareNotSupported: 'Sharing is not supported in this browser.',
+      shareCancelled: 'Share cancelled.',
+      shareFailed: 'Could not open share.',
+      needContactForSos: 'Add at least one trusted contact before using SOS.',
+      needProfileForSos: 'Complete your name and phone before using SOS.',
+      testSosWithTracking: 'Test SOS with live tracking ready.',
+      sosWithoutLocation: 'SOS activated without available location. You can tap “Update location now”.',
+      sosCreated: 'Active SOS created.',
+      sosLocalNoTracking: 'SOS activated locally on this device. Live tracking link not created yet.',
+      sosLocalSignInTracking: 'SOS activated on this device. Sign in for a live tracking link.',
+      sosPreparedSaved: 'SOS prepared and saved to history.',
+      sosPreparedNotSaved: 'SOS prepared but not saved to history.',
+      sosActivateFailed: 'Could not activate SOS. Try again.',
+      inviteCopied: 'Message copied.',
+      inviteCopyFailed: 'Could not copy message. Try again.',
+      uploadingContacts: 'Saving local contacts to account...',
+      contactsUploaded: 'Local contacts saved to account.',
+      importingLocal: 'Saving local details to account...',
+      importSaved: 'Local details saved to account.',
+      importFailed: 'Not saved to account. Details remain on device and you can try again.',
+      importSkipped: 'Import skipped. Local details remain on this device.',
+      restoredActiveSos: 'There is a valid active SOS from a previous session. If it was a test, tap End SOS.',
+      previousSosEnded: 'The previous SOS had ended and was not restored.',
+      restoredSosStatus: 'Active SOS restored from a previous session.',
+      accountSyncFailed: 'Account sync did not complete. SOS remains available locally and you can try again.',
+      passwordMinLength: 'Password must be at least 6 characters.',
+      passwordsMismatch: 'Passwords do not match.',
+      dataCleared: 'Stored data was deleted from this device.',
+      localDataCleared: 'Local data was deleted from this device.',
+      copiedForContact: 'SOS message copied for {{name}}.',
+      profilePart: 'profile',
+      contactsPart: 'contacts',
     },
   },
   el: {
@@ -1172,6 +1302,93 @@ const messages = {
     shareLocation: {
       button: 'Μοιράσου θέση',
     },
+    runtime: {
+      permissionGranted: 'Επιτρέπεται',
+      permissionBlocked: 'Μπλοκαρισμένη',
+      errorLabel: 'Σφάλμα',
+      sosActivated: 'Το SOS ενεργοποιήθηκε.',
+      activeSosStarted: 'Το ενεργό SOS ξεκίνησε.',
+      checkInExpiredSos: 'Το check-in έληξε και ενεργοποιήθηκε SOS τοπικά.',
+      noLiveLocationSupport: 'Η συσκευή δεν υποστηρίζει live τοποθεσία.',
+      autoLocationUpdateFailed: 'Η αυτόματη ενημέρωση τοποθεσίας απέτυχε. Μπορείς να πατήσεις χειροκίνητα ενημέρωση.',
+      sosLocationUpdated: 'Η τοποθεσία SOS ενημερώθηκε.',
+      updatingSosLocation: 'Ενημερώνω την τοποθεσία SOS...',
+      noLocationForLiveUpdate: 'Δεν υπάρχει διαθέσιμη τοποθεσία για live ενημέρωση ακόμα.',
+      testingLiveSync: 'Δοκιμάζω live sync στο Supabase...',
+      liveSyncSuccess: 'Επιτυχία: το live sync ενημέρωσε το Supabase τώρα.',
+      requestingGps: 'Ζητάω νέα θέση GPS από τον browser...',
+      sosMessageCopied: 'Το μήνυμα SOS αντιγράφηκε.',
+      sosMessageCopyFailed: 'Δεν μπόρεσα να αντιγράψω το μήνυμα SOS. Δοκίμασε ξανά.',
+      trackingLinkCopied: 'Το tracking link αντιγράφηκε.',
+      trackingLinkCopyFailed: 'Δεν μπόρεσα να αντιγράψω το tracking link. Δοκίμασε ξανά.',
+      trackingLinkDisabled: 'Το tracking link απενεργοποιήθηκε.',
+      endingSos: 'Τερματίζω το SOS...',
+      sosEndedLocal: 'Το SOS τερματίστηκε τοπικά.',
+      sosEndedPublic: 'Το SOS τερματίστηκε. Το public tracking link δείχνει πλέον τερματισμένο/inactive.',
+      activatingSos: 'ενεργοποίηση SOS',
+      checkInActiveBlockSafeWalk: 'Υπάρχει ήδη ενεργό check-in. Τερμάτισέ το πριν ξεκινήσεις Safe Walk.',
+      completeProfileFirst: 'Συμπλήρωσε πρώτα το προφίλ σου με όνομα και τηλέφωνο.',
+      addContactFirst: 'Πρόσθεσε τουλάχιστον μία έμπιστη επαφή πριν ξεκινήσεις Safe Walk.',
+      addContactFirstCheckIn: 'Πρόσθεσε τουλάχιστον μία έμπιστη επαφή πριν ξεκινήσεις check-in.',
+      refreshLocationFirst: 'Πάτησε πρώτα «Ανανέωση» στην τοποθεσία και επίτρεψε Location στον browser για Safe Walk.',
+      safeWalkActiveBlockCheckIn: 'Υπάρχει ήδη ενεργό Safe Walk. Τερμάτισέ το πριν ξεκινήσεις check-in.',
+      destinationNotSet: 'Δεν ορίστηκε',
+      notYetAvailable: 'Δεν υπάρχει ακόμα',
+      safeWalkTestStarted: 'Ξεκίνησε 1-minute Safe Walk test. Πάτησε «Έφτασα / Είμαι καλά» πριν μηδενίσει για να ολοκληρωθεί.',
+      safeWalkStarted: 'Το Safe Walk ξεκίνησε. Επιβεβαίωσε ότι έφτασες/είσαι καλά πριν λήξει.',
+      safeWalkCompleted: 'Το Safe Walk ολοκληρώθηκε. Είσαι ασφαλής.',
+      safeWalkCancelled: 'Το Safe Walk ακυρώθηκε.',
+      safeWalkRefreshingLocation: 'Ανανεώνω την τοποθεσία Safe Walk...',
+      safeWalkLocationUpdated: 'Η τοποθεσία Safe Walk ενημερώθηκε.',
+      safeWalkNoLocation: 'Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα.',
+      safeWalkExpiredBackground: 'Το Safe Walk έληξε όσο η εφαρμογή δεν ήταν ενεργή. Πάτησε SOS αν χρειάζεσαι βοήθεια.',
+      safeWalkRestored: 'Το ενεργό Safe Walk αποκαταστάθηκε σε αυτή τη συσκευή.',
+      safeWalkExpiredSos: 'Το Safe Walk έληξε και ενεργοποιήθηκε SOS.',
+      checkInStarted: 'Το check-in ξεκίνησε. Πάτησε «Είμαι καλά» πριν λήξει.',
+      checkInCompleted: 'Το check-in ολοκληρώθηκε. Είσαι ασφαλής.',
+      checkInCancelled: 'Το check-in ακυρώθηκε.',
+      checkInExpiredBackground: 'Το check-in έληξε όσο η εφαρμογή δεν ήταν ενεργή. Πάτησε SOS αν χρειάζεσαι βοήθεια.',
+      checkInRestored: 'Το ενεργό check-in αποκαταστάθηκε σε αυτή τη συσκευή.',
+      checkInExpiredSos: 'Το check-in έληξε και ενεργοποιήθηκε SOS.',
+      checkInExpiredSosLocal: 'Το check-in έληξε και ενεργοποιήθηκε SOS τοπικά. Συνδέσου για live tracking link.',
+      noPrimaryContact: 'Δεν βρέθηκε κύρια επαφή.',
+      sosLocalOnly: 'Το SOS λειτουργεί τοπικά σε αυτή τη συσκευή. Συνδέσου για live tracking link.',
+      testModeActive: 'Λειτουργία δοκιμής SOS. Δεν πρόκειται για πραγματική ανάγκη.',
+      copyTrackingLink: 'Αντιγραφή tracking link',
+      noContactsForTestSms: 'Δεν υπάρχουν έμπιστες επαφές με αριθμό τηλεφώνου. Πρόσθεσε επαφή για να ετοιμαστεί δοκιμαστικό SMS.',
+      shareNotSupported: 'Η κοινή χρήση δεν υποστηρίζεται σε αυτόν τον browser.',
+      shareCancelled: 'Η κοινή χρήση ακυρώθηκε.',
+      shareFailed: 'Δεν μπόρεσα να ανοίξω την κοινή χρήση.',
+      needContactForSos: 'Πρόσθεσε τουλάχιστον μία έμπιστη επαφή πριν χρησιμοποιήσεις το SOS.',
+      needProfileForSos: 'Συμπλήρωσε το όνομα και το τηλέφωνό σου πριν χρησιμοποιήσεις το SOS.',
+      testSosWithTracking: 'Δοκιμαστικό SOS με live tracking έτοιμο.',
+      sosWithoutLocation: 'Το SOS ενεργοποιήθηκε χωρίς διαθέσιμη τοποθεσία. Μπορείς να πατήσεις «Ενημέρωση τοποθεσίας τώρα».',
+      sosCreated: 'Δημιουργήθηκε ενεργό SOS.',
+      sosLocalNoTracking: 'Το SOS ενεργοποιήθηκε τοπικά σε αυτή τη συσκευή. Δεν δημιουργήθηκε ακόμη live tracking link.',
+      sosLocalSignInTracking: 'Το SOS ενεργοποιήθηκε σε αυτή τη συσκευή. Συνδέσου για live tracking link.',
+      sosPreparedSaved: 'Το SOS αποθηκεύτηκε στο ιστορικό.',
+      sosPreparedNotSaved: 'Το SOS δεν αποθηκεύτηκε στο ιστορικό.',
+      sosActivateFailed: 'Δεν μπόρεσα να ενεργοποιήσω SOS. Δοκίμασε ξανά.',
+      inviteCopied: 'Το μήνυμα αντιγράφηκε.',
+      inviteCopyFailed: 'Δεν μπόρεσα να αντιγράψω το μήνυμα. Δοκίμασε ξανά.',
+      uploadingContacts: 'Αποθηκεύω τις τοπικές επαφές στον λογαριασμό...',
+      contactsUploaded: 'Οι τοπικές επαφές αποθηκεύτηκαν στον λογαριασμό.',
+      importingLocal: 'Αποθηκεύω τα τοπικά στοιχεία στον λογαριασμό...',
+      importSaved: 'Τα τοπικά στοιχεία αποθηκεύτηκαν στον λογαριασμό.',
+      importFailed: 'Δεν αποθηκεύτηκαν στον λογαριασμό. Τα στοιχεία παραμένουν στη συσκευή και μπορείς να δοκιμάσεις ξανά.',
+      importSkipped: 'Παράλειψη εισαγωγής. Τα τοπικά στοιχεία παραμένουν σε αυτή τη συσκευή.',
+      restoredActiveSos: 'Υπάρχει έγκυρο ενεργό SOS από προηγούμενη χρήση. Αν ήταν δοκιμή, πάτησε Τερματισμός SOS.',
+      previousSosEnded: 'Το προηγούμενο SOS είχε τερματιστεί και δεν αποκαταστάθηκε.',
+      restoredSosStatus: 'Αποκαταστάθηκε ενεργό SOS από προηγούμενη χρήση.',
+      accountSyncFailed: 'Δεν έγινε συγχρονισμός λογαριασμού. Το SOS παραμένει διαθέσιμο τοπικά και μπορείς να δοκιμάσεις ξανά.',
+      passwordMinLength: 'Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.',
+      passwordsMismatch: 'Οι κωδικοί δεν ταιριάζουν.',
+      dataCleared: 'Τα αποθηκευμένα στοιχεία διαγράφηκαν από αυτή τη συσκευή.',
+      localDataCleared: 'Τα τοπικά δεδομένα διαγράφηκαν από αυτή τη συσκευή.',
+      copiedForContact: 'Το SOS μήνυμα αντιγράφηκε για {{name}}.',
+      profilePart: 'προφίλ',
+      contactsPart: 'επαφές',
+    },
   },
 };
 
@@ -1300,6 +1517,203 @@ export function applyStaticTranslations(root = document) {
     const key = element.getAttribute('data-i18n-title');
     if (!key) return;
     element.setAttribute('title', t(key));
+  });
+}
+
+function setDomText(root, selector, key, vars) {
+  root.querySelectorAll(selector).forEach((element) => {
+    element.textContent = t(key, vars);
+  });
+}
+
+function setDomAria(root, selector, key) {
+  root.querySelectorAll(selector).forEach((element) => {
+    element.setAttribute('aria-label', t(key));
+  });
+}
+
+function setDomPlaceholder(root, selector, key) {
+  root.querySelectorAll(selector).forEach((element) => {
+    element.setAttribute('placeholder', t(key));
+  });
+}
+
+export function applyDomBindings(root = document) {
+  setDomAria(root, '.sidebar', 'sidebar.ariaNav');
+  setDomAria(root, '.brand', 'sidebar.brandAria');
+  setDomAria(root, '.nav-list', 'sidebar.menuAria');
+  setDomText(root, '.sidebar-card p', 'sidebar.helper');
+  setDomText(root, '.topbar .eyebrow', 'topbar.personalSafety');
+  setDomText(root, '#share-location-button', 'topbar.shareLocation');
+  setDomAria(root, '#online-status-pill', 'auth.appOnline');
+  setDomText(root, '#pull-refresh-message', 'pullRefresh.pull');
+  setDomText(root, '#pull-refresh-manual', 'pullRefresh.manual');
+
+  setDomText(root, '.home-emergency-intro .eyebrow', 'home.eyebrow');
+  setDomText(root, '.home-emergency-intro h2', 'home.title');
+  setDomText(root, '.home-emergency-intro p', 'home.subtitle');
+  setDomText(root, '#home-readiness-card .home-dashboard-card-header .eyebrow', 'home.readinessEyebrow');
+  setDomText(root, '#home-readiness-title', 'home.readinessTitle');
+  setDomText(root, '#home-test-mode-badge', 'home.testModeBadge');
+  setDomText(root, '#home-test-mode-helper', 'home.testModeHelper');
+  setDomText(root, '.home-sos-test-toggle strong', 'home.testModeLabel');
+  setDomText(root, '.home-sos-test-toggle small', 'home.testModeHint');
+  setDomText(root, '#sos-button small', 'common.tap');
+  setDomText(root, '#home-quick-actions-title', 'home.quickActionsTitle');
+  setDomText(root, '.home-quick-actions .eyebrow', 'home.quickActionsEyebrow');
+  setDomText(root, '#emergency-call-title', 'home.emergencyCallTitle');
+  setDomText(root, '.emergency-call-section > p', 'home.emergencyCallNote');
+
+  const quickCardSpan = root.querySelector('.quick-card > span');
+  if (quickCardSpan) quickCardSpan.textContent = t('home.contactsReady', { count: '' }).replace(/\{\{count\}\}\s*/, '');
+
+  setDomText(root, '#contacts-readiness-card h3', 'home.trustedContacts');
+  setDomText(root, '#location-readiness-card h3', 'home.gpsLocation');
+  setDomText(root, '#account-readiness-card h3', 'home.accountSync');
+  setDomText(root, '#home-add-contact-cta', 'home.addContact');
+  setDomText(root, '#home-refresh-gps-cta', 'home.updateGps');
+  setDomText(root, '#home-login-sync-cta', 'home.signInToSync');
+
+  setDomText(root, '.home-quick-action[data-open-tool="contacts"]', 'nav.contacts');
+  setDomText(root, '.home-quick-action[data-open-tool="gps"]', 'home.updateGps');
+  setDomText(root, '.home-quick-action[data-open-tool="sos-settings"]', 'settings.sosMode');
+  setDomText(root, '.home-quick-action[data-open-tool="sos-history"]', 'profile.sosHistory');
+  setDomText(root, '.home-quick-action[data-open-tool="share-location"]', 'topbar.shareLocation');
+
+  setDomText(root, '#active-sos-title', 'sos.activeTitle');
+  setDomText(root, '#active-sos-test-mode-label', 'common.testSos');
+  setDomText(root, '.active-sos-info summary', 'sos.sosInfo');
+  setDomText(root, '.active-sos-contacts summary', 'sos.contactsAndSends');
+  setDomText(root, '.active-sos-debug summary', 'sos.diagnostics');
+  setDomText(root, '#sos-contact-notify-title', 'sos.contactsAndSends');
+  setDomText(root, '.active-sos-safety-note', 'sos.safetyNote');
+  setDomText(root, '#sos-contact-notify .sos-contact-notify-header > div > p:last-child', 'sos.prepareNote');
+  setDomText(root, '#sos-notification-history-title', 'sos.notificationHistory');
+  setDomText(root, '#notify-all-sos-contacts-action', 'sos.sendSmsAll');
+  setDomText(root, '#notify-all-sos-contacts', 'sos.sendSmsAll');
+  setDomText(root, '#active-sos-call-112', 'common.call112');
+  setDomText(root, '#copy-active-sos-message', 'common.copy');
+  setDomText(root, '#share-active-sos-location', 'sos.shareLocation');
+  setDomText(root, '#copy-active-sos-tracking', 'common.copy');
+  setDomText(root, '#update-active-sos-location', 'sos.updateGps');
+  setDomText(root, '#active-sos-live-note', 'sos.liveNote');
+  setDomText(root, '#test-active-sos-live-sync', 'sos.testLiveSync');
+  setDomText(root, '#refresh-active-sos-gps', 'sos.refreshGpsNow');
+  setDomText(root, '#disable-active-sos-tracking', 'sos.disableTracking');
+
+  root.querySelectorAll('.active-sos-details dt, .active-sos-debug-details dt').forEach((dt) => {
+    const label = dt.textContent.trim();
+    const map = {
+      'Κατάσταση': 'common.status', Status: 'common.status',
+      'Έναρξη': 'sos.started', Started: 'sos.started',
+      'Τελευταία τοποθεσία': 'sos.lastLocation', 'Last location': 'sos.lastLocation',
+      'Τελευταίος συγχρονισμός': 'sos.lastSync', 'Last sync': 'sos.lastSync',
+      'Live ενημέρωση': 'sos.liveUpdate', 'Live update': 'sos.liveUpdate',
+      'Live tracking': 'sos.liveTracking',
+      'Τοποθεσία': 'sos.location', Location: 'sos.location',
+      'Άδεια browser location': 'sos.browserLocationPermission',
+      'Τελευταίο browser GPS': 'sos.lastBrowserGps',
+      'Τελευταίο Supabase sync': 'sos.lastSupabaseSync',
+      'Αποτέλεσμα Supabase sync': 'sos.supabaseSyncResult',
+      'Τελευταίο σφάλμα': 'sos.lastError',
+    };
+    if (map[label]) dt.textContent = t(map[label]);
+  });
+
+  setDomText(root, '#contacts .contacts-summary-card h2', 'contacts.title');
+  setDomText(root, '#contacts-add-cta', 'contacts.addContact');
+  setDomText(root, '#contacts-add-toggle strong', 'contacts.addContact');
+  setDomText(root, '#contacts-sync-toggle strong', 'contacts.sync');
+  setDomText(root, '#contacts-advanced-toggle strong', 'contacts.advanced');
+  setDomText(root, '#contacts-advanced-toggle small', 'contacts.advancedSummary');
+  setDomText(root, '.contacts-note', 'contacts.note');
+  setDomText(root, '#clear-contacts-button', 'contacts.clearContacts');
+  setDomText(root, '#refresh-account-contacts', 'contacts.refreshFromAccount');
+  setDomText(root, '#upload-local-contacts', 'contacts.uploadLocal');
+  setDomText(root, '#contact-form label:nth-child(1) span', 'contacts.name');
+  setDomText(root, '#contact-form label:nth-child(2) span', 'contacts.relationship');
+  setDomText(root, '#contact-form label:nth-child(3) span', 'contacts.phone');
+  setDomText(root, '#contact-form label:nth-child(4) span', 'contacts.emailOptional');
+  setDomText(root, '#contact-form [type="submit"]', 'contacts.saveContact');
+  setDomText(root, '[data-close-add-contact]', 'common.close');
+
+  setDomText(root, '#safety-tools .section-heading h2', 'safetyTools.title');
+  setDomText(root, '#safety-tools .section-heading p', 'safetyTools.subtitle');
+  setDomText(root, '#safe-walk-title', 'safetyTools.safeWalk');
+  setDomText(root, '.safe-walk-intro', 'safetyTools.safeWalkIntro');
+  setDomText(root, '.safe-walk-destination-label span', 'safetyTools.whereGoing');
+  setDomText(root, '.safe-walk-custom-label span', 'safetyTools.customMinutes');
+  setDomText(root, '#safe-walk-start-button', 'safetyTools.startSafeWalk');
+  setDomText(root, '#safe-walk-safe-button', 'safetyTools.arrivedSafe');
+  setDomText(root, '#safe-walk-refresh-location', 'safetyTools.refreshLocation');
+  setDomText(root, '#safe-walk-cancel-button', 'safetyTools.cancelSafeWalk');
+  setDomText(root, '#checkin-title', 'safetyTools.checkInTitle');
+  setDomText(root, '.checkin-intro', 'safetyTools.checkInIntro');
+  setDomText(root, '.checkin-custom-label span', 'safetyTools.customTime');
+  setDomText(root, '#checkin-start-button', 'safetyTools.startCheckIn');
+  setDomText(root, '#checkin-safe-button', 'safetyTools.iAmOk');
+  setDomText(root, '#checkin-cancel-button', 'safetyTools.cancelCheckIn');
+  setDomText(root, '#current-location-card h3', 'safetyTools.currentLocation');
+  setDomText(root, '#refresh-location-button', 'common.refresh');
+
+  setDomText(root, '#profile-edit-toggle strong', 'profile.profileDetails');
+  setDomText(root, '#profile-medical-toggle strong', 'profile.medicalNotes');
+  setDomText(root, '#profile-sos-toggle strong', 'profile.sosHistory');
+  setDomText(root, '#profile-account-toggle strong', 'profile.account');
+  setDomText(root, '#profile-details-panel label span', 'profile.username', null);
+  setDomText(root, '#profile-details-panel label:nth-child(2) span', 'profile.phone');
+  setDomText(root, '#profile-details-panel [type="submit"]', 'profile.saveProfile');
+  setDomText(root, '#profile-medical-panel label span', 'profile.medicalNotesField');
+  setDomText(root, '#profile-medical-panel .field-helper', 'profile.medicalHelper');
+  setDomText(root, '#profile-medical-panel [type="submit"]', 'profile.saveChanges');
+  setDomText(root, '#clear-data-button', 'profile.clearData');
+  setDomText(root, '#sos-history-title', 'profile.sosHistory');
+  setDomText(root, '.sos-history-status-line', 'profile.historyStatus');
+  setDomText(root, '#sos-history-toggle', 'profile.viewHistory');
+  setDomText(root, '#sos-history-show-all', 'profile.showAll');
+  setDomText(root, '#sos-history-collapse', 'profile.hideHistory');
+
+  setDomText(root, '#settings-summary-title', 'settings.title');
+  setDomText(root, '.settings-summary-copy .eyebrow', 'settings.eyebrow');
+  setDomText(root, '.settings-summary-copy > p', 'settings.subtitle');
+  setDomText(root, '#settings-sos-toggle strong', 'settings.sosMode');
+  setDomText(root, '#settings-location-toggle strong', 'settings.locationGps');
+  setDomText(root, '#settings-sync-toggle strong', 'settings.sync');
+  setDomText(root, '#settings-privacy-toggle strong', 'settings.privacy');
+  setDomText(root, '#settings-privacy-toggle small', 'settings.privacySummary');
+  setDomText(root, '#settings-display-toggle strong', 'settings.displayLanguage');
+  setDomText(root, '#settings-help-toggle strong', 'settings.immediateHelp');
+  setDomText(root, '#settings-help-toggle small', 'settings.immediateHelpSummary');
+  setDomText(root, '#settings-advanced-toggle strong', 'settings.advanced');
+  setDomText(root, '#settings-advanced-toggle small', 'settings.advancedSummary');
+  setDomText(root, '#settings-language-label', 'settings.languageLabel');
+  setDomText(root, '#settings-language-help', 'settings.languageHelp');
+  setDomText(root, '#settings-refresh-location', 'home.updateGps');
+  setDomText(root, '#settings-open-profile', 'settings.openProfile');
+  setDomText(root, '#settings-open-contacts', 'settings.openContacts');
+  setDomText(root, '#settings-refresh-app', 'settings.recheckApp');
+  setDomText(root, '#settings-logout', 'profile.logout');
+  setDomText(root, '#settings-clear-data', 'settings.clearLocalData');
+
+  setDomText(root, '#contact-invite-title', 'sos.inviteTitle');
+  setDomText(root, '#contact-invite-description', 'sos.inviteDescription');
+  setDomText(root, '#contact-invite-sms', 'sos.sendSms');
+  setDomText(root, '#contact-invite-whatsapp', 'sos.sendWhatsapp');
+  setDomText(root, '#contact-invite-copy', 'common.copy');
+  setDomText(root, '#sos-action-title', 'sos.modalTitle');
+  setDomText(root, '#sos-action-description', 'sos.modalDescription');
+  setDomText(root, '#sos-emergency-call-title', 'home.emergencyCallTitle');
+  setDomText(root, '#sos-send-sms', 'sos.sendSms');
+  setDomText(root, '#sos-send-whatsapp', 'sos.sendWhatsapp');
+  setDomText(root, '#sos-copy-message', 'sos.copyMessage');
+  setDomText(root, '#sos-native-share', 'sos.share');
+  setDomText(root, '[data-close-sos]', 'common.close');
+
+  root.querySelectorAll('.emergency-call-button, #active-sos-call-112, a[href="tel:112"]').forEach((el) => {
+    if (el.textContent.includes('112')) el.textContent = t('common.call112');
+  });
+  root.querySelectorAll('a[href="tel:199"]').forEach((el) => {
+    el.textContent = t('common.call199');
   });
 }
 

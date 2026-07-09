@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="el">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -502,9 +502,7 @@
               <div class="profile-form profile-accordion-panel" id="profile-details-panel" role="region" aria-labelledby="profile-edit-toggle" hidden>
                 <h2 class="visually-hidden" id="profile-edit-title">Επεξεργασία προφίλ</h2>
                 <div class="form-grid">
-                  <label><span>Όνομα χρήστη</span><input name="name" type="text" required /></label>
-                  <label><span>Τηλέφωνο</span><input name="phone" type="tel" placeholder="π.χ. 99878765 ή +35799878765" required /></label>
-                  <!-- TODO: Full Greek/English language switching requires a future i18n implementation. -->
+                  <label><span>Display name</span><input name="name" type="text" required /></label>
                 </div>
                 <button class="primary-button inline-button" type="submit">Αποθήκευση προφίλ</button>
               </div>
@@ -751,12 +749,19 @@
 
             <article class="settings-panel">
               <button class="settings-panel-toggle" id="settings-display-toggle" type="button" aria-expanded="false" aria-controls="settings-display-panel">
-                <span><strong>Εμφάνιση &amp; γλώσσα</strong><small id="settings-language-summary">Ελληνικά</small></span>
+                <span><strong>Display &amp; language</strong><small id="settings-language-summary">English</small></span>
                 <span class="settings-chevron" aria-hidden="true">⌄</span>
               </button>
               <div class="settings-panel-body" id="settings-display-panel" role="region" aria-labelledby="settings-display-toggle" hidden>
-                <p id="settings-language-status">Τρέχουσα γλώσσα: Ελληνικά.</p>
-                <button class="ghost-button" id="settings-open-profile-language" type="button">Αλλαγή από το προφίλ</button>
+                <p id="settings-language-status">Current language: English.</p>
+                <label class="settings-language-field" for="settings-language-select">
+                  <span id="settings-language-label">App language</span>
+                  <select id="settings-language-select" name="preferredLanguage" class="settings-language-select">
+                    <option value="en">English</option>
+                    <option value="el">Ελληνικά</option>
+                  </select>
+                </label>
+                <p class="settings-language-help" id="settings-language-help">Choose the language for menus, buttons, and SOS messages.</p>
               </div>
             </article>
 

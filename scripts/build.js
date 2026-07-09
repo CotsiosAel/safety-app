@@ -35,6 +35,7 @@ await cp('version.json', 'dist/version.json');
 await cp('assets', 'dist/assets', { recursive: true });
 await cp('public', 'dist', { recursive: true });
 await cp('src/styles.css', 'dist/src/styles.css');
+await cp('src/i18n.js', 'dist/src/i18n.js');
 
 const mainSource = await readFile(sourceMainPath, 'utf8');
 await writeFile(distMainPath, injectSupabaseConfig(mainSource));
