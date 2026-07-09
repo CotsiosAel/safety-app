@@ -296,6 +296,8 @@ function publicTrackingHasLocation(session) {
     && session?.latestLongitude !== null && session?.latestLongitude !== undefined;
 }
 
+const SAFE_ME_SOS_LOCATION_LABEL = 'SafeMe SOS Location';
+
 function getRoundedCoordinates(location) {
   return {
     lat: Number(location.latitude).toFixed(6),
@@ -303,24 +305,37 @@ function getRoundedCoordinates(location) {
   };
 }
 
+function getCoordinatesCopyText(location) {
+  const { lat, lng } = getRoundedCoordinates(location);
+  return `${lat},${lng}`;
+}
+
+function getNamedMapQuery(location) {
+  const { lat, lng } = getRoundedCoordinates(location);
+  return `${encodeURIComponent(SAFE_ME_SOS_LOCATION_LABEL)}%40${lat}%2C${lng}`;
+}
+
 function getAppleMapsPinUrl(location) {
   const { lat, lng } = getRoundedCoordinates(location);
-  return `https://maps.apple.com/?ll=${lat},${lng}&q=SafeMe%20SOS%20Location`;
+  return `https://maps.apple.com/?ll=${lat},${lng}&q=${encodeURIComponent(SAFE_ME_SOS_LOCATION_LABEL)}`;
 }
 
 function getAppleMapsNavigationUrl(location) {
   const { lat, lng } = getRoundedCoordinates(location);
-  return `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`;
+  return `https://maps.apple.com/?daddr=${encodeURIComponent(SAFE_ME_SOS_LOCATION_LABEL)}@${lat},${lng}&dirflg=d`;
 }
 
 function getLocationUrl(location) {
-  const { lat, lng } = getRoundedCoordinates(location);
-  return `https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`;
+  return `https://www.google.com/maps/search/?api=1&query=${getNamedMapQuery(location)}`;
 }
 
 function getNavigationUrl(location) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${getNamedMapQuery(location)}&travelmode=driving`;
+}
+
+function getGoogleMapsEmbedUrl(location) {
   const { lat, lng } = getRoundedCoordinates(location);
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat}%2C${lng}&travelmode=driving`;
+  return `https://maps.google.com/maps?q=${getNamedMapQuery(location)}&z=16&output=embed`;
 }
 
 function buildPublicTrackingDiagnosticCode(details = {}) {
@@ -371,15 +386,14 @@ function renderPublicTrackingPage(state) {
 
   const session = state.session;
   const hasLocation = publicTrackingHasLocation(session);
-  const coordinates = hasLocation ? `${session.latestLatitude},${session.latestLongitude}` : '';
-  const encodedCoordinates = encodeURIComponent(coordinates);
   const trackingLocation = hasLocation
     ? { latitude: session.latestLatitude, longitude: session.latestLongitude }
     : null;
-  const mapsUrl = hasLocation ? `https://maps.google.com/?q=${encodedCoordinates}` : '';
+  const coordinates = trackingLocation ? getCoordinatesCopyText(trackingLocation) : '';
+  const mapsUrl = trackingLocation ? getLocationUrl(trackingLocation) : '';
   const googleMapsNavigationUrl = trackingLocation ? getNavigationUrl(trackingLocation) : '';
   const appleMapsNavigationUrl = trackingLocation ? getAppleMapsNavigationUrl(trackingLocation) : '';
-  const embedMapUrl = hasLocation ? `https://maps.google.com/maps?q=${encodedCoordinates}&z=16&output=embed` : '';
+  const embedMapUrl = trackingLocation ? getGoogleMapsEmbedUrl(trackingLocation) : '';
   const isActive = session.status === 'active';
   const statusText = isActive ? 'Ενεργό' : 'Τερματισμένο';
   const statusBanner = isActive
@@ -402,22 +416,27 @@ function renderPublicTrackingPage(state) {
         <h2 id="public-tracking-guidance-title">Τι να κάνεις τώρα</h2>
         <ol>
           <li>Προσπάθησε να επικοινωνήσεις με το άτομο.</li>
-          <li>Άνοιξε την τελευταία τοποθεσία στο Google Maps.</li>
+          <li>Άνοιξε την Τοποθεσία SOS SafeMe στο Google Maps.</li>
           <li>Αν πιστεύεις ότι υπάρχει άμεσος κίνδυνος, κάλεσε τις υπηρεσίες έκτακτης ανάγκης.</li>
         </ol>
       </section>
 
       ${hasLocation
-        ? `<div class="public-tracking-map-embed">
-            <iframe
-              title="Τελευταία τοποθεσία SOS στο Google Maps"
-              src="${escapeHtml(embedMapUrl)}"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-              allowfullscreen>
-            </iframe>
-          </div>
-          <p class="public-tracking-coordinates">Συντεταγμένες: ${escapeHtml(coordinates)}</p>`
+        ? `<section class="public-tracking-location" aria-labelledby="public-tracking-location-title">
+            <h2 id="public-tracking-location-title">Τοποθεσία SOS SafeMe</h2>
+            <div class="public-tracking-map-embed">
+              <iframe
+                title="Τοποθεσία SOS SafeMe"
+                src="${escapeHtml(embedMapUrl)}"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen>
+              </iframe>
+            </div>
+            <p class="public-tracking-location-note">Αυτή είναι η τελευταία γνωστή τοποθεσία του ατόμου.</p>
+            <p class="public-tracking-coordinates">Συντεταγμένες: ${escapeHtml(coordinates)}</p>
+            <button class="public-tracking-copy-coordinates" id="public-tracking-copy-coordinates" type="button">Αντιγραφή συντεταγμένων</button>
+          </section>`
         : '<p class="public-tracking-no-location">Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα. Δοκίμασε ξανά σε λίγα δευτερόλεπτα.</p>'}
 
       <div class="public-tracking-actions">
@@ -433,6 +452,27 @@ function renderPublicTrackingPage(state) {
     </section>
   `;
   document.querySelector('#public-tracking-refresh')?.addEventListener('click', fetchPublicTrackingSession);
+  document.querySelector('#public-tracking-copy-coordinates')?.addEventListener('click', async () => {
+    if (!trackingLocation) return;
+
+    const copyButton = document.querySelector('#public-tracking-copy-coordinates');
+    try {
+      await copyTextToClipboard(getCoordinatesCopyText(trackingLocation));
+      if (copyButton) {
+        copyButton.textContent = 'Αντιγράφηκαν';
+        window.setTimeout(() => {
+          copyButton.textContent = 'Αντιγραφή συντεταγμένων';
+        }, 2000);
+      }
+    } catch (error) {
+      if (copyButton) {
+        copyButton.textContent = 'Αποτυχία αντιγραφής';
+        window.setTimeout(() => {
+          copyButton.textContent = 'Αντιγραφή συντεταγμένων';
+        }, 2000);
+      }
+    }
+  });
 }
 let publicTrackingRefreshTimer = null;
 
