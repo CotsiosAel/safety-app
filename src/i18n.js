@@ -456,6 +456,7 @@ const messages = {
       privacyPolicy: 'Privacy Policy',
       terms: 'Terms of Use',
       support: 'Support',
+      requestAccountDeletion: 'Request account deletion',
       displayLanguage: 'Display & language',
       currentLanguage: 'Current language: {{language}}.',
       languageLabel: 'App language',
@@ -1183,6 +1184,7 @@ const messages = {
       privacyPolicy: 'Πολιτική Απορρήτου',
       terms: 'Όροι Χρήσης',
       support: 'Υποστήριξη',
+      requestAccountDeletion: 'Αίτημα διαγραφής λογαριασμού',
       displayLanguage: 'Εμφάνιση & γλώσσα',
       currentLanguage: 'Τρέχουσα γλώσσα: {{language}}.',
       languageLabel: 'Γλώσσα εφαρμογής',
@@ -1889,6 +1891,7 @@ export function applyDomBindings(root = document) {
   setDomText(root, '#settings-privacy-panel .settings-legal-links a[href="/privacy-policy.html"]', 'settings.privacyPolicy');
   setDomText(root, '#settings-privacy-panel .settings-legal-links a[href="/terms-of-use.html"]', 'settings.terms');
   setDomText(root, '#settings-privacy-panel .settings-legal-links a[href="/support.html"]', 'settings.support');
+  setDomText(root, '#settings-privacy-panel .settings-legal-links a[href="/delete-account.html"]', 'settings.requestAccountDeletion');
   setDomText(root, '#settings-help-toggle strong', 'settings.immediateHelp');
   setDomText(root, '#settings-help-toggle small', 'settings.immediateHelpSummary');
   setDomText(root, '#settings-help-panel > p:first-of-type', 'settings.immediateHelpNote');

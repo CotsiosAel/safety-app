@@ -1,15 +1,15 @@
 <!doctype html>
-<html lang="el">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SafeMe — Πολιτική Απορρήτου</title>
+    <title>SafeMe — Privacy Policy</title>
     <style>
       :root { color-scheme: light; --bg: #f7f7fb; --card: #fff; --text: #1f2937; --muted: #5f6b7a; --border: #d9deea; --accent: #7c3aed; }
       * { box-sizing: border-box; }
       body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.65; }
       main { width: min(100%, 860px); margin: 0 auto; padding: 24px 16px 48px; }
-      article { background: var(--card); border: 1px solid var(--border); border-radius: 22px; box-shadow: 0 18px 45px rgba(31, 41, 55, 0.08); padding: clamp(22px, 5vw, 44px); }
+      article { background: var(--card); border: 1px solid var(--border); border-radius: 22px; box-shadow: 0 18px 45px rgba(31, 41, 55, 0.08); padding: clamp(22px, 5vw, 44px); margin-bottom: 24px; }
       .eyebrow, .updated, .support { color: var(--muted); font-size: 0.98rem; }
       h1 { margin: 0 0 8px; font-size: clamp(2rem, 8vw, 3.25rem); line-height: 1.08; }
       h2 { margin-top: 2rem; font-size: 1.25rem; }
@@ -18,43 +18,189 @@
       nav { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 0; padding-top: 22px; border-top: 1px solid var(--border); }
       nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 999px; background: #fff; text-decoration: none; }
       .notice { margin: 20px 0; padding: 14px 16px; border-left: 4px solid var(--accent); border-radius: 12px; background: #f3efff; }
+      .lang-nav { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 20px; }
+      .lang-nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px; background: #fff; text-decoration: none; font-size: 0.95rem; }
     </style>
   </head>
   <body>
     <main>
-      <article>
+      <div class="lang-nav" aria-label="Language">
+        <a href="#en">English</a>
+        <a href="#el">Ελληνικά</a>
+      </div>
+
+      <article id="en" lang="en">
+        <p class="eyebrow">SafeMe</p>
+        <h1>Privacy Policy</h1>
+        <p class="updated">Last updated: 9 July 2026</p>
+        <p class="support">Support: <a href="mailto:get.safeme@outlook.com">get.safeme@outlook.com</a></p>
+        <div class="notice"><strong>Draft / under review:</strong> This text is a draft prepared for Google Play and general app compliance. It is not final legal advice and should be reviewed by a qualified person before publication.</div>
+
+        <h2>1. What SafeMe is</h2>
+        <p>SafeMe is a personal safety helper app. It helps you prepare for emergencies with features such as SOS messaging, trusted contacts, optional live location sharing during an active SOS session, and optional account sync.</p>
+        <p>SafeMe is <strong>not</strong> a replacement for official emergency services. In immediate danger, call your local emergency number (for example 112 in many European countries) or contact local authorities directly.</p>
+
+        <h2>2. Data we collect and use</h2>
+        <p>Depending on which features you use, SafeMe may process the following data:</p>
+        <ul>
+          <li><strong>Profile data (optional):</strong> name, phone number, optional medical notes, and language preference.</li>
+          <li><strong>Account data (optional):</strong> email address and authentication credentials managed by Supabase Auth when you create or sign in to an account. Passwords are handled by the auth provider and are not stored in the app’s local storage.</li>
+          <li><strong>Trusted contacts:</strong> names, phone numbers, optional email addresses, relationship labels, and contact priority settings that you add.</li>
+          <li><strong>Location data:</strong> latitude, longitude, accuracy, and timestamps when you request GPS update, activate SOS, use Safe Walk or check-in features that rely on location, or when live tracking is active during a signed-in SOS session.</li>
+          <li><strong>SOS and session data:</strong> SOS message text, SOS event history (for signed-in users), active SOS session status, and live-tracking coordinates when applicable.</li>
+          <li><strong>Device-local app state:</strong> preferences and recent activity stored in your browser’s local storage on your device (for example test mode, language choice, last known location, notification log, and optional remembered sign-in email).</li>
+        </ul>
+        <p>SafeMe does <strong>not</strong> include advertising SDKs or in-app analytics SDKs in the current app source.</p>
+
+        <h2>3. Why we use this data</h2>
+        <ul>
+          <li>Prepare and help you send SOS messages to your trusted contacts.</li>
+          <li>Show or share your location when you use SOS, GPS, or related safety features.</li>
+          <li>Run optional live location updates during an active signed-in SOS session.</li>
+          <li>Sync profile, contacts, and SOS-related data between devices when you are signed in.</li>
+          <li>Remember your language and basic app preferences.</li>
+          <li>Operate the app locally when you are not signed in.</li>
+        </ul>
+
+        <h2>4. Location during SOS and live tracking</h2>
+        <p>Location is used only when you request a GPS update or use features that need location (such as SOS, Safe Walk, check-in, or active live tracking).</p>
+        <p>Location accuracy depends on device permissions, GPS availability, network conditions, and browser or operating system limits. If permission is denied or signal is unavailable, location may be missing or inaccurate.</p>
+        <p>When you are signed in and live tracking is active, location updates may be sent to the backend at intervals while the session is active. You can end the session and disable sharing from within the app.</p>
+
+        <h2>5. Trusted contacts</h2>
+        <p>You are responsible for adding accurate trusted contacts and for having appropriate permission or consent from the people whose contact details you store.</p>
+        <p>Contact details are used to help you communicate during an emergency. SafeMe does not automatically send SMS or other messages without your action on the device.</p>
+
+        <h2>6. Public SOS tracking links</h2>
+        <p>When you are signed in and create a live-tracking link during an active SOS session, anyone with that link may be able to view the session status and the latest shared coordinates until the session ends or you disable the link.</p>
+        <p>Public tracking pages do <strong>not</strong> show your name, phone number, email, medical notes, or full contact list. Only session status and location-related fields exposed by the tracking feature are available through the link.</p>
+
+        <h2>7. SMS, email, and sharing</h2>
+        <p>SOS messaging opens your device’s SMS composer, email app, WhatsApp, native share sheet, or clipboard with prepared text. You choose whether and when to send messages. Delivery depends on your device, carrier, network, and installed apps.</p>
+
+        <h2>8. Account sync and local-only use</h2>
+        <p>Signing in is optional. Core SOS features can work in local mode on your device without an account.</p>
+        <p>When signed in, selected data may sync through Supabase (hosted backend), including profile fields, trusted contacts, SOS history, and active live-tracking session data as implemented in the app.</p>
+        <p>Data also remains stored locally on your device for app operation. “Clear local data” in Settings removes local app storage on that device but does not delete your remote account or server data.</p>
+
+        <h2>9. Third-party services</h2>
+        <ul>
+          <li><strong>Supabase:</strong> optional authentication and cloud sync.</li>
+          <li><strong>Google Fonts:</strong> font delivery when the app loads.</li>
+          <li><strong>Google Maps / Apple Maps links:</strong> external map links or embeds opened or displayed when you or a tracking-link viewer uses map features. SafeMe does not use a Google Maps API key in the app source.</li>
+          <li><strong>Hosting provider (for example Vercel):</strong> serves the web app.</li>
+        </ul>
+
+        <h2>10. Data retention and deletion</h2>
+        <p>You can clear local app data from Settings on your device. You can sign out to end the active session on that device.</p>
+        <p>To request deletion of your account and associated server-side data, use the <a href="/delete-account.html">account deletion request page</a> or email <a href="mailto:get.safeme@outlook.com?subject=SafeMe%20account%20deletion%20request">get.safeme@outlook.com</a>. Include the email address used for your SafeMe account.</p>
+        <p>Some information may be retained for a limited period where required by law, security, fraud prevention, or backup processes. We do not claim automatic instant deletion in the app today.</p>
+
+        <h2>11. What SafeMe does not do</h2>
+        <ul>
+          <li>Does not replace official emergency services.</li>
+          <li>Does not guarantee rescue, response, message delivery, or uninterrupted service.</li>
+          <li>Does not send SMS automatically without your action.</li>
+          <li>Does not encourage false alerts or abusive tracking of others.</li>
+          <li>Does not store your account password in local app storage.</li>
+        </ul>
+
+        <h2>12. Contact</h2>
+        <p>Questions about privacy: <a href="mailto:get.safeme@outlook.com">get.safeme@outlook.com</a></p>
+
+        <nav aria-label="Document links">
+          <a href="/terms-of-use.html">Terms of Use</a>
+          <a href="/support.html">Support</a>
+          <a href="/delete-account.html">Delete account</a>
+          <a href="/">Back to SafeMe</a>
+        </nav>
+      </article>
+
+      <article id="el" lang="el">
         <p class="eyebrow">SafeMe</p>
         <h1>Πολιτική Απορρήτου</h1>
-        <p class="updated">Τελευταία ενημέρωση: 4 Ιουλίου 2026</p>
+        <p class="updated">Τελευταία ενημέρωση: 9 Ιουλίου 2026</p>
         <p class="support">Υποστήριξη: <a href="mailto:get.safeme@outlook.com">get.safeme@outlook.com</a></p>
-        <div class="notice"><strong>Draft / υπό αναθεώρηση:</strong> Το παρόν κείμενο είναι προσχέδιο για προετοιμασία και μελλοντική υποβολή σε Play Store / App Store. Δεν αποτελεί τελική ή νομικά ελεγμένη πολιτική απορρήτου.</div>
-        <h2>A. Τί είναι το SafeMe</h2>
-        <p>Το SafeMe είναι μια εφαρμογή προσωπικής ασφάλειας που βοηθά τον χρήστη σε καταστάσεις ανάγκης. Περιλαμβάνει λειτουργίες όπως SOS, έμπιστες επαφές, κοινοποίηση τοποθεσίας και προαιρετικό συγχρονισμό λογαριασμού.</p>
-        <p>Η εφαρμογή προορίζεται ως βοηθητικό εργαλείο προσωπικής ασφάλειας. Δεν αντικαθιστά τις επίσημες υπηρεσίες έκτακτης ανάγκης.</p>
-        <h2>B. Ποια δεδομένα μπορεί να χρησιμοποιεί η εφαρμογή</h2>
-        <p>Ανάλογα με τις λειτουργίες που χρησιμοποιεί ο χρήστης, η εφαρμογή μπορεί να χρησιμοποιεί τα παρακάτω δεδομένα:</p>
-        <ul><li>Όνομα προφίλ και αριθμό τηλεφώνου, εφόσον τα καταχωρίσει ο χρήστης.</li><li>Έμπιστες επαφές που προσθέτει ο χρήστης στην εφαρμογή.</li><li>Τοποθεσία, όταν ο χρήστης ζητήσει GPS, SOS ή κοινοποίηση τοποθεσίας.</li><li>Ιστορικό ή συμβάντα SOS, εφόσον είναι ενεργός ο συγχρονισμός λογαριασμού.</li><li>Διεύθυνση email, εφόσον ο χρήστης δημιουργήσει λογαριασμό ή συνδεθεί σε λογαριασμό.</li></ul>
-        <h2>C. Πώς χρησιμοποιούνται τα δεδομένα</h2>
-        <p>Τα δεδομένα χρησιμοποιούνται για βασικές λειτουργίες της εφαρμογής, όπως:</p>
-        <ul><li>Προετοιμασία μηνυμάτων SOS.</li><li>Βοήθεια ώστε ο χρήστης να επικοινωνεί με τις έμπιστες επαφές του.</li><li>Εμφάνιση ή κοινοποίηση τοποθεσίας κατά τη χρήση SOS ή σχετικών λειτουργιών.</li><li>Συγχρονισμό δεδομένων μεταξύ συσκευών όταν ο χρήστης είναι συνδεδεμένος σε λογαριασμό.</li><li>Διατήρηση βασικού ιστορικού SOS, όπου αυτό εφαρμόζεται.</li></ul>
-        <h2>D. Τί δεν κάνει η εφαρμογή</h2>
-        <p>Η εφαρμογή:</p>
-        <ul><li>Δεν στέλνει SMS αυτόματα χωρίς ενέργεια του χρήστη.</li><li>Δεν αντικαθιστά τις επίσημες υπηρεσίες έκτακτης ανάγκης.</li><li>Δεν εγγυάται διάσωση, ανταπόκριση ή βοήθεια σε κατάσταση έκτακτης ανάγκης.</li><li>Δεν ενθαρρύνει ψεύτικους συναγερμούς ή καταχρηστική παρακολούθηση άλλων ανθρώπων.</li><li>Δεν αποθηκεύει κωδικούς πρόσβασης τοπικά στη συσκευή.</li></ul>
-        <h2>E. Τοποθεσία</h2>
-        <p>Η τοποθεσία χρησιμοποιείται μόνο όταν ο χρήστης ζητήσει λειτουργία GPS, SOS ή κοινοποίηση τοποθεσίας.</p>
-        <p>Η ακρίβεια της τοποθεσίας εξαρτάται από τις άδειες της συσκευής ή του browser, καθώς και από τη διαθεσιμότητα GPS, δικτύου κινητής τηλεφωνίας ή Wi-Fi. Αν οι άδειες τοποθεσίας δεν δοθούν ή το σήμα δεν είναι διαθέσιμο, η εφαρμογή ενδέχεται να μην μπορεί να εμφανίσει ακριβή τοποθεσία.</p>
-        <h2>F. Έμπιστες επαφές</h2>
-        <p>Ο χρήστης είναι υπεύθυνος να προσθέτει σωστές και ενημερωμένες έμπιστες επαφές.</p>
-        <p>Ο χρήστης θα πρέπει να έχει άδεια ή συναίνεση από τα πρόσωπα των οποίων τους αριθμούς τηλεφώνου καταχωρίζει, ώστε να μπορούν να χρησιμοποιηθούν για σκοπούς επικοινωνίας σε περίπτωση ανάγκης.</p>
-        <h2>G. Λογαριασμός και συγχρονισμός</h2>
-        <p>Η σύνδεση σε λογαριασμό είναι προαιρετική.</p><p>Η βασική λειτουργία SOS πρέπει να παραμένει διαθέσιμη χωρίς σύνδεση σε λογαριασμό.</p>
-        <p>Αν ο χρήστης συνδεθεί σε λογαριασμό, ορισμένα δεδομένα μπορεί να συγχρονίζονται μέσω Supabase, όπως στοιχεία προφίλ, έμπιστες επαφές ή σχετικά δεδομένα SOS, ανάλογα με τις ενεργές λειτουργίες της εφαρμογής.</p>
-        <h2>H. Ασφάλεια</h2>
-        <p>Η εφαρμογή θα πρέπει να δοκιμάζεται σε ασφαλές περιβάλλον πριν χρησιμοποιηθεί σε πραγματική κατάσταση ανάγκης.</p>
-        <p>Σε άμεσο κίνδυνο, ο χρήστης θα πρέπει να καλεί απευθείας το 112 ή τις αρμόδιες τοπικές αρχές. Το SafeMe είναι βοηθητικό εργαλείο και δεν παρέχει εγγύηση άμεσης ανταπόκρισης.</p>
-        <h2>I. Επικοινωνία</h2>
-        <p>Υποστήριξη: <a href="mailto:get.safeme@outlook.com">get.safeme@outlook.com</a></p>
-        <nav aria-label="Σύνδεσμοι εγγράφων"><a href="/terms-of-use.html">Όροι Χρήσης</a><a href="/">Επιστροφή στο SafeMe</a></nav>
+        <div class="notice"><strong>Προσχέδιο / υπό αναθεώρηση:</strong> Το παρόν κείμενο είναι προσχέδιο για Google Play και γενική συμμόρφωση. Δεν αποτελεί τελική νομική συμβουλή και πρέπει να ελεγχθεί πριν τη δημοσίευση.</div>
+
+        <h2>1. Τι είναι το SafeMe</h2>
+        <p>Το SafeMe είναι βοηθητική εφαρμογή προσωπικής ασφάλειας. Βοηθά στην προετοιμασία για καταστάσεις ανάγκης με λειτουργίες όπως μηνύματα SOS, έμπιστες επαφές, προαιρετική ζωντανή κοινοποίηση τοποθεσίας κατά τη διάρκεια ενεργής συνεδρίας SOS και προαιρετικό συγχρονισμό λογαριασμού.</p>
+        <p>Το SafeMe <strong>δεν</strong> αντικαθιστά τις επίσημες υπηρεσίες έκτακτης ανάγκης. Σε άμεσο κίνδυνο, κάλεσε τον τοπικό αριθμό έκτακτης ανάγκης (π.χ. 112 σε πολλές ευρωπαϊκές χώρες) ή τις αρμόδιες αρχές.</p>
+
+        <h2>2. Δεδομένα που συλλέγονται και χρησιμοποιούνται</h2>
+        <p>Ανάλογα με τις λειτουργίες που χρησιμοποιείς, το SafeMe μπορεί να επεξεργάζεται:</p>
+        <ul>
+          <li><strong>Στοιχεία προφίλ (προαιρετικά):</strong> όνομα, τηλέφωνο, προαιρετικές ιατρικές σημειώσεις, προτίμηση γλώσσας.</li>
+          <li><strong>Στοιχεία λογαριασμού (προαιρετικά):</strong> email και διαπιστευτήρια μέσω Supabase Auth. Οι κωδικοί διαχειρίζονται από τον πάροχο auth και δεν αποθηκεύονται τοπικά στην εφαρμογή.</li>
+          <li><strong>Έμπιστες επαφές:</strong> ονόματα, τηλέφωνα, προαιρετικά email, σχέση, προτεραιότητα επαφής.</li>
+          <li><strong>Τοποθεσία:</strong> γεωγραφικό πλάτος/μήκος, ακρίβεια, χρονικές στιγμές όταν ζητάς GPS, ενεργοποιείς SOS, χρησιμοποιείς Safe Walk ή check-in, ή όταν είναι ενεργό live tracking σε συνδεδεμένη συνεδρία SOS.</li>
+          <li><strong>Δεδομένα SOS/συνεδρίας:</strong> κείμενο μηνύματος SOS, ιστορικό συμβάντων (για συνδεδεμένους χρήστες), κατάσταση ενεργής συνεδρίας και συντεταγμένες live tracking όπου εφαρμόζεται.</li>
+          <li><strong>Τοπική κατάσταση εφαρμογής:</strong> προτιμήσεις και πρόσφατη δραστηριότητα στο local storage του browser (π.χ. δοκιμαστική λειτουργία, γλώσσα, τελευταία τοποθεσία, καταγραφή ειδοποιήσεων, προαιρετικά αποθηκευμένο email σύνδεσης).</li>
+        </ul>
+        <p>Το SafeMe <strong>δεν</strong> περιλαμβάνει διαφημιστικά ή analytics SDK στην τρέχουσα πηγαία βάση.</p>
+
+        <h2>3. Γιατί χρησιμοποιούνται</h2>
+        <ul>
+          <li>Προετοιμασία και αποστολή μηνυμάτων SOS σε έμπιστες επαφές.</li>
+          <li>Εμφάνιση ή κοινοποίηση τοποθεσίας σε λειτουργίες ασφάλειας.</li>
+          <li>Ζωντανές ενημερώσεις τοποθεσίας κατά ενεργή συνεδρία SOS (όταν είσαι συνδεδεμένος).</li>
+          <li>Συγχρονισμός προφίλ, επαφών και σχετικών δεδομένων SOS.</li>
+          <li>Απομνημόνευση γλώσσας και βασικών ρυθμίσεων.</li>
+          <li>Λειτουργία τοπικά χωρίς λογαριασμό.</li>
+        </ul>
+
+        <h2>4. Τοποθεσία σε SOS και live tracking</h2>
+        <p>Η τοποθεσία χρησιμοποιείται μόνο όταν τη ζητάς ή όταν μια λειτουργία την απαιτεί.</p>
+        <p>Η ακρίβεια εξαρτάται από άδειες, GPS, δίκτυο και περιορισμούς συσκευής/browser.</p>
+        <p>Σε ενεργό live tracking με σύνδεση λογαριασμού, ενδέχεται περιοδική αποστολή συντεταγμένων στο backend μέχρι να λήξει η συνεδρία ή να απενεργοποιήσεις τον σύνδεσμο.</p>
+
+        <h2>5. Έμπιστες επαφές</h2>
+        <p>Είσαι υπεύθυνος/η για σωστές επαφές και για την κατάλληλη άδεια/συναίνεση των προσώπων που καταχωρείς.</p>
+        <p>Το SafeMe δεν στέλνει αυτόματα SMS ή άλλα μηνύματα χωρίς δική σου ενέργεια στη συσκευή.</p>
+
+        <h2>6. Δημόσιοι σύνδεσμοι παρακολούθησης SOS</h2>
+        <p>Όταν δημιουργείς σύνδεσμο live tracking σε ενεργή συνεδρία SOS (με σύνδεση λογαριασμού), όποιος έχει τον σύνδεσμο μπορεί να δει κατάσταση συνεδρίας και τις τελευταίες κοινοποιημένες συντεταγμένες μέχρι να λήξει η συνεδρία ή να απενεργοποιηθεί ο σύνδεσμος.</p>
+        <p>Οι δημόσιες σελίδες παρακολούθησης <strong>δεν</strong> εμφανίζουν όνομα, τηλέφωνο, email, ιατρικές σημειώσεις ή λίστα επαφών.</p>
+
+        <h2>7. SMS, email και κοινοποίηση</h2>
+        <p>Το SOS ανοίγει SMS, email, WhatsApp, native share ή clipboard με προετοιμασμένο κείμενο. Εσύ αποφασίζεις αν και πότε θα σταλεί κάτι. Η παράδοση εξαρτάται από συσκευή, δίκτυο και εφαρμογές.</p>
+
+        <h2>8. Συγχρονισμός και τοπική χρήση</h2>
+        <p>Η σύνδεση είναι προαιρετική. Το βασικό SOS μπορεί να λειτουργεί τοπικά χωρίς λογαριασμό.</p>
+        <p>Όταν είσαι συνδεδεμένος/η, επιλεγμένα δεδομένα μπορεί να συγχρονίζονται μέσω Supabase.</p>
+        <p>Η «Εκκαθάριση τοπικών δεδομένων» αφαιρεί τοπική αποθήκευση στη συσκευή, όχι τον απομακρυσμένο λογαριασμό.</p>
+
+        <h2>9. Τρίτες υπηρεσίες</h2>
+        <ul>
+          <li><strong>Supabase:</strong> προαιρετικός έλεγχος ταυτότητας και συγχρονισμός.</li>
+          <li><strong>Google Fonts:</strong> φόρτωση γραμματοσειράς.</li>
+          <li><strong>Google Maps / Apple Maps:</strong> εξωτερικοί σύνδεσμοι ή ενσωματώσεις χάρτη.</li>
+          <li><strong>Hosting (π.χ. Vercel):</strong> φιλοξενία της web εφαρμογής.</li>
+        </ul>
+
+        <h2>10. Διατήρηση και διαγραφή</h2>
+        <p>Μπορείς να εκκαθαρίσεις τοπικά δεδομένα από τις Ρυθμίσεις και να αποσυνδεθείς.</p>
+        <p>Για αίτημα διαγραφής λογαριασμού και σχετικών server δεδομένων, δες τη <a href="/delete-account.html">σελίδα αιτήματος διαγραφής</a> ή στείλε email στο <a href="mailto:get.safeme@outlook.com?subject=SafeMe%20account%20deletion%20request">get.safeme@outlook.com</a> με το email του λογαριασμού σου.</p>
+        <p>Ορισμένα δεδομένα μπορεί να διατηρηθούν περιορισμένα όπου απαιτείται από νόμο, ασφάλεια ή αντίγραφα ασφαλείας. Δεν υπάρχει αυτόματη άμεση διαγραφή μέσα στην εφαρμογή σήμερα.</p>
+
+        <h2>11. Τι δεν κάνει το SafeMe</h2>
+        <ul>
+          <li>Δεν αντικαθιστά επίσημες υπηρεσίες έκτακτης ανάγκης.</li>
+          <li>Δεν εγγυάται διάσωση, ανταπόκριση, παράδοση μηνυμάτων ή αδιάλειπτη λειτουργία.</li>
+          <li>Δεν στέλνει SMS αυτόματα χωρίς ενέργεια χρήστη.</li>
+          <li>Δεν ενθαρρύνει ψεύτικους συναγερμούς ή καταχρηστική παρακολούθηση.</li>
+          <li>Δεν αποθηκεύει κωδικό πρόσβασης τοπικά.</li>
+        </ul>
+
+        <h2>12. Επικοινωνία</h2>
+        <p>Ερωτήσεις απορρήτου: <a href="mailto:get.safeme@outlook.com">get.safeme@outlook.com</a></p>
+
+        <nav aria-label="Σύνδεσμοι εγγράφων">
+          <a href="/terms-of-use.html">Όροι Χρήσης</a>
+          <a href="/support.html">Υποστήριξη</a>
+          <a href="/delete-account.html">Διαγραφή λογαριασμού</a>
+          <a href="/">Επιστροφή στο SafeMe</a>
+        </nav>
       </article>
     </main>
   </body>

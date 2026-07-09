@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SafeMe — Account &amp; Data Deletion</title>
+    <style>
+      :root { color-scheme: light; --bg: #f7f7fb; --card: #fff; --text: #1f2937; --muted: #5f6b7a; --border: #d9deea; --accent: #7c3aed; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.65; }
+      main { width: min(100%, 860px); margin: 0 auto; padding: 24px 16px 48px; }
+      article { background: var(--card); border: 1px solid var(--border); border-radius: 22px; box-shadow: 0 18px 45px rgba(31, 41, 55, 0.08); padding: clamp(22px, 5vw, 44px); margin-bottom: 24px; }
+      .eyebrow, .updated, .support { color: var(--muted); font-size: 0.98rem; }
+      h1 { margin: 0 0 8px; font-size: clamp(2rem, 8vw, 3.25rem); line-height: 1.08; }
+      h2 { margin-top: 2rem; font-size: 1.25rem; }
+      ol, ul { padding-left: 1.25rem; }
+      a { color: var(--accent); font-weight: 700; }
+      nav { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 0; padding-top: 22px; border-top: 1px solid var(--border); }
+      nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 999px; background: #fff; text-decoration: none; }
+      .notice { margin: 20px 0; padding: 14px 16px; border-left: 4px solid var(--accent); border-radius: 12px; background: #f3efff; }
+      .cta { display: inline-flex; align-items: center; min-height: 48px; margin: 8px 0 16px; padding: 12px 18px; border-radius: 999px; background: var(--accent); color: #fff; text-decoration: none; font-weight: 700; }
+      .lang-nav { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 20px; }
+      .lang-nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px; background: #fff; text-decoration: none; font-size: 0.95rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="lang-nav" aria-label="Language">
+        <a href="#en">English</a>
+        <a href="#el">Ελληνικά</a>
+      </div>
+
+      <article id="en" lang="en">
+        <p class="eyebrow">SafeMe</p>
+        <h1>Request account &amp; data deletion</h1>
+        <p class="updated">Last updated: 9 July 2026</p>
+        <div class="notice"><strong>Note:</strong> SafeMe does not currently offer one-tap automatic account deletion inside the app. Use the steps below to request deletion of your account and associated server-side data.</div>
+
+        <h2>What you can delete yourself on your device</h2>
+        <ul>
+          <li><strong>Sign out</strong> — ends the active session on that device.</li>
+          <li><strong>Clear local data</strong> — in SafeMe Settings → Advanced actions, removes local app storage on that device (profile copy, contacts copy, location cache, preferences, and similar local state).</li>
+        </ul>
+        <p>These actions do <strong>not</strong> delete your remote Supabase account or synced server records.</p>
+
+        <h2>How to request account deletion</h2>
+        <ol>
+          <li>Send an email from the address linked to your SafeMe account (or clearly identify the account email in your message).</li>
+          <li>Use the subject line: <strong>SafeMe account deletion request</strong>.</li>
+          <li>State that you want your SafeMe account and associated app data deleted.</li>
+          <li>Optionally mention whether you also used local-only mode on other devices.</li>
+        </ol>
+        <a class="cta" href="mailto:get.safeme@outlook.com?subject=SafeMe%20account%20deletion%20request&amp;body=Please%20delete%20my%20SafeMe%20account%20and%20associated%20data.%0A%0AAccount%20email%3A%20%0A%0AI%20understand%20this%20request%20applies%20to%20my%20signed-in%20account%20data%20stored%20on%20SafeMe%20servers.">Email deletion request</a>
+        <p class="support">Support email: <a href="mailto:get.safeme@outlook.com">get.safeme@outlook.com</a></p>
+
+        <h2>What may be deleted after verification</h2>
+        <p>After we verify your request, we aim to delete account-related data stored for your user, which may include:</p>
+        <ul>
+          <li>Authentication account (Supabase Auth)</li>
+          <li>Profile fields (name, phone, medical notes, language preference)</li>
+          <li>Trusted contacts stored for your account</li>
+          <li>SOS event history and active SOS session records linked to your account</li>
+        </ul>
+
+        <h2>Data that may be retained</h2>
+        <p>Some information may be kept for a limited period where required for legal obligations, security, fraud prevention, dispute handling, or backup recovery. We do not claim that all copies disappear instantly from every system.</p>
+        <p>Data stored only on your device is removed when you use “Clear local data” on that device; we cannot remotely wipe another device’s local storage.</p>
+
+        <h2>Processing</h2>
+        <p>We will confirm receipt of your request by email when possible. Deletion is handled manually at this stage and requires human review. Response times may vary.</p>
+
+        <h2>Emergency reminder</h2>
+        <p>SafeMe is not an emergency service. In immediate danger, call your local emergency number (for example 112) instead of waiting for account support.</p>
+
+        <nav aria-label="Document links">
+          <a href="/privacy-policy.html">Privacy Policy</a>
+          <a href="/support.html">Support</a>
+          <a href="/">Back to SafeMe</a>
+        </nav>
+      </article>
+
+      <article id="el" lang="el">
+        <p class="eyebrow">SafeMe</p>
+        <h1>Αίτημα διαγραφής λογαριασμού &amp; δεδομένων</h1>
+        <p class="updated">Τελευταία ενημέρωση: 9 Ιουλίου 2026</p>
+        <div class="notice"><strong>Σημείωση:</strong> Το SafeMe δεν προσφέρει σήμερα αυτόματη διαγραφή λογαριασμού με ένα πάτημα μέσα στην εφαρμογή. Ακολούθησε τα παρακάτω βήματα για αίτημα διαγραφής λογαριασμού και σχετικών server δεδομένων.</div>
+
+        <h2>Τι μπορείς να διαγράψεις μόνος/η στη συσκευή</h2>
+        <ul>
+          <li><strong>Αποσύνδεση</strong> — τερματίζει την ενεργή συνεδρία στη συσκευή.</li>
+          <li><strong>Εκκαθάριση τοπικών δεδομένων</strong> — στις Ρυθμίσεις → Προχωρημένες ενέργειες, αφαιρεί τοπική αποθήκευση (αντίγραφο προφίλ, επαφές, cache τοποθεσίας, προτιμήσεις κ.λπ.).</li>
+        </ul>
+        <p>Αυτές οι ενέργειες <strong>δεν</strong> διαγράφουν τον απομακρυσμένο λογαριασμό Supabase ή τα συγχρονισμένα server records.</p>
+
+        <h2>Πώς να ζητήσεις διαγραφή λογαριασμού</h2>
+        <ol>
+          <li>Στείλε email από τη διεύθυνση που συνδέεται με τον λογαριασμό SafeMe (ή δήλωσε ξεκάθαρα το email του λογαριασμού).</li>
+          <li>Θέμα: <strong>SafeMe account deletion request</strong> (ή «Αίτημα διαγραφής λογαριασμού SafeMe»).</li>
+          <li>Δήλωσε ότι θέλεις διαγραφή του λογαριασμού SafeMe και των σχετικών δεδομένων.</li>
+          <li>Προαιρετικά αναφέρε αν χρησιμοποίησες και τοπική λειτουργία σε άλλες συσκευές.</li>
+        </ol>
+        <a class="cta" href="mailto:get.safeme@outlook.com?subject=SafeMe%20account%20deletion%20request&amp;body=Please%20delete%20my%20SafeMe%20account%20and%20associated%20data.%0A%0AAccount%20email%3A%20%0A%0AI%20understand%20this%20request%20applies%20to%20my%20signed-in%20account%20data%20stored%20on%20SafeMe%20servers.">Αποστολή αιτήματος διαγραφής</a>
+        <p class="support">Email υποστήριξης: <a href="mailto:get.safeme@outlook.com">get.safeme@outlook.com</a></p>
+
+        <h2>Τι μπορεί να διαγραφεί μετά την επαλήθευση</h2>
+        <ul>
+          <li>Λογαριασμός ταυτοποίησης (Supabase Auth)</li>
+          <li>Στοιχεία προφίλ (όνομα, τηλέφωνο, ιατρικές σημειώσεις, γλώσσα)</li>
+          <li>Έμπιστες επαφές του λογαριασμού</li>
+          <li>Ιστορικό συμβάντων SOS και ενεργές συνεδρίες SOS</li>
+        </ul>
+
+        <h2>Δεδομένα που μπορεί να διατηρηθούν</h2>
+        <p>Ορισμένα δεδομένα μπορεί να κρατηθούν περιορισμένα για νομικές υποχρεώσεις, ασφάλεια, πρόληψη απάτης, διαχείριση διαφορών ή αντίγραφα ασφαλείας.</p>
+        <p>Δεδομένα που υπάρχουν μόνο στη συσκευή αφαιρούνται με «Εκκαθάριση τοπικών δεδομένων» σε εκείνη τη συσκευή· δεν μπορούμε να διαγράψουμε απομακρυσμένα τοπική αποθήκευση άλλης συσκευής.</p>
+
+        <h2>Διαχείριση αιτήματος</h2>
+        <p>Θα επιβεβαιώσουμε την παραλαβή όπου είναι δυνατόν. Η διαγραφή γίνεται χειροκίνητα σε αυτό το στάδιο και απαιτεί ανθρώπινο έλεγχο. Οι χρόνοι απόκρισης μπορεί να διαφέρουν.</p>
+
+        <h2>Υπενθύμιση έκτακτης ανάγκης</h2>
+        <p>Το SafeMe δεν είναι υπηρεσία έκτακτης ανάγκης. Σε άμεσο κίνδυνο, κάλεσε τον τοπικό αριθμό έκτακτης ανάγκης (π.χ. 112).</p>
+
+        <nav aria-label="Σύνδεσμοι εγγράφων">
+          <a href="/privacy-policy.html">Πολιτική Απορρήτου</a>
+          <a href="/support.html">Υποστήριξη</a>
+          <a href="/">Επιστροφή στο SafeMe</a>
+        </nav>
+      </article>
+    </main>
+  </body>
+</html>
