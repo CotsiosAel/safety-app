@@ -26,8 +26,8 @@
       <button class="pull-refresh-manual" id="pull-refresh-manual" type="button" hidden>Refresh manually</button>
     </div>
     <div class="app-shell">
-      <aside class="sidebar" aria-label="Βασικό μενού πλοήγησης">
-        <a class="brand" href="./" aria-label="SafeMe αρχική">
+      <aside class="sidebar" aria-label="Main navigation menu">
+        <a class="brand" href="./" aria-label="SafeMe home">
           <span class="brand-mark" aria-hidden="true">🛡️</span>
           <span>
             <span class="eyebrow">Safety app</span>
@@ -35,71 +35,71 @@
           </span>
         </a>
 
-        <nav class="nav-list" aria-label="Μενού εφαρμογής">
-          <button class="nav-item active" type="button" data-page="home" aria-current="page"><span class="nav-icon">⌂</span><span>Αρχική</span></button>
-          <button class="nav-item" type="button" data-page="contacts"><span class="nav-icon">👥</span><span>Επαφές</span></button>
-          <button class="nav-item" type="button" data-page="safety-tools"><span class="nav-icon">🧰</span><span>Εργαλεία Ασφάλειας</span></button>
-          <button class="nav-item" type="button" data-page="profile"><span class="nav-icon">◎</span><span>Προφίλ</span></button>
-          <button class="nav-item" type="button" data-page="settings"><span class="nav-icon">⚙</span><span>Ρυθμίσεις</span></button>
+        <nav class="nav-list" aria-label="App menu">
+          <button class="nav-item active" type="button" data-page="home" aria-current="page"><span class="nav-icon">⌂</span><span>Home</span></button>
+          <button class="nav-item" type="button" data-page="contacts"><span class="nav-icon">👥</span><span>Contacts</span></button>
+          <button class="nav-item" type="button" data-page="safety-tools"><span class="nav-icon">🧰</span><span>Safety Tools</span></button>
+          <button class="nav-item" type="button" data-page="profile"><span class="nav-icon">◎</span><span>Profile</span></button>
+          <button class="nav-item" type="button" data-page="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
         </nav>
 
         <div class="sidebar-card">
           <span class="mini-icon">24/7</span>
-          <p>Γρήγορη πρόσβαση σε βοήθεια, όπου κι αν βρίσκεσαι.</p>
+          <p>Quick access to help, wherever you are.</p>
         </div>
       </aside>
 
       <main class="content">
         <header class="topbar">
           <div>
-            <p class="eyebrow">Προσωπική ασφάλεια</p>
-            <h1 id="page-title">Αρχική σελίδα</h1>
+            <p class="eyebrow">Personal safety</p>
+            <h1 id="page-title">Home</h1>
           </div>
           <div class="topbar-actions">
-            <button class="status-pill" id="online-status-pill" type="button" title="Η εφαρμογή είναι online" aria-label="Η εφαρμογή είναι online"><span aria-hidden="true"></span> Online</button>
-            <button class="auth-indicator signed-out" id="auth-indicator" type="button" aria-live="polite" aria-label="Χωρίς σύνδεση. Άνοιγμα σύνδεσης στο Προφίλ">Χωρίς σύνδεση</button>
-            <button class="ghost-button" id="share-location-button" type="button">Μοιράσου θέση</button>
+            <button class="status-pill" id="online-status-pill" type="button" title="App is online" aria-label="App is online"><span aria-hidden="true"></span> Online</button>
+            <button class="auth-indicator signed-out" id="auth-indicator" type="button" aria-live="polite" aria-label="Not signed in. Open sign-in in Profile">Not signed in</button>
+            <button class="ghost-button" id="share-location-button" type="button">Share location</button>
           </div>
         </header>
 
         <section class="account-sync-banner signed-out" id="account-sync-banner" aria-live="polite">
           <div>
-            <strong id="account-sync-title">Δεν είσαι συνδεδεμένος.</strong>
-            <p id="account-sync-message">Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.</p>
+            <strong id="account-sync-title">You are not signed in.</strong>
+            <p id="account-sync-message">Local mode: SOS works on this device.</p>
           </div>
-          <button class="primary-button inline-button" id="account-sync-login-button" type="button">Σύνδεση για συγχρονισμό</button>
+          <button class="primary-button inline-button" id="account-sync-login-button" type="button">Sign in to sync</button>
         </section>
 
         <section class="page page-grid active" id="home" aria-labelledby="page-title">
           <article class="hero-card">
             <div class="hero-copy home-emergency-intro">
-              <p class="eyebrow">ΠΙΝΑΚΑΣ ΑΜΕΣΗΣ ΒΟΗΘΕΙΑΣ</p>
-              <h2>Χρειάζεσαι άμεση βοήθεια;</h2>
-              <p>Άμεση πρόσβαση σε SOS, έμπιστες επαφές και τοποθεσία.</p>
+              <p class="eyebrow">IMMEDIATE HELP PANEL</p>
+              <h2>Need help right now?</h2>
+              <p>Quick access to SOS, trusted contacts, and location.</p>
             </div>
 
             <section class="home-dashboard-card" id="home-readiness-card" aria-labelledby="home-readiness-title">
               <div class="home-dashboard-card-header">
                 <div>
-                  <p class="eyebrow">ΕΤΟΙΜΟΤΗΤΑ SAFEME</p>
-                  <h3 id="home-readiness-title">Ετοιμότητα SafeMe</h3>
+                  <p class="eyebrow">SAFEME READINESS</p>
+                  <h3 id="home-readiness-title">SafeMe readiness</h3>
                 </div>
-                <span class="home-test-mode-badge" id="home-test-mode-badge" hidden>Δοκιμή SOS ενεργή</span>
+                <span class="home-test-mode-badge" id="home-test-mode-badge" hidden>SOS test mode on</span>
               </div>
-              <div class="home-readiness-chips" aria-label="Σύνοψη ετοιμότητας SafeMe">
-                <span class="home-readiness-chip" id="home-online-status">Σε σύνδεση</span>
-                <span class="home-readiness-chip" id="home-account-status">Τοπικό προφίλ</span>
-                <span class="home-readiness-chip" id="home-contacts-status">0 έμπιστες επαφές</span>
-                <span class="home-readiness-chip" id="home-location-status">Χρειάζεται GPS</span>
-                <span class="home-readiness-chip" id="home-sos-mode-status">Πραγματικό SOS</span>
+              <div class="home-readiness-chips" aria-label="SafeMe readiness summary">
+                <span class="home-readiness-chip" id="home-online-status">Online</span>
+                <span class="home-readiness-chip" id="home-account-status">Local profile</span>
+                <span class="home-readiness-chip" id="home-contacts-status">0 trusted contacts</span>
+                <span class="home-readiness-chip" id="home-location-status">GPS needed</span>
+                <span class="home-readiness-chip" id="home-sos-mode-status">Real SOS</span>
               </div>
-              <p class="home-test-mode-helper" id="home-test-mode-helper" hidden>Δεν αποστέλλεται πραγματικό μήνυμα έκτακτης ανάγκης.</p>
+              <p class="home-test-mode-helper" id="home-test-mode-helper" hidden>No real emergency message is sent.</p>
             </section>
 
             <label class="home-sos-test-toggle" for="home-sos-test-mode">
               <span>
-                <strong>Δοκιμή SOS</strong>
-                <small>Δεν αποστέλλεται πραγματική ειδοποίηση έκτακτης ανάγκης.</small>
+                <strong>Test SOS</strong>
+                <small>No real emergency alert is sent.</small>
               </span>
               <input id="home-sos-test-mode" type="checkbox" />
             </label>
@@ -110,271 +110,271 @@
               <button class="sos-button" id="sos-button" type="button" aria-pressed="false">
                 <span>⚡</span>
                 <strong>SOS</strong>
-                <small>Πατήστε</small>
+                <small>Tap</small>
               </button>
             </div>
-            <p class="sos-account-status" id="sos-account-status" aria-live="polite">SOS διαθέσιμο σε αυτή τη συσκευή.</p>
-            <p class="sos-status" id="sos-status">Πάτησε SOS μία φορά για άμεση ενεργοποίηση.</p>
-            <p class="home-readiness-message" id="home-readiness-message" aria-live="polite">Δες τον σύντομο οδηγό πρώτης ρύθμισης.</p>
+            <p class="sos-account-status" id="sos-account-status" aria-live="polite">SOS is available on this device.</p>
+            <p class="sos-status" id="sos-status">Press SOS once for immediate activation.</p>
+            <p class="home-readiness-message" id="home-readiness-message" aria-live="polite">See the quick setup guide first.</p>
 
 
             <section class="active-sos-card" id="active-sos-section" aria-labelledby="active-sos-title" hidden>
               <div class="active-sos-summary">
                 <p class="eyebrow">SafeMe SOS</p>
-                <h3 id="active-sos-title">SOS ενεργό</h3>
-                <p class="active-sos-test-mode" id="active-sos-test-mode-label" hidden>Δοκιμή SOS</p>
-                <p class="active-sos-intro" id="active-sos-intro">Το μήνυμα SOS είναι έτοιμο.</p>
+                <h3 id="active-sos-title">SOS active</h3>
+                <p class="active-sos-test-mode" id="active-sos-test-mode-label" hidden>Test SOS</p>
+                <p class="active-sos-intro" id="active-sos-intro">The SOS message is ready.</p>
               </div>
 
-              <div class="active-sos-emergency-actions" aria-label="Άμεσες ενέργειες SOS">
-                <button class="danger-button active-sos-primary-action" id="notify-all-sos-contacts-action" type="button">Αποστολή SMS σε όλες τις επαφές</button>
-                <div class="active-sos-backup-actions" aria-label="Εφεδρικές ενέργειες SOS">
-                  <a class="ghost-button" id="active-sos-call-112" href="tel:112">Κλήση 112</a>
-                  <button class="ghost-button" id="copy-active-sos-message" type="button">Αντιγραφή</button>
+              <div class="active-sos-emergency-actions" aria-label="Immediate SOS actions">
+                <button class="danger-button active-sos-primary-action" id="notify-all-sos-contacts-action" type="button">Send SMS to all contacts</button>
+                <div class="active-sos-backup-actions" aria-label="Backup SOS actions">
+                  <a class="ghost-button" id="active-sos-call-112" href="tel:112">Call 112</a>
+                  <button class="ghost-button" id="copy-active-sos-message" type="button">Copy</button>
                 </div>
               </div>
 
               <p class="active-sos-feedback" id="active-sos-feedback" aria-live="polite"></p>
-              <button class="danger-outline-button active-sos-end-action" id="end-active-sos" type="button">Τερματισμός SOS</button>
+              <button class="danger-outline-button active-sos-end-action" id="end-active-sos" type="button">End SOS</button>
 
               <details class="active-sos-disclosure active-sos-info">
-                <summary>Πληροφορίες SOS</summary>
+                <summary>SOS details</summary>
                 <dl class="active-sos-details">
-                  <div><dt>Κατάσταση</dt><dd id="active-sos-status">active</dd></div>
-                  <div><dt>Έναρξη</dt><dd id="active-sos-started">—</dd></div>
-                  <div><dt>Τελευταία τοποθεσία</dt><dd id="active-sos-latest-location-time">—</dd></div>
-                  <div><dt>Τελευταίος συγχρονισμός</dt><dd id="active-sos-last-live-update">—</dd></div>
-                  <div><dt>Live ενημέρωση</dt><dd id="active-sos-live-update-state">—</dd></div>
+                  <div><dt>Status</dt><dd id="active-sos-status">active</dd></div>
+                  <div><dt>Started</dt><dd id="active-sos-started">—</dd></div>
+                  <div><dt>Last location</dt><dd id="active-sos-latest-location-time">—</dd></div>
+                  <div><dt>Last sync</dt><dd id="active-sos-last-live-update">—</dd></div>
+                  <div><dt>Live update</dt><dd id="active-sos-live-update-state">—</dd></div>
                   <div><dt>Live tracking</dt><dd id="active-sos-tracking-status">—</dd></div>
-                  <div><dt>Τοποθεσία</dt><dd id="active-sos-location">Χωρίς τοποθεσία</dd></div>
+                  <div><dt>Location</dt><dd id="active-sos-location">No location</dd></div>
                 </dl>
-                <p class="active-sos-location-note" id="active-sos-location-note" aria-live="polite">Η τοποθεσία προστέθηκε στο μήνυμα SOS.</p>
-                <p class="active-sos-tracking-ready" id="active-sos-tracking-ready">Live tracking έτοιμο</p>
-                <div class="active-sos-compact-actions" aria-label="Ενέργειες τοποθεσίας SOS">
-                  <button class="ghost-button" id="share-active-sos-location" type="button">Κοινή χρήση τοποθεσίας</button>
-                  <button class="ghost-button" id="copy-active-sos-tracking" type="button">Αντιγραφή</button>
-                  <button class="ghost-button" id="update-active-sos-location" type="button">Ενημέρωση GPS</button>
+                <p class="active-sos-location-note" id="active-sos-location-note" aria-live="polite">Location was added to the SOS message.</p>
+                <p class="active-sos-tracking-ready" id="active-sos-tracking-ready">Live tracking ready</p>
+                <div class="active-sos-compact-actions" aria-label="SOS location actions">
+                  <button class="ghost-button" id="share-active-sos-location" type="button">Share location</button>
+                  <button class="ghost-button" id="copy-active-sos-tracking" type="button">Copy</button>
+                  <button class="ghost-button" id="update-active-sos-location" type="button">Update GPS</button>
                 </div>
-                <p class="active-sos-live-note" id="active-sos-live-note">Η αυτόματη ενημέρωση δουλεύει όσο η εφαρμογή μένει ανοιχτή. Αν GPS, χάρτης ή sync αποτύχουν, κράτα ανοιχτό αυτό το screen και χρησιμοποίησε αντιγραφή, κοινοποίηση ή κλήση.</p>
-                <p class="active-sos-live-status" id="active-sos-live-status">Live ενημέρωση ενεργή</p>
+                <p class="active-sos-live-note" id="active-sos-live-note">Automatic updates work while the app stays open. If GPS, map, or sync fails, keep this screen open and use copy, share, or call.</p>
+                <p class="active-sos-live-status" id="active-sos-live-status">Live update active</p>
               </details>
 
               <details class="active-sos-disclosure active-sos-contacts">
-                <summary>Επαφές &amp; αποστολές</summary>
+                <summary>Contacts &amp; sends</summary>
                 <section class="sos-contact-notify" id="sos-contact-notify" aria-labelledby="sos-contact-notify-title">
                   <div class="sos-contact-notify-header">
                     <div>
-                      <h4 id="sos-contact-notify-title">Επαφές &amp; αποστολές</h4>
-                      <p class="active-sos-safety-note">Για λόγους ασφαλείας, το κινητό σου μπορεί να ζητήσει να πατήσεις αποστολή μέσα στο SMS app.</p>
-                      <p>Το SafeMe ετοιμάζει το μήνυμα. Η αποστολή γίνεται από τη συσκευή σου όπου απαιτείται.</p>
+                      <h4 id="sos-contact-notify-title">Contacts &amp; sends</h4>
+                      <p class="active-sos-safety-note">For safety, your phone may ask you to confirm send inside the SMS app.</p>
+                      <p>SafeMe prepares the message. Sending happens from your device where required.</p>
                     </div>
-                    <button class="danger-button sos-notify-primary" id="notify-all-sos-contacts" type="button">Αποστολή SMS σε όλες τις επαφές</button>
+                    <button class="danger-button sos-notify-primary" id="notify-all-sos-contacts" type="button">Send SMS to all contacts</button>
                   </div>
-                  <div class="active-sos-contact-extra-actions" aria-label="Πρόσθετες αποστολές SOS">
+                  <div class="active-sos-contact-extra-actions" aria-label="Additional SOS sends">
                     <a class="ghost-button" id="active-sos-whatsapp" href="#" target="_blank" rel="noopener" hidden>WhatsApp</a>
                     <a class="ghost-button" id="active-sos-email" href="#" hidden>Email</a>
                   </div>
                   <p class="sos-contact-warning" id="sos-contact-warning" aria-live="polite"></p>
                   <div class="sos-contact-list" id="sos-contact-list" aria-live="polite"></div>
                   <section class="sos-notification-history" aria-labelledby="sos-notification-history-title">
-                    <h5 id="sos-notification-history-title">Ιστορικό ειδοποιήσεων</h5>
+                    <h5 id="sos-notification-history-title">Notification history</h5>
                     <div id="sos-notification-history-list" class="sos-notification-history-list"></div>
                   </section>
                 </section>
               </details>
 
               <details class="active-sos-disclosure active-sos-debug">
-                <summary>Διαγνωστικά</summary>
+                <summary>Diagnostics</summary>
                 <dl class="active-sos-debug-details">
-                  <div><dt>Άδεια browser location</dt><dd id="active-sos-permission-status">—</dd></div>
-                  <div><dt>Τελευταίο browser GPS</dt><dd id="active-sos-last-gps-update">—</dd></div>
-                  <div><dt>Τελευταίο Supabase sync</dt><dd id="active-sos-debug-last-sync">—</dd></div>
-                  <div><dt>Αποτέλεσμα Supabase sync</dt><dd id="active-sos-sync-result">—</dd></div>
-                  <div><dt>Τελευταίο σφάλμα</dt><dd id="active-sos-last-error">—</dd></div>
+                  <div><dt>Browser location permission</dt><dd id="active-sos-permission-status">—</dd></div>
+                  <div><dt>Last browser GPS</dt><dd id="active-sos-last-gps-update">—</dd></div>
+                  <div><dt>Last Supabase sync</dt><dd id="active-sos-debug-last-sync">—</dd></div>
+                  <div><dt>Supabase sync result</dt><dd id="active-sos-sync-result">—</dd></div>
+                  <div><dt>Last error</dt><dd id="active-sos-last-error">—</dd></div>
                 </dl>
                 <div class="active-sos-debug-actions">
-                  <button class="ghost-button" id="test-active-sos-live-sync" type="button" hidden>Δοκιμή live sync τώρα</button>
-                  <button class="ghost-button" id="refresh-active-sos-gps" type="button" hidden>Ανανέωση GPS τώρα</button>
-                  <button class="danger-outline-button" id="disable-active-sos-tracking" type="button" hidden>Απενεργοποίηση tracking link</button>
+                  <button class="ghost-button" id="test-active-sos-live-sync" type="button" hidden>Test live sync now</button>
+                  <button class="ghost-button" id="refresh-active-sos-gps" type="button" hidden>Refresh GPS now</button>
+                  <button class="danger-outline-button" id="disable-active-sos-tracking" type="button" hidden>Disable tracking link</button>
                 </div>
               </details>
             </section>
 
 
 
-            <section class="home-readiness-summary" aria-label="Ετοιμότητα ασφάλειας">
+            <section class="home-readiness-summary" aria-label="Safety readiness">
               <article class="info-card readiness-card" id="contacts-readiness-card">
                 <span class="card-icon">👥</span>
                 <div>
-                  <h3>Έμπιστες επαφές</h3>
-                  <p id="contacts-readiness-text">Άνοιγμα λίστας και προσθήκης.</p>
-                  <button class="home-inline-action" id="home-add-contact-cta" type="button" data-open-tool="contacts">Προσθήκη επαφής</button>
+                  <h3>Trusted contacts</h3>
+                  <p id="contacts-readiness-text">Open the list and add contacts.</p>
+                  <button class="home-inline-action" id="home-add-contact-cta" type="button" data-open-tool="contacts">Add contact</button>
                 </div>
               </article>
 
               <article class="info-card readiness-card" id="location-readiness-card">
                 <span class="card-icon">📍</span>
                 <div>
-                  <h3>GPS / Τοποθεσία</h3>
-                  <p id="location-readiness-text">Άνοιγμα ελέγχου τοποθεσίας.</p>
-                  <button class="home-inline-action" id="home-refresh-gps-cta" type="button" data-open-tool="gps">Ενημέρωση GPS</button>
+                  <h3>GPS / Location</h3>
+                  <p id="location-readiness-text">Open location check.</p>
+                  <button class="home-inline-action" id="home-refresh-gps-cta" type="button" data-open-tool="gps">Update GPS</button>
                 </div>
               </article>
 
               <article class="info-card readiness-card" id="account-readiness-card">
                 <span class="card-icon">☁️</span>
                 <div>
-                  <h3>Λογαριασμός / sync</h3>
-                  <p id="account-readiness-text">Άνοιγμα σύνδεσης.</p>
-                  <button class="home-inline-action" id="home-login-sync-cta" type="button" data-open-tool="profile-login">Σύνδεση για συγχρονισμό</button>
+                  <h3>Account / sync</h3>
+                  <p id="account-readiness-text">Open sign-in.</p>
+                  <button class="home-inline-action" id="home-login-sync-cta" type="button" data-open-tool="profile-login">Sign in to sync</button>
                 </div>
               </article>
             </section>
 
             <section class="home-quick-actions" aria-labelledby="home-quick-actions-title">
               <div class="section-heading compact-heading">
-                <p class="eyebrow">ΓΡΗΓΟΡΕΣ ΕΝΕΡΓΕΙΕΣ</p>
-                <h3 id="home-quick-actions-title">Γρήγορη βοήθεια</h3>
+                <p class="eyebrow">QUICK ACTIONS</p>
+                <h3 id="home-quick-actions-title">Quick help</h3>
               </div>
               <div class="home-quick-action-grid">
-                <button class="home-quick-action" type="button" data-open-tool="contacts" aria-label="Άνοιγμα επαφών">Επαφές</button>
-                <button class="home-quick-action" type="button" data-open-tool="gps" aria-label="Ενημέρωση GPS">Ενημέρωση GPS</button>
-                <button class="home-quick-action" type="button" data-open-tool="sos-settings" aria-label="Άνοιγμα ρυθμίσεων SOS">Ρυθμίσεις SOS</button>
-                <button class="home-quick-action" type="button" data-open-tool="sos-history" aria-label="Άνοιγμα ιστορικού SOS">Ιστορικό SOS</button>
-                <button class="home-quick-action" type="button" data-open-tool="share-location" aria-label="Μοίρασμα θέσης">Μοίρασμα θέσης</button>
+                <button class="home-quick-action" type="button" data-open-tool="contacts" aria-label="Open contacts">Contacts</button>
+                <button class="home-quick-action" type="button" data-open-tool="gps" aria-label="Update GPS">Update GPS</button>
+                <button class="home-quick-action" type="button" data-open-tool="sos-settings" aria-label="Open SOS settings">Settings SOS</button>
+                <button class="home-quick-action" type="button" data-open-tool="sos-history" aria-label="Open SOS history">SOS history</button>
+                <button class="home-quick-action" type="button" data-open-tool="share-location" aria-label="Share location">Share location</button>
               </div>
               <p class="home-quick-action-status" id="home-quick-action-status" aria-live="polite"></p>
             </section>
 
             <section class="emergency-call-section" aria-labelledby="emergency-call-title">
-              <h3 id="emergency-call-title">Άμεση κλήση έκτακτης ανάγκης</h3>
+              <h3 id="emergency-call-title">Emergency call</h3>
               <div class="emergency-call-buttons">
-                <a class="emergency-call-button" href="tel:112">Κλήση 112</a>
-                <a class="emergency-call-button" href="tel:199">Κλήση 199</a>
+                <a class="emergency-call-button" href="tel:112">Call 112</a>
+                <a class="emergency-call-button" href="tel:199">Call 199</a>
               </div>
-              <p>Χρησιμοποίησε τους αριθμούς έκτακτης ανάγκης μόνο σε πραγματική ανάγκη.</p>
+              <p>Use emergency numbers only in a real emergency.</p>
             </section>
 
             <section class="setup-checklist-card home-setup-card" id="setup-checklist" aria-labelledby="setup-checklist-title">
               <div class="setup-checklist-header">
                 <div>
-                  <p class="eyebrow">ΕΤΟΙΜΟΤΗΤΑ SAFEME</p>
-                  <h3 id="setup-checklist-title">Πρώτη ρύθμιση SafeMe</h3>
-                  <p>Σύντομα βασικά βήματα πριν από πραγματική ανάγκη.</p>
+                  <p class="eyebrow">SAFEME READINESS</p>
+                  <h3 id="setup-checklist-title">SafeMe first-time setup</h3>
+                  <p>Short essential steps before a real emergency.</p>
                 </div>
                 <span class="setup-checklist-progress" id="setup-checklist-progress" aria-live="polite">0/4</span>
               </div>
               <ul class="setup-checklist-items" id="setup-checklist-items" aria-live="polite"></ul>
-              <p class="setup-checklist-summary" id="setup-checklist-summary">Τα βήματα είναι οδηγός προετοιμασίας και δεν μπλοκάρουν το SOS.</p>
+              <p class="setup-checklist-summary" id="setup-checklist-summary">These steps are a preparation guide and do not block SOS.</p>
             </section>
           </article>
 
 
           <article class="info-card safety-status-card status-normal" id="safety-status-card">
             <span class="card-icon" id="safety-status-icon">💗</span>
-            <h3 id="safety-status-title">Κατάσταση</h3>
-            <p id="safety-status-description">Το SOS είναι έτοιμο όταν το χρειαστείς</p>
+            <h3 id="safety-status-title">Status</h3>
+            <p id="safety-status-description">SOS is ready when you need it</p>
             <div class="progress safety-status-progress" aria-hidden="true"><span></span></div>
           </article>
 
           <article class="quick-card">
             <strong id="contact-count">0</strong>
-            <span>έμπιστες επαφές έτοιμες για ειδοποίηση</span>
+            <span>trusted contacts ready for alerts</span>
           </article>
         </section>
 
-        <section class="page contacts-page" id="contacts" aria-label="Έμπιστες επαφές">
+        <section class="page contacts-page" id="contacts" aria-label="Trusted contacts">
           <article class="contacts-summary-card">
             <div>
               <p class="eyebrow">Trusted circle</p>
-              <h2>Έμπιστες επαφές</h2>
-              <p class="contacts-summary-line" id="contacts-summary-line">Δεν υπάρχουν ακόμα επαφές</p>
+              <h2>Trusted contacts</h2>
+              <p class="contacts-summary-line" id="contacts-summary-line">No contacts yet</p>
               <p class="contacts-sync-status" id="contacts-sync-status" aria-live="polite"></p>
             </div>
-            <button class="primary-button contacts-add-cta" id="contacts-add-cta" type="button">Προσθήκη επαφής</button>
+            <button class="primary-button contacts-add-cta" id="contacts-add-cta" type="button">Add contact</button>
           </article>
 
           <div class="card-list" id="contacts-list" tabindex="-1" aria-live="polite"></div>
 
           <section class="profile-accordion-card contacts-accordion-card" data-contacts-accordion="add">
-            <button class="profile-accordion-button contacts-add-hidden-toggle" id="contacts-add-toggle" type="button" aria-expanded="false" aria-controls="contacts-add-panel" hidden><span><strong>Προσθήκη επαφής</strong><small>Όνομα, σχέση, τηλέφωνο</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+            <button class="profile-accordion-button contacts-add-hidden-toggle" id="contacts-add-toggle" type="button" aria-expanded="false" aria-controls="contacts-add-panel" hidden><span><strong>Add contact</strong><small>Name, relationship, phone</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
             <div class="profile-accordion-panel" id="contacts-add-panel" role="region" aria-labelledby="contacts-add-toggle" hidden>
               <form class="form-card contact-form-compact" id="contact-form" tabindex="-1">
                 <div class="form-grid">
                   <label>
-                    <span>Όνομα</span>
-                    <input name="name" type="text" placeholder="π.χ. Γιώργος Δημητρίου" required />
+                    <span>Name</span>
+                    <input name="name" type="text" placeholder="e.g. John Smith" required />
                   </label>
                   <label>
-                    <span>Σχέση</span>
-                    <input name="relationship" type="text" placeholder="π.χ. Πατέρας" required />
+                    <span>Relationship</span>
+                    <input name="relationship" type="text" placeholder="e.g. Father" required />
                   </label>
                   <label>
-                    <span>Τηλέφωνο</span>
-                    <input name="phone" type="tel" placeholder="π.χ. 99878765 ή +35799878765" />
+                    <span>Phone</span>
+                    <input name="phone" type="tel" placeholder="e.g. 99878765 or +35799878765" />
                   </label>
                   <label>
-                    <span>Email (προαιρετικό)</span>
-                    <input name="email" type="email" placeholder="π.χ. name@example.com" />
+                    <span>Email (optional)</span>
+                    <input name="email" type="email" placeholder="e.g. name@example.com" />
                   </label>
                 </div>
-                <div class="contact-form-actions"><button class="primary-button inline-button" type="submit">Αποθήκευση επαφής</button><button class="ghost-button inline-button" type="button" data-close-add-contact>Κλείσιμο</button></div>
+                <div class="contact-form-actions"><button class="primary-button inline-button" type="submit">Save contact</button><button class="ghost-button inline-button" type="button" data-close-add-contact>Close</button></div>
               </form>
             </div>
           </section>
 
           <section class="profile-accordion-card contacts-accordion-card" data-contacts-accordion="sync">
-            <button class="profile-accordion-button" id="contacts-sync-toggle" type="button" aria-expanded="false" aria-controls="contacts-sync-panel"><span><strong>Συγχρονισμός</strong><small id="contacts-sync-summary">Τοπική λειτουργία</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+            <button class="profile-accordion-button" id="contacts-sync-toggle" type="button" aria-expanded="false" aria-controls="contacts-sync-panel"><span><strong>Sync</strong><small id="contacts-sync-summary">Local mode</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
             <div class="profile-accordion-panel" id="contacts-sync-panel" role="region" aria-labelledby="contacts-sync-toggle" hidden>
               <article class="contacts-sync-diagnostics" id="contacts-sync-diagnostics" aria-live="polite"></article>
               <div class="contacts-sync-actions">
-                <button class="ghost-button" id="refresh-account-contacts" type="button">Ανανέωση επαφών από λογαριασμό</button>
-                <button class="secondary-button" id="upload-local-contacts" type="button">Αποθήκευση τοπικών επαφών στον λογαριασμό</button>
+                <button class="ghost-button" id="refresh-account-contacts" type="button">Refresh contacts from account</button>
+                <button class="secondary-button" id="upload-local-contacts" type="button">Save local contacts to account</button>
               </div>
             </div>
           </section>
 
-          <p class="contacts-note">Καλό είναι οι έμπιστες επαφές να γνωρίζουν από πριν τι είναι το SafeMe.</p>
+          <p class="contacts-note">Trusted contacts should know in advance what SafeMe is.</p>
 
           <section class="profile-accordion-card contacts-accordion-card danger-accordion" data-contacts-accordion="advanced">
-            <button class="profile-accordion-button" id="contacts-advanced-toggle" type="button" aria-expanded="false" aria-controls="contacts-advanced-panel"><span><strong>Προχωρημένες ενέργειες</strong><small>Ενέργειες διαχείρισης επαφών</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+            <button class="profile-accordion-button" id="contacts-advanced-toggle" type="button" aria-expanded="false" aria-controls="contacts-advanced-panel"><span><strong>Advanced actions</strong><small>Contact management actions</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
             <div class="profile-accordion-panel" id="contacts-advanced-panel" role="region" aria-labelledby="contacts-advanced-toggle" hidden>
-              <button class="danger-outline-button contacts-clear-button" id="clear-contacts-button" type="button">Καθαρισμός επαφών</button>
+              <button class="danger-outline-button contacts-clear-button" id="clear-contacts-button" type="button">Clear contacts</button>
             </div>
           </section>
         </section>
 
-        <section class="page safety-tools-page" id="safety-tools" aria-label="Εργαλεία Ασφάλειας">
+        <section class="page safety-tools-page" id="safety-tools" aria-label="Safety Tools">
           <div class="section-heading">
             <p class="eyebrow">Safety tools</p>
-            <h2>Εργαλεία Ασφάλειας</h2>
-            <p>Όλα τα εργαλεία πρόληψης και τοποθεσίας σε ένα καθαρό σημείο, ξεχωριστά από το SOS της αρχικής.</p>
+            <h2>Safety Tools</h2>
+            <p>Prevention and location tools in one place, separate from home SOS.</p>
           </div>
 
           <div class="safety-tools-grid">
             <article class="safety-tool-card">
               <span class="card-icon">🚶</span>
               <h3>Safe Walk</h3>
-              <p>Ξεκίνα μια ασφαλή διαδρομή. Αν δεν επιβεβαιώσεις ότι έφτασες, το SafeMe θα ενεργοποιήσει SOS.</p>
-              <a class="primary-button tool-card-button" href="#safe-walk-section">Έναρξη Safe Walk</a>
+              <p>Start a monitored trip. If you do not confirm arrival, SafeMe activates SOS.</p>
+              <a class="primary-button tool-card-button" href="#safe-walk-section">Start Safe Walk</a>
             </article>
             <article class="safety-tool-card">
               <span class="card-icon">✅</span>
-              <h3>Check-in Ασφαλείας</h3>
-              <p>Στείλε γρήγορη επιβεβαίωση ότι είσαι καλά.</p>
-              <a class="primary-button tool-card-button" href="#checkin-section">Κάνε Check-in</a>
+              <h3>Safety check-in</h3>
+              <p>Send a quick confirmation that you are OK.</p>
+              <a class="primary-button tool-card-button" href="#checkin-section">Check in</a>
             </article>
             <article class="safety-tool-card">
               <span class="card-icon">📍</span>
-              <h3>Τρέχουσα Τοποθεσία</h3>
-              <p>Δες και μοιράσου την τρέχουσα θέση σου με τις επαφές σου.</p>
-              <a class="primary-button tool-card-button" href="#current-location-card">Προβολή τοποθεσίας</a>
+              <h3>Current location</h3>
+              <p>View and share your current position with contacts.</p>
+              <a class="primary-button tool-card-button" href="#current-location-card">View location</a>
             </article>
             <article class="safety-tool-card">
               <span class="card-icon">🧪</span>
-              <h3>Δοκιμή SOS</h3>
-              <p>Δοκίμασε το SOS χωρίς να σταλεί πραγματική ειδοποίηση.</p>
-              <button class="primary-button tool-card-button" id="safety-tools-test-sos" type="button">Test Mode</button>
+              <h3>Test SOS</h3>
+              <p>Try SOS without sending a real alert.</p>
+              <button class="primary-button tool-card-button" id="safety-tools-test-sos" type="button">Test mode</button>
             </article>
           </div>
 
@@ -384,30 +384,30 @@
                   <p class="eyebrow">SafeMe monitored trip</p>
                   <h3 id="safe-walk-title">Safe Walk</h3>
                 </div>
-                <span class="safe-walk-status-pill" id="safe-walk-status-pill">έτοιμο</span>
+                <span class="safe-walk-status-pill" id="safe-walk-status-pill">ready</span>
               </div>
-              <p class="safe-walk-intro">Ξεκίνα μια ασφαλή διαδρομή. Για γρήγορη δοκιμή διάλεξε «1 λεπτό test». Αν δεν επιβεβαιώσεις ότι έφτασες/είσαι καλά πριν λήξει ο χρόνος, το SafeMe θα ενεργοποιήσει SOS.</p>
+              <p class="safe-walk-intro">Start a monitored trip. For a quick test choose “1 minute test”. If you do not confirm arrival before time runs out, SafeMe activates SOS.</p>
 
               <label class="safe-walk-destination-label" for="safe-walk-destination">
-                <span>Πού πας;</span>
-                <input id="safe-walk-destination" type="text" maxlength="80" placeholder="π.χ. σπίτι, δουλειά, parking" />
+                <span>Where are you going?</span>
+                <input id="safe-walk-destination" type="text" maxlength="80" placeholder="e.g. home, work, parking" />
               </label>
 
-              <div class="safe-walk-presets" aria-label="Εκτιμώμενη διάρκεια">
-                <button class="safe-walk-preset safe-walk-test-preset" type="button" data-minutes="1">1 λεπτό test</button>
-                <button class="safe-walk-preset active" type="button" data-minutes="10">10 λεπτά</button>
-                <button class="safe-walk-preset" type="button" data-minutes="20">20 λεπτά</button>
-                <button class="safe-walk-preset" type="button" data-minutes="30">30 λεπτά</button>
-                <button class="safe-walk-preset" type="button" data-minutes="45">45 λεπτά</button>
-                <button class="safe-walk-preset" type="button" data-minutes="60">60 λεπτά</button>
+              <div class="safe-walk-presets" aria-label="Estimated duration">
+                <button class="safe-walk-preset safe-walk-test-preset" type="button" data-minutes="1">1 minute test</button>
+                <button class="safe-walk-preset active" type="button" data-minutes="10">10 minutes</button>
+                <button class="safe-walk-preset" type="button" data-minutes="20">20 minutes</button>
+                <button class="safe-walk-preset" type="button" data-minutes="30">30 minutes</button>
+                <button class="safe-walk-preset" type="button" data-minutes="45">45 minutes</button>
+                <button class="safe-walk-preset" type="button" data-minutes="60">60 minutes</button>
               </div>
 
               <div class="safe-walk-controls">
                 <label class="safe-walk-custom-label" for="safe-walk-custom-minutes">
-                  <span>Προσαρμοσμένα λεπτά</span>
-                  <input id="safe-walk-custom-minutes" type="number" min="1" max="240" inputmode="numeric" placeholder="π.χ. 25" />
+                  <span>Custom minutes</span>
+                  <input id="safe-walk-custom-minutes" type="number" min="1" max="240" inputmode="numeric" placeholder="e.g. 25" />
                 </label>
-                <button class="primary-button safe-walk-start-button" id="safe-walk-start-button" type="button">Έναρξη Safe Walk</button>
+                <button class="primary-button safe-walk-start-button" id="safe-walk-start-button" type="button">Start Safe Walk</button>
               </div>
 
               <section class="safe-walk-active-panel" id="safe-walk-active-panel" aria-live="polite" hidden>
@@ -416,13 +416,13 @@
                   <div><dt>Destination</dt><dd id="safe-walk-active-destination">—</dd></div>
                   <div><dt>Started time</dt><dd id="safe-walk-started-time">—</dd></div>
                   <div><dt>Expected arrival time</dt><dd id="safe-walk-expected-time">—</dd></div>
-                  <div><dt>Κατάσταση</dt><dd id="safe-walk-status-text">active</dd></div>
+                  <div><dt>Status</dt><dd id="safe-walk-status-text">active</dd></div>
                   <div><dt>Latest location time</dt><dd id="safe-walk-location-time">—</dd></div>
                 </dl>
                 <div class="safe-walk-active-actions">
-                  <button class="safe-walk-safe-button" id="safe-walk-safe-button" type="button">Έφτασα / Είμαι καλά</button>
-                  <button class="ghost-button" id="safe-walk-refresh-location" type="button">Ανανέωση τοποθεσίας</button>
-                  <button class="danger-outline-button" id="safe-walk-cancel-button" type="button">Ακύρωση Safe Walk</button>
+                  <button class="safe-walk-safe-button" id="safe-walk-safe-button" type="button">I arrived / I am OK</button>
+                  <button class="ghost-button" id="safe-walk-refresh-location" type="button">Refresh location</button>
+                  <button class="danger-outline-button" id="safe-walk-cancel-button" type="button">Cancel Safe Walk</button>
                 </div>
               </section>
               <p class="safe-walk-message" id="safe-walk-message" aria-live="polite"></p>
@@ -432,26 +432,26 @@
               <div class="checkin-header">
                 <div>
                   <p class="eyebrow">SafeMe check-in timer</p>
-                  <h3 id="checkin-title">Check-in ασφαλείας</h3>
+                  <h3 id="checkin-title">Safety check-in</h3>
                 </div>
-                <span class="checkin-status-pill" id="checkin-status-pill">έτοιμο</span>
+                <span class="checkin-status-pill" id="checkin-status-pill">ready</span>
               </div>
-              <p class="checkin-intro">Βάλε χρονόμετρο. Αν δεν πατήσεις ότι είσαι καλά πριν λήξει, το SafeMe θα ενεργοποιήσει SOS όσο η εφαρμογή είναι ανοιχτή.</p>
+              <p class="checkin-intro">Set a timer. If you do not confirm you are OK before it expires, SafeMe activates SOS while the app is open.</p>
 
-              <div class="checkin-presets" aria-label="Γρήγορη επιλογή χρόνου">
-                <button class="checkin-preset active" type="button" data-minutes="5">5 λεπτά</button>
-                <button class="checkin-preset" type="button" data-minutes="10">10 λεπτά</button>
-                <button class="checkin-preset" type="button" data-minutes="20">20 λεπτά</button>
-                <button class="checkin-preset" type="button" data-minutes="30">30 λεπτά</button>
-                <button class="checkin-preset" type="button" data-minutes="60">60 λεπτά</button>
+              <div class="checkin-presets" aria-label="Quick time selection">
+                <button class="checkin-preset active" type="button" data-minutes="5">5 minutes</button>
+                <button class="checkin-preset" type="button" data-minutes="10">10 minutes</button>
+                <button class="checkin-preset" type="button" data-minutes="20">20 minutes</button>
+                <button class="checkin-preset" type="button" data-minutes="30">30 minutes</button>
+                <button class="checkin-preset" type="button" data-minutes="60">60 minutes</button>
               </div>
 
               <div class="checkin-controls">
                 <label class="checkin-custom-label" for="checkin-custom-minutes">
-                  <span>Προσαρμοσμένος χρόνος</span>
-                  <input id="checkin-custom-minutes" type="number" min="1" max="240" inputmode="numeric" placeholder="π.χ. 15" />
+                  <span>Custom time</span>
+                  <input id="checkin-custom-minutes" type="number" min="1" max="240" inputmode="numeric" placeholder="e.g. 15" />
                 </label>
-                <button class="primary-button checkin-start-button" id="checkin-start-button" type="button">Έναρξη check-in</button>
+                <button class="primary-button checkin-start-button" id="checkin-start-button" type="button">Start check-in</button>
               </div>
 
               <section class="checkin-active-panel" id="checkin-active-panel" aria-live="polite" hidden>
@@ -462,8 +462,8 @@
                   <div><dt>Status</dt><dd id="checkin-status-text">active</dd></div>
                 </dl>
                 <div class="checkin-active-actions">
-                  <button class="checkin-safe-button" id="checkin-safe-button" type="button">Είμαι καλά</button>
-                  <button class="danger-outline-button" id="checkin-cancel-button" type="button">Ακύρωση check-in</button>
+                  <button class="checkin-safe-button" id="checkin-safe-button" type="button">I am OK</button>
+                  <button class="danger-outline-button" id="checkin-cancel-button" type="button">Cancel check-in</button>
                 </div>
               </section>
               <p class="checkin-message" id="checkin-message" aria-live="polite"></p>
@@ -471,81 +471,81 @@
 
           <article class="info-card dark-card" id="current-location-card" tabindex="-1">
             <span class="card-icon">📍</span>
-            <h3>Τρέχουσα τοποθεσία</h3>
-            <p id="location-text">Πάτησε ανανέωση για να βρεθεί η θέση σου.</p>
-            <button class="secondary-button" id="refresh-location-button" type="button">Ανανέωση</button>
+            <h3>Current location</h3>
+            <p id="location-text">Tap refresh to find your position.</p>
+            <button class="secondary-button" id="refresh-location-button" type="button">Refresh</button>
           </article>
         </section>
 
-        <section class="page profile-card" id="profile" aria-label="Προφίλ χρήστη">
+        <section class="page profile-card" id="profile" aria-label="User profile">
           <div class="profile-header profile-summary-card">
             <div class="profile-avatar" id="profile-avatar">👤</div>
             <div class="profile-summary-copy">
-              <p class="eyebrow">Προφίλ χρήστη</p>
-              <h2 id="profile-name">Συμπλήρωσε το προφίλ σου</h2>
-              <p id="profile-phone">Δεν έχει προστεθεί τηλέφωνο</p>
-              <span class="profile-status-badge" id="profile-account-label">Τοπικό προφίλ</span>
+              <p class="eyebrow">User profile</p>
+              <h2 id="profile-name">Complete your profile</h2>
+              <p id="profile-phone">No phone added</p>
+              <span class="profile-status-badge" id="profile-account-label">Local profile</span>
             </div>
           </div>
 
           <section class="local-profile-status" id="profile-local-status" aria-live="polite">
             <div>
-              <h3 id="profile-local-status-text">Δεν είσαι συνδεδεμένος.</h3>
-              <p id="profile-local-status-hint">Το SOS λειτουργεί τοπικά, αλλά οι επαφές, το ιστορικό και το live tracking δεν συγχρονίζονται.</p>
+              <h3 id="profile-local-status-text">You are not signed in.</h3>
+              <p id="profile-local-status-hint">SOS works locally, but contacts, history, and live tracking do not sync.</p>
             </div>
-            <button class="primary-button inline-button" id="profile-status-login-button" type="button">Σύνδεση για συγχρονισμό</button>
+            <button class="primary-button inline-button" id="profile-status-login-button" type="button">Sign in to sync</button>
           </section>
 
           <form class="profile-accordion-form" id="profile-form">
             <section class="profile-accordion-card profile-edit-section" data-profile-accordion="details" aria-labelledby="profile-edit-title">
-              <button class="profile-accordion-button profile-edit-toggle" id="profile-edit-toggle" type="button" aria-expanded="false" aria-controls="profile-details-panel"><span><strong>Στοιχεία προφίλ</strong><small id="profile-details-summary">Συμπλήρωσε το προφίλ σου • Δεν έχει προστεθεί τηλέφωνο</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+              <button class="profile-accordion-button profile-edit-toggle" id="profile-edit-toggle" type="button" aria-expanded="false" aria-controls="profile-details-panel"><span><strong>Profile details</strong><small id="profile-details-summary">Complete your profile • No phone added</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
               <div class="profile-form profile-accordion-panel" id="profile-details-panel" role="region" aria-labelledby="profile-edit-toggle" hidden>
-                <h2 class="visually-hidden" id="profile-edit-title">Επεξεργασία προφίλ</h2>
+                <h2 class="visually-hidden" id="profile-edit-title">Edit profile</h2>
                 <div class="form-grid">
                   <label><span>Display name</span><input name="name" type="text" required /></label>
                   <label><span>Phone</span><input name="phone" type="tel" placeholder="e.g. 99878765 or +35799878765" required /></label>
                 </div>
-                <button class="primary-button inline-button" type="submit">Αποθήκευση προφίλ</button>
+                <button class="primary-button inline-button" type="submit">Save profile</button>
               </div>
             </section>
 
             <section class="profile-accordion-card" data-profile-accordion="medical">
-              <button class="profile-accordion-button" id="profile-medical-toggle" type="button" aria-expanded="false" aria-controls="profile-medical-panel"><span><strong>Ιατρικές σημειώσεις</strong><small id="profile-notes">Δεν έχουν συμπληρωθεί</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+              <button class="profile-accordion-button" id="profile-medical-toggle" type="button" aria-expanded="false" aria-controls="profile-medical-panel"><span><strong>Medical notes</strong><small id="profile-notes">Not filled in</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
               <div class="profile-form profile-accordion-panel" id="profile-medical-panel" role="region" aria-labelledby="profile-medical-toggle" hidden>
-                <label class="full-field"><span>Σημείωση έκτακτης ανάγκης / ιατρικές σημειώσεις</span><textarea name="medicalNotes" rows="4" placeholder="Προαιρετικό: αλλεργίες, φάρμακα ή άλλο σημαντικό στοιχείο"></textarea></label>
-                <small class="field-helper">Προαιρετικό: αλλεργίες, φάρμακα ή άλλο σημαντικό στοιχείο</small>
-                <button class="primary-button inline-button" type="submit">Αποθήκευση αλλαγών</button>
-                <button class="danger-outline-button inline-button" id="clear-data-button" type="button">Καθαρισμός δεδομένων</button>
+                <label class="full-field"><span>Emergency note / medical notes</span><textarea name="medicalNotes" rows="4" placeholder="Optional: allergies, medications, or other important details"></textarea></label>
+                <small class="field-helper">Optional: allergies, medications, or other important details</small>
+                <button class="primary-button inline-button" type="submit">Save changes</button>
+                <button class="danger-outline-button inline-button" id="clear-data-button" type="button">Clear data</button>
                 <p class="save-status" id="profile-status" aria-live="polite"></p>
               </div>
             </section>
           </form>
 
           <section class="profile-accordion-card" data-profile-accordion="sos">
-            <button class="profile-accordion-button" id="profile-sos-toggle" type="button" aria-expanded="false" aria-controls="profile-sos-panel"><span><strong>Ιστορικό SOS</strong><small id="profile-sos-summary">Δεν υπάρχει ακόμα ιστορικό</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+            <button class="profile-accordion-button" id="profile-sos-toggle" type="button" aria-expanded="false" aria-controls="profile-sos-panel"><span><strong>SOS history</strong><small id="profile-sos-summary">No history yet</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
             <div class="profile-accordion-panel" id="profile-sos-panel" role="region" aria-labelledby="profile-sos-toggle" hidden>
           <section class="sos-history-card sos-history-summary-card" aria-labelledby="sos-history-title">
             <div class="sos-history-summary">
               <div>
                 <p class="eyebrow">SOS log</p>
-                <h2 id="sos-history-title">Ιστορικό SOS</h2>
-                <p class="sos-history-status-line">Τα SOS αποθηκεύονται στον λογαριασμό σου και στο τοπικό αντίγραφο.</p>
+                <h2 id="sos-history-title">SOS history</h2>
+                <p class="sos-history-status-line">SOS events are saved to your account and local copy.</p>
               </div>
-              <dl class="sos-history-metrics" aria-label="Σύνοψη ιστορικού SOS">
+              <dl class="sos-history-metrics" aria-label="SOS history summary">
                 <div>
-                  <dt>Τελευταίο SOS</dt>
+                  <dt>Last SOS</dt>
                   <dd id="sos-history-last">—</dd>
                 </div>
                 <div>
-                  <dt>Σύνολο SOS</dt>
+                  <dt>Total SOS</dt>
                   <dd id="sos-history-count">0</dd>
                 </div>
               </dl>
             </div>
             <div class="sos-history-actions">
-              <button class="secondary-button" id="sos-history-toggle" type="button">Προβολή ιστορικού</button>
-              <button class="ghost-button" id="sos-history-show-all" type="button" hidden>Προβολή όλων</button>
-              <button class="ghost-button" id="sos-history-collapse" type="button" hidden>Απόκρυψη ιστορικού</button>
+              <button class="secondary-button" id="sos-history-toggle" type="button">View history</button>
+              <button class="ghost-button" id="sos-history-show-all" type="button" hidden>Show all</button>
+              <button class="ghost-button" id="sos-history-collapse" type="button" hidden>Hide history</button>
             </div>
             <div class="sos-history-list" id="sos-history-list" aria-live="polite" hidden></div>
           </section>
@@ -553,19 +553,19 @@
           </section>
 
           <section class="profile-accordion-card" data-profile-accordion="account">
-            <button class="profile-accordion-button" id="profile-account-toggle" type="button" aria-expanded="false" aria-controls="profile-account-panel"><span><strong>Λογαριασμός</strong><small id="profile-account-summary">Δεν είσαι συνδεδεμένος</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
+            <button class="profile-accordion-button" id="profile-account-toggle" type="button" aria-expanded="false" aria-controls="profile-account-panel"><span><strong>Account</strong><small id="profile-account-summary">You are not signed in.</small></span><span class="profile-accordion-chevron" aria-hidden="true">⌄</span></button>
             <div class="profile-accordion-panel" id="profile-account-panel" role="region" aria-labelledby="profile-account-toggle" hidden>
           <form class="auth-card" id="auth-form" tabindex="-1">
             <div class="section-heading compact-heading auth-heading">
-              <p class="eyebrow">Λογαριασμός</p>
-              <h2 id="auth-title">Σύνδεση</h2>
-              <p id="auth-helper">Συνδέσου για συγχρονισμό επαφών και ιστορικού SOS.</p>
+              <p class="eyebrow">Account</p>
+              <h2 id="auth-title">Sign in</h2>
+              <p id="auth-helper">Sign in to sync contacts and SOS history.</p>
               <p class="auth-live-tracking-note" hidden></p>
             </div>
-            <p class="auth-signed-in" id="auth-signed-in" tabindex="-1" hidden><span>Συνδεδεμένος ως</span> <strong id="auth-user-email"></strong></p>
-            <div class="auth-mode-tabs" id="auth-mode-tabs" role="tablist" aria-label="Επιλογή σύνδεσης ή δημιουργίας λογαριασμού">
-              <button class="auth-mode-tab active" id="auth-login-tab" type="button" role="tab" aria-selected="true">Σύνδεση</button>
-              <button class="auth-mode-tab" id="auth-signup-tab" type="button" role="tab" aria-selected="false">Δημιουργία λογαριασμού</button>
+            <p class="auth-signed-in" id="auth-signed-in" tabindex="-1" hidden><span>Signed in as</span> <strong id="auth-user-email"></strong></p>
+            <div class="auth-mode-tabs" id="auth-mode-tabs" role="tablist" aria-label="Sign in or create account">
+              <button class="auth-mode-tab active" id="auth-login-tab" type="button" role="tab" aria-selected="true">Sign in</button>
+              <button class="auth-mode-tab" id="auth-signup-tab" type="button" role="tab" aria-selected="false">Create account</button>
             </div>
             <div class="form-grid" id="auth-fields">
               <label>
@@ -573,32 +573,32 @@
                 <input id="auth-email" name="email" type="email" autocomplete="email" inputmode="email" required />
               </label>
               <label class="password-field" id="auth-password-field">
-                <span>Κωδικός</span>
+                <span>Password</span>
                 <span class="password-input-wrap">
                   <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="6" required />
-                  <button class="password-toggle" id="auth-password-toggle" type="button">Εμφάνιση</button>
+                  <button class="password-toggle" id="auth-password-toggle" type="button">Show</button>
                 </span>
               </label>
               <label class="password-field" id="auth-repeat-password-field" hidden>
-                <span>Επανάληψη κωδικού</span>
+                <span>Repeat password</span>
                 <span class="password-input-wrap">
                   <input id="auth-repeat-password" name="repeat-password" type="password" autocomplete="new-password" minlength="6" />
                 </span>
               </label>
               <label class="remember-email-option" id="remember-email-option">
                 <input id="remember-email" name="remember-email" type="checkbox" />
-                <span>Να θυμάσαι το email μου</span>
+                <span>Remember my email</span>
               </label>
-              <small class="field-helper remember-email-helper" id="remember-email-helper">Αποθηκεύεται μόνο το email.</small>
-              <p class="auth-signup-note" id="auth-signup-note" hidden>Στο επόμενο στάδιο θα προστεθεί σύνδεση με τηλέφωνο/SMS.</p>
+              <small class="field-helper remember-email-helper" id="remember-email-helper">Only the email is stored.</small>
+              <p class="auth-signup-note" id="auth-signup-note" hidden>Phone/SMS sign-in will be added in a future update.</p>
             </div>
             <div class="auth-actions">
-              <button class="primary-button inline-button" id="auth-submit-button" type="submit">Σύνδεση</button>
-              <button class="danger-outline-button inline-button" id="auth-logout-button" type="button" hidden>Αποσύνδεση</button>
+              <button class="primary-button inline-button" id="auth-submit-button" type="submit">Sign in</button>
+              <button class="danger-outline-button inline-button" id="auth-logout-button" type="button" hidden>Sign out</button>
             </div>
             <div class="auth-secondary-links" id="auth-secondary-links">
-              <button class="text-link auth-switch-link" id="auth-switch-mode" type="button">Δεν έχεις λογαριασμό; Δημιουργία</button>
-              <button class="text-link" id="auth-forgot-password" type="button">Ξέχασα τον κωδικό μου</button>
+              <button class="text-link auth-switch-link" id="auth-switch-mode" type="button">No account? Create one</button>
+              <button class="text-link" id="auth-forgot-password" type="button">Forgot password</button>
             </div>
             <p class="save-status" id="auth-status" aria-live="polite"></p>
           </form>
@@ -607,33 +607,33 @@
 
           <form class="auth-card password-reset-card" id="password-reset-form" tabindex="-1" hidden>
             <div class="section-heading compact-heading">
-              <p class="eyebrow">Επαναφορά κωδικού</p>
-              <h2>Ορισμός νέου κωδικού</h2>
-              <p>Γράψε τον νέο κωδικό σου για να συνεχίσεις.</p>
+              <p class="eyebrow">Password reset</p>
+              <h2>Set a new password</h2>
+              <p>Enter your new password to continue.</p>
             </div>
             <div class="form-grid">
               <label class="password-field">
-                <span>Νέος κωδικός</span>
+                <span>New password</span>
                 <input id="password-reset-new" name="new-password" type="password" autocomplete="new-password" minlength="6" />
               </label>
               <label class="password-field">
-                <span>Επανάληψη νέου κωδικού</span>
+                <span>Repeat new password</span>
                 <input id="password-reset-repeat" name="repeat-new-password" type="password" autocomplete="new-password" minlength="6" />
               </label>
             </div>
-            <button class="primary-button inline-button" id="password-reset-submit" type="submit">Αλλαγή κωδικού</button>
+            <button class="primary-button inline-button" id="password-reset-submit" type="submit">Change password</button>
             <p class="save-status" id="password-reset-status" aria-live="polite"></p>
           </form>
 
           <section class="auth-card local-import-card" id="local-import-card" aria-live="polite" hidden>
             <div class="section-heading compact-heading">
               <p class="eyebrow">Saved on this device</p>
-              <h2>Βρέθηκαν τοπικά στοιχεία έκτακτης ανάγκης</h2>
-              <p id="local-import-summary">Θέλεις να τα αποθηκεύσεις στον λογαριασμό σου;</p>
+              <h2>Local emergency details found</h2>
+              <p id="local-import-summary">Do you want to save them to your account?</p>
             </div>
             <div class="auth-actions">
-              <button class="primary-button inline-button" id="local-import-button" type="button">Αποθήκευση στον λογαριασμό</button>
-              <button class="ghost-button inline-button" id="local-import-skip" type="button">Παράλειψη</button>
+              <button class="primary-button inline-button" id="local-import-button" type="button">Save to account</button>
+              <button class="ghost-button inline-button" id="local-import-skip" type="button">Skip</button>
             </div>
             <p class="save-status" id="local-import-status"></p>
           </section>
@@ -641,108 +641,108 @@
         </section>
 
 
-        <section class="page health-page" id="health" aria-label="Έλεγχος εφαρμογής">
+        <section class="page health-page" id="health" aria-label="App health check">
           <div class="health-hero">
             <div>
               <p class="eyebrow">SafeMe app health</p>
-              <h2>Έλεγχος εφαρμογής</h2>
-              <p>Κάνε έναν γρήγορο έλεγχο για να βεβαιωθείς ότι το SafeMe είναι έτοιμο.</p>
+              <h2>App health check</h2>
+              <p>Run a quick check to confirm SafeMe is ready.</p>
             </div>
-            <button class="primary-button health-copy-button" id="health-copy-report" type="button">Αντιγραφή αναφοράς ελέγχου</button>
+            <button class="primary-button health-copy-button" id="health-copy-report" type="button">Copy health report</button>
           </div>
 
-          <div class="health-actions" aria-label="Γρήγορες ενέργειες ελέγχου">
-            <button class="ghost-button" id="health-open-profile" type="button">Άνοιγμα προφίλ</button>
-            <button class="ghost-button" id="health-open-contacts" type="button">Άνοιγμα επαφών</button>
-            <button class="ghost-button" id="health-check-location" type="button">Έλεγχος τοποθεσίας</button>
-            <button class="ghost-button" id="health-test-sos" type="button">Δοκιμή SOS</button>
-            <button class="ghost-button" id="health-test-checkin" type="button">Δοκιμή Check-in</button>
-            <button class="ghost-button" id="health-test-safe-walk" type="button">Δοκιμή Safe Walk</button>
+          <div class="health-actions" aria-label="Quick health actions">
+            <button class="ghost-button" id="health-open-profile" type="button">Open profile</button>
+            <button class="ghost-button" id="health-open-contacts" type="button">Open contacts</button>
+            <button class="ghost-button" id="health-check-location" type="button">Check location</button>
+            <button class="ghost-button" id="health-test-sos" type="button">Test SOS</button>
+            <button class="ghost-button" id="health-test-checkin" type="button">Test check-in</button>
+            <button class="ghost-button" id="health-test-safe-walk" type="button">Test Safe Walk</button>
           </div>
 
           <div class="health-grid" id="health-checklist" aria-live="polite"></div>
 
           <section class="health-summary-card" aria-live="polite">
-            <h3 id="health-summary-title">Υπάρχουν ακόμα σημεία που χρειάζονται έλεγχο.</h3>
+            <h3 id="health-summary-title">Some items still need attention.</h3>
             <p id="health-report-status" class="save-status"></p>
-            <p class="health-disclaimer">Ο έλεγχος δεν αντικαθιστά πραγματική δοκιμή σε κινητό και δεν εγγυάται λειτουργία στο background.</p>
+            <p class="health-disclaimer">This check does not replace real mobile testing and does not guarantee background operation.</p>
           </section>
         </section>
 
-        <section class="page settings-page" id="settings" aria-label="Ρυθμίσεις και ασφάλεια">
+        <section class="page settings-page" id="settings" aria-label="Settings &amp; safety">
           <div class="settings-summary-card" aria-labelledby="settings-summary-title">
             <div class="settings-summary-copy">
-              <p class="eyebrow">Κέντρο ελέγχου</p>
-              <h2 id="settings-summary-title">Ρυθμίσεις SafeMe</h2>
-              <p>Σύντομος έλεγχος για λογαριασμό, SOS, GPS και δεδομένα.</p>
+              <p class="eyebrow">Control center</p>
+              <h2 id="settings-summary-title">SafeMe settings</h2>
+              <p>Quick check for account, SOS, GPS, and data.</p>
             </div>
-            <div class="settings-status-chips" aria-label="Γρήγορη κατάσταση ρυθμίσεων">
+            <div class="settings-status-chips" aria-label="Quick settings status">
               <span class="settings-chip" id="settings-online-chip">Online</span>
-              <span class="settings-chip" id="settings-account-chip">Τοπικό προφίλ</span>
-              <span class="settings-chip warning" id="settings-sos-mode-chip">Πραγματικό SOS</span>
+              <span class="settings-chip" id="settings-account-chip">Local profile</span>
+              <span class="settings-chip warning" id="settings-sos-mode-chip">Real SOS</span>
             </div>
           </div>
 
           <div class="settings-accordion" data-settings-accordion>
             <article class="settings-panel">
               <button class="settings-panel-toggle" id="settings-sos-toggle" type="button" aria-expanded="false" aria-controls="settings-sos-panel">
-                <span><strong>SOS λειτουργία</strong><small id="settings-sos-summary">Πραγματική λειτουργία</small></span>
+                <span><strong>SOS mode</strong><small id="settings-sos-summary">Real mode</small></span>
                 <span class="settings-chevron" aria-hidden="true">⌄</span>
               </button>
               <div class="settings-panel-body" id="settings-sos-panel" role="region" aria-labelledby="settings-sos-toggle" hidden>
                 <label class="sos-test-toggle settings-control-toggle">
                   <input id="sos-test-mode" type="checkbox" />
-                  <span>Λειτουργία δοκιμής SOS</span>
+                  <span>SOS test mode</span>
                 </label>
-                <p>Η λειτουργία δοκιμής δεν στέλνει πραγματικό μήνυμα έκτακτης ανάγκης.</p>
+                <p>Test mode does not send a real emergency message.</p>
               </div>
             </article>
 
             <article class="settings-panel">
               <button class="settings-panel-toggle" id="settings-location-toggle" type="button" aria-expanded="false" aria-controls="settings-location-panel">
-                <span><strong>Τοποθεσία &amp; GPS</strong><small id="settings-location-summary">Χρειάζεται ενημέρωση</small></span>
+                <span><strong>Location &amp; GPS</strong><small id="settings-location-summary">Needs update</small></span>
                 <span class="settings-chevron" aria-hidden="true">⌄</span>
               </button>
               <div class="settings-panel-body" id="settings-location-panel" role="region" aria-labelledby="settings-location-toggle" hidden>
-                <p id="settings-location-status">Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα.</p>
-                <button class="ghost-button" id="settings-refresh-location" type="button">Ενημέρωση GPS</button>
-                <p>Η τοποθεσία χρησιμοποιείται για το μήνυμα SOS και το live tracking.</p>
+                <p id="settings-location-status">No location available yet.</p>
+                <button class="ghost-button" id="settings-refresh-location" type="button">Update GPS</button>
+                <p>Location is used for SOS messages and live tracking.</p>
               </div>
             </article>
 
             <article class="settings-panel">
               <button class="settings-panel-toggle" id="settings-sync-toggle" type="button" aria-expanded="false" aria-controls="settings-sync-panel">
-                <span><strong>Συγχρονισμός</strong><small id="settings-sync-summary">Τοπική λειτουργία</small></span>
+                <span><strong>Sync</strong><small id="settings-sync-summary">Local mode</small></span>
                 <span class="settings-chevron" aria-hidden="true">⌄</span>
               </button>
               <div class="settings-panel-body" id="settings-sync-panel" role="region" aria-labelledby="settings-sync-toggle" hidden>
-                <p id="settings-sync-status">Τοπική λειτουργία σε αυτή τη συσκευή.</p>
-                <p>Οι επαφές και το ιστορικό συγχρονίζονται όταν είσαι συνδεδεμένος.</p>
+                <p id="settings-sync-status">Local mode on this device.</p>
+                <p>Contacts and history sync when you are signed in.</p>
                 <div class="settings-actions compact">
-                  <button class="ghost-button" id="settings-open-profile" type="button">Άνοιγμα προφίλ</button>
-                  <button class="ghost-button" id="settings-open-contacts" type="button">Άνοιγμα επαφών</button>
-                  <button class="ghost-button" id="settings-refresh-app" type="button">Επανέλεγχος εφαρμογής</button>
+                  <button class="ghost-button" id="settings-open-profile" type="button">Open profile</button>
+                  <button class="ghost-button" id="settings-open-contacts" type="button">Open contacts</button>
+                  <button class="ghost-button" id="settings-refresh-app" type="button">Recheck app</button>
                 </div>
               </div>
             </article>
 
             <article class="settings-panel">
               <button class="settings-panel-toggle" id="settings-privacy-toggle" type="button" aria-expanded="false" aria-controls="settings-privacy-panel">
-                <span><strong>Απόρρητο &amp; σημαντική σημείωση</strong><small>Ασφάλεια, δεδομένα και υπεύθυνη χρήση</small></span>
+                <span><strong>Privacy &amp; important note</strong><small>Safety, data, and responsible use</small></span>
                 <span class="settings-chevron" aria-hidden="true">⌄</span>
               </button>
               <div class="settings-panel-body" id="settings-privacy-panel" role="region" aria-labelledby="settings-privacy-toggle" hidden>
-                <p>Το SafeMe είναι βοηθητικό εργαλείο προσωπικής ασφάλειας και δεν αποτελεί πιστοποιημένη υπηρεσία έκτακτης ανάγκης. Δεν αντικαθιστά τις επίσημες υπηρεσίες έκτακτης ανάγκης. Σε άμεσο κίνδυνο κάλεσε αμέσως το 112 ή τις τοπικές αρχές.</p>
-                <p>Τα στοιχεία σου, οι έμπιστες επαφές και η τοποθεσία χρησιμοποιούνται μόνο για λειτουργίες ασφάλειας όπως SOS, συγχρονισμό και κοινοποίηση τοποθεσίας. Μην χρησιμοποιείς την εφαρμογή για ψεύτικες ειδοποιήσεις ή καταχρηστική παρακολούθηση.</p>
-                <p>Πριν χρησιμοποιήσεις το SOS σε πραγματική ανάγκη, κάνε δοκιμή σε ασφαλές περιβάλλον.</p>
-                <p>Το προφίλ, οι έμπιστες επαφές, η τελευταία τοποθεσία, η λειτουργία δοκιμής SOS και πρόσφατες ενέργειες κρατούνται τοπικά στη συσκευή.</p>
-                <p>Όταν είσαι συνδεδεμένος, το προφίλ, οι επαφές, το ιστορικό SOS και οι ενεργές συνεδρίες live tracking συγχρονίζονται με Supabase.</p>
-                <div class="settings-legal-links" aria-label="Νομικά και απόρρητο">
-                  <strong>Νομικά &amp; απόρρητο</strong>
+                <p>SafeMe is a personal safety helper and is not a certified emergency service. It does not replace official emergency services. In immediate danger call 112 or local authorities.</p>
+                <p>Your details, trusted contacts, and location are used only for safety features such as SOS, sync, and location sharing. Do not use the app for false alerts or abusive tracking.</p>
+                <p>Before using SOS in a real emergency, test in a safe environment.</p>
+                <p>Profile, trusted contacts, last location, SOS test mode, and recent actions are stored locally on the device.</p>
+                <p>When signed in, profile, contacts, SOS history, and active live tracking sessions sync with Supabase.</p>
+                <div class="settings-legal-links" aria-label="Legal & privacy">
+                  <strong>Legal &amp; privacy</strong>
                   <div>
-                    <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer">Πολιτική Απορρήτου</a>
-                    <a href="/terms-of-use.html" target="_blank" rel="noopener noreferrer">Όροι Χρήσης</a>
-                    <a href="/support.html" target="_blank" rel="noopener noreferrer">Υποστήριξη</a>
+                    <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+                    <a href="/terms-of-use.html" target="_blank" rel="noopener noreferrer">Terms of Use</a>
+                    <a href="/support.html" target="_blank" rel="noopener noreferrer">Support</a>
                   </div>
                 </div>
               </div>
@@ -768,37 +768,37 @@
 
             <article class="settings-panel settings-help-panel">
               <button class="settings-panel-toggle" id="settings-help-toggle" type="button" aria-expanded="false" aria-controls="settings-help-panel">
-                <span><strong>Άμεση βοήθεια</strong><small>112 και SOS ενέργειες</small></span>
+                <span><strong>Immediate help</strong><small>112 and SOS actions</small></span>
                 <span class="settings-chevron" aria-hidden="true">⌄</span>
               </button>
               <div class="settings-panel-body" id="settings-help-panel" role="region" aria-labelledby="settings-help-toggle" hidden>
-                <p>Γρήγορη πρόσβαση σε επίσημες κλήσεις έκτακτης ανάγκης όταν χρειάζεσαι άμεση βοήθεια.</p>
-                <div class="settings-emergency-actions" aria-label="Γρήγορες κλήσεις έκτακτης ανάγκης">
-                  <a class="emergency-call-button" href="tel:112">Κλήση 112</a>
-                  <a class="emergency-call-button" href="tel:199">Κλήση 199</a>
+                <p>Quick access to official emergency calls when you need immediate help.</p>
+                <div class="settings-emergency-actions" aria-label="Quick emergency calls">
+                  <a class="emergency-call-button" href="tel:112">Call 112</a>
+                  <a class="emergency-call-button" href="tel:199">Call 199</a>
                 </div>
-                <p>Χρησιμοποίησε τις κλήσεις έκτακτης ανάγκης μόνο σε πραγματική ανάγκη.</p>
+                <p>Use emergency calls only in a real emergency.</p>
               </div>
             </article>
 
             <article class="settings-panel settings-panel-danger">
               <button class="settings-panel-toggle" id="settings-advanced-toggle" type="button" aria-expanded="false" aria-controls="settings-advanced-panel">
-                <span><strong>Προχωρημένες ενέργειες</strong><small>Ενέργειες διαχείρισης</small></span>
+                <span><strong>Advanced actions</strong><small>Management actions</small></span>
                 <span class="settings-chevron" aria-hidden="true">⌄</span>
               </button>
               <div class="settings-panel-body" id="settings-advanced-panel" role="region" aria-labelledby="settings-advanced-toggle" hidden>
-                <p>Οι παρακάτω ενέργειες αλλάζουν ή διαγράφουν κατάσταση της εφαρμογής και ζητούν επιβεβαίωση.</p>
-                <div class="settings-version-card" aria-label="Έκδοση εφαρμογής">
-                  <strong>Έκδοση εφαρμογής</strong>
+                <p>The actions below change or delete app state and require confirmation.</p>
+                <div class="settings-version-card" aria-label="App version">
+                  <strong>App version</strong>
                   <dl>
-                    <div><dt>Έκδοση:</dt><dd id="settings-app-version">—</dd></div>
-                    <div><dt>Φορτώθηκε:</dt><dd id="settings-app-loaded-at">—</dd></div>
-                    <div><dt>Περιβάλλον:</dt><dd id="settings-app-host">—</dd></div>
+                    <div><dt>Version:</dt><dd id="settings-app-version">—</dd></div>
+                    <div><dt>Loaded:</dt><dd id="settings-app-loaded-at">—</dd></div>
+                    <div><dt>Environment:</dt><dd id="settings-app-host">—</dd></div>
                   </dl>
                 </div>
                 <div class="settings-actions compact">
-                  <button class="danger-outline-button" id="settings-logout" type="button">Αποσύνδεση</button>
-                  <button class="danger-outline-button" id="settings-clear-data" type="button">Καθαρισμός τοπικών δεδομένων</button>
+                  <button class="danger-outline-button" id="settings-logout" type="button">Sign out</button>
+                  <button class="danger-outline-button" id="settings-clear-data" type="button">Clear local data</button>
                 </div>
               </div>
             </article>
@@ -811,47 +811,47 @@
 
     <div class="modal-backdrop" id="contact-invite-modal" role="dialog" aria-modal="true" aria-labelledby="contact-invite-title" hidden>
       <div class="modal-card contact-invite-card">
-        <button class="modal-close" id="contact-invite-close" type="button" aria-label="Κλείσιμο">×</button>
+        <button class="modal-close" id="contact-invite-close" type="button" aria-label="Close">×</button>
         <span class="modal-icon">💬</span>
         <p class="eyebrow">Trusted contact invite</p>
-        <h2 id="contact-invite-title">Ενημέρωση έμπιστης επαφής</h2>
-        <p id="contact-invite-description">Μπορείς να στείλεις ένα έτοιμο μήνυμα με SMS ή WhatsApp, ώστε η επαφή σου να γνωρίζει από πριν τι να κάνει αν λάβει SOS από εσένα. Δεν στέλνεται τίποτα αυτόματα — διάλεξε χειροκίνητα τον τρόπο αποστολής.</p>
+        <h2 id="contact-invite-title">Trusted contact briefing</h2>
+        <p id="contact-invite-description">You can send a ready-made message via SMS or WhatsApp so your contact knows what to do if they receive SOS from you. Nothing is sent automatically — choose how to send manually.</p>
         <div class="sos-message-preview contact-invite-preview" id="contact-invite-preview" aria-live="polite"></div>
         <p class="sos-action-feedback" id="contact-invite-feedback" aria-live="polite"></p>
         <div class="sos-action-buttons contact-invite-actions">
-          <button class="danger-button" id="contact-invite-sms" type="button">Αποστολή με SMS</button>
-          <button class="secondary-button" id="contact-invite-whatsapp" type="button">Αποστολή με WhatsApp</button>
-          <button class="ghost-button" id="contact-invite-copy" type="button">Αντιγραφή</button>
+          <button class="danger-button" id="contact-invite-sms" type="button">Send via SMS</button>
+          <button class="secondary-button" id="contact-invite-whatsapp" type="button">Send via WhatsApp</button>
+          <button class="ghost-button" id="contact-invite-copy" type="button">Copy</button>
         </div>
       </div>
     </div>
 
     <div class="modal-backdrop" id="sos-modal" role="dialog" aria-modal="true" aria-labelledby="sos-action-title" hidden>
       <div class="modal-card">
-        <button class="modal-close" type="button" data-close-sos aria-label="Κλείσιμο SOS">×</button>
+        <button class="modal-close" type="button" data-close-sos aria-label="Close SOS">×</button>
         <div class="sos-action-panel" id="sos-action-panel" hidden>
           <span class="modal-icon">🆘</span>
           <p class="eyebrow">SafeMe SOS</p>
-          <h2 id="sos-action-title">Το SOS ενεργοποιήθηκε</h2>
-          <p class="sos-test-mode-label" id="sos-test-mode-label" hidden>Δοκιμή SOS</p>
-          <p id="sos-action-description">Ετοιμάσαμε μήνυμα βοήθειας με την τοποθεσία σου.</p>
+          <h2 id="sos-action-title">SOS activated</h2>
+          <p class="sos-test-mode-label" id="sos-test-mode-label" hidden>Test SOS</p>
+          <p id="sos-action-description">We prepared a help message with your location.</p>
           <section class="emergency-call-section modal-emergency-calls" aria-labelledby="sos-emergency-call-title">
-            <h3 id="sos-emergency-call-title">Άμεση κλήση έκτακτης ανάγκης</h3>
+            <h3 id="sos-emergency-call-title">Emergency call</h3>
             <div class="emergency-call-buttons">
-              <a class="emergency-call-button" href="tel:112">Κλήση 112</a>
-              <a class="emergency-call-button" href="tel:199">Κλήση 199</a>
+              <a class="emergency-call-button" href="tel:112">Call 112</a>
+              <a class="emergency-call-button" href="tel:199">Call 199</a>
             </div>
-            <p>Χρησιμοποίησε τους αριθμούς έκτακτης ανάγκης μόνο σε πραγματική ανάγκη.</p>
+            <p>Use emergency numbers only in a real emergency.</p>
           </section>
           <div class="sos-message-preview" id="sos-message-preview" aria-live="polite"></div>
           <p class="sos-action-feedback" id="sos-action-feedback" aria-live="polite"></p>
           <div class="sos-action-buttons">
-            <button class="danger-button" id="sos-send-sms" type="button">Αποστολή με SMS</button>
-            <button class="secondary-button" id="sos-send-whatsapp" type="button">Αποστολή με WhatsApp</button>
-            <button class="ghost-button" id="sos-copy-tracking" type="button" hidden>Αντιγραφή</button>
-            <button class="ghost-button" id="sos-copy-message" type="button">Αντιγραφή μήνυμα SOS</button>
-            <button class="ghost-button" id="sos-native-share" type="button">Κοινή χρήση</button>
-            <button class="ghost-button" type="button" data-close-sos>Κλείσιμο</button>
+            <button class="danger-button" id="sos-send-sms" type="button">Send via SMS</button>
+            <button class="secondary-button" id="sos-send-whatsapp" type="button">Send via WhatsApp</button>
+            <button class="ghost-button" id="sos-copy-tracking" type="button" hidden>Copy</button>
+            <button class="ghost-button" id="sos-copy-message" type="button">Copy SOS message</button>
+            <button class="ghost-button" id="sos-native-share" type="button">Share</button>
+            <button class="ghost-button" type="button" data-close-sos>Close</button>
           </div>
         </div>
       </div>

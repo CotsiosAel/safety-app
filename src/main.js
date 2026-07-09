@@ -1437,7 +1437,7 @@ async function notifyAllSosContacts() {
   }
 
   if (smsQueue.openedCount >= smsQueue.contacts.length) {
-    renderActiveSosSession('Άνοιξαν SMS για όλες τις επαφές. Ολοκληρώθηκε η σειρά SMS.');
+    renderActiveSosSession(t('runtime.smsOpenedAll'));
     renderSosContactNotifications();
     return;
   }
@@ -1446,7 +1446,7 @@ async function notifyAllSosContacts() {
   const contactName = getContactDisplayName(contact);
   const opened = openSmsComposer(message, contact.phone);
   if (!opened) {
-    renderActiveSosSession(`Δεν μπόρεσε να ανοίξει SMS προς ${contactName}. Έλεγξε τον αριθμό και συνέχισε.`);
+    renderActiveSosSession(t('runtime.smsOpenFailed', { name: contactName }));
     renderSosContactNotifications();
     return;
   }
@@ -1456,9 +1456,9 @@ async function notifyAllSosContacts() {
   logSosNotification(contact, 'SMS', t('sos.opened'));
 
   if (smsQueue.openedCount >= smsQueue.contacts.length) {
-    renderActiveSosSession(`Άνοιξε SMS προς ${contactName}. Το SafeMe άνοιξε το SMS. Πρέπει να πατήσεις αποστολή μέσα στην εφαρμογή μηνυμάτων. Άνοιξαν SMS για όλες τις επαφές.`);
+    renderActiveSosSession(t('runtime.smsOpenedAllDetail', { name: contactName }));
   } else {
-    renderActiveSosSession(`Άνοιξε SMS προς ${contactName}. Αν το έστειλες, συνέχισε στην επόμενη επαφή. Το SafeMe άνοιξε το SMS. Πρέπει να πατήσεις αποστολή μέσα στην εφαρμογή μηνυμάτων.`);
+    renderActiveSosSession(t('runtime.smsOpenedContinue', { name: contactName }));
   }
   renderSosContactNotifications();
 }
@@ -1952,6 +1952,8 @@ function updateNavLabels() {
 function refreshAllLocalizedUi() {
   applyStaticTranslations();
   applyDomBindings();
+  const activePage = document.querySelector('.page.active')?.id || 'home';
+  if (pageTitle) pageTitle.textContent = getPageTitles()[activePage] || getPageTitles().home;
   renderSettingsSummary();
   renderHomeReadinessCards();
   renderSafetyStatusCard();
@@ -2586,7 +2588,7 @@ function setActiveSosDiagnosticState(updates = {}) {
 function renderActiveSosDiagnostics() {
   if (!activeSosSection || !activeSosPermissionStatus) return;
 
-  activeSosPermissionStatus.textContent = activeSosDiagnostics.permissionStatus || 'Άγνωστο';
+  activeSosPermissionStatus.textContent = activeSosDiagnostics.permissionStatus || t('runtime.unknownPermission');
   activeSosLastGpsUpdate.textContent = formatDiagnosticDateTime(activeSosDiagnostics.lastGpsUpdateAt);
   activeSosDebugLastSync.textContent = formatDiagnosticDateTime(activeSosDiagnostics.lastSupabaseSyncAt);
   activeSosSyncResult.textContent = activeSosDiagnostics.lastSupabaseSyncResult || '—';
@@ -2602,7 +2604,7 @@ function getPermissionStatusLabel(status) {
 
 async function refreshLocationPermissionStatus() {
   if (!navigator.permissions?.query) {
-    setActiveSosDiagnosticState({ permissionStatus: 'Άγνωστο (δεν υποστηρίζεται από τον browser)' });
+    setActiveSosDiagnosticState({ permissionStatus: t('runtime.unknownPermissionUnsupported') });
     return;
   }
 
@@ -2613,7 +2615,7 @@ async function refreshLocationPermissionStatus() {
       setActiveSosDiagnosticState({ permissionStatus: getPermissionStatusLabel(locationPermissionStatus.state) });
     };
   } catch {
-    setActiveSosDiagnosticState({ permissionStatus: 'Άγνωστο' });
+    setActiveSosDiagnosticState({ permissionStatus: t('runtime.unknownPermission') });
   }
 }
 
@@ -2716,26 +2718,26 @@ async function shareLocation() {
   if (!currentLocation) return;
 
   const locationUrl = getLocationUrl(currentLocation);
-  const shareText = `Η τρέχουσα θέση μου: ${locationUrl}`;
+  const shareText = t('runtime.myCurrentLocation', { url: locationUrl });
 
   try {
     if (navigator.share) {
       await navigator.share({
-        title: 'SafeMe τοποθεσία',
+        title: t('runtime.shareLocationTitle'),
         text: t('location.shareText'),
         url: locationUrl,
       });
-      showLocationMessage(`${formatLocation(currentLocation)} • Η τοποθεσία είναι έτοιμη για κοινοποίηση.`);
+      showLocationMessage(t('runtime.shareLocationReady', { location: formatLocation(currentLocation) }));
       return;
     }
 
     await copyTextToClipboard(shareText);
-    showLocationMessage(`${formatLocation(currentLocation)} • Ο σύνδεσμος αντιγράφηκε.`);
+    showLocationMessage(t('runtime.shareLinkCopied', { location: formatLocation(currentLocation) }));
   } catch (error) {
     if (error?.name !== 'AbortError') {
       try {
         await copyTextToClipboard(shareText);
-        showLocationMessage(`${formatLocation(currentLocation)} • Ο σύνδεσμος αντιγράφηκε.`);
+        showLocationMessage(t('runtime.shareLinkCopied', { location: formatLocation(currentLocation) }));
       } catch {
         showLocationMessage(t('location.shareFailed'));
       }
@@ -3146,9 +3148,7 @@ function renderActiveSosSession(message = '') {
       const trackingUrl = getSosTrackingUrl(activeSosSession.shareToken);
       activeSosTrackingStatus.innerHTML = `<a href="${escapeHtml(trackingUrl)}" target="_blank" rel="noopener">${escapeHtml(t('sos.openLiveTracking'))}</a><br><small>${escapeHtml(trackingUrl)}</small>`;
     } else {
-      activeSosTrackingStatus.textContent = currentUser
-        ? 'Live tracking μη διαθέσιμο σε αυτή τη δοκιμή.'
-        : 'Live tracking μη διαθέσιμο σε αυτή τη δοκιμή.';
+      activeSosTrackingStatus.textContent = t('sos.trackingUnavailable');
     }
   }
 
@@ -3219,7 +3219,7 @@ function startActiveSosLocationWatcher() {
         lastErrorMessage: error?.message || message,
         permissionStatus: error?.code === 1 ? t('runtime.permissionBlocked') : activeSosDiagnostics.permissionStatus,
       });
-      renderActiveSosSession(`${message} Η εφαρμογή θα συνεχίσει να προσπαθεί όσο μένει ανοιχτή.`);
+      renderActiveSosSession(t('runtime.appWillKeepTrying', { message }));
     },
     {
       enableHighAccuracy: true,
@@ -3343,7 +3343,7 @@ async function syncActiveSosLocationToSupabase(location, { successMessage = '', 
   if (error) {
     setActiveSosDiagnosticState({
       lastSupabaseSyncAt: now,
-      lastSupabaseSyncResult: `Σφάλμα (${source})`,
+      lastSupabaseSyncResult: t('runtime.syncErrorSource', { source }),
       lastErrorMessage: error.message,
     });
     throw error;
@@ -3355,7 +3355,7 @@ async function syncActiveSosLocationToSupabase(location, { successMessage = '', 
   activeSosLastAutoUpdateAt = now;
   setActiveSosDiagnosticState({
     lastSupabaseSyncAt: now,
-    lastSupabaseSyncResult: `Επιτυχία (${source})`,
+    lastSupabaseSyncResult: t('runtime.syncSuccessSource', { source }),
     lastErrorMessage: '',
   });
   renderActiveSosSession(successMessage);
@@ -3392,7 +3392,7 @@ async function updateActiveSosLocation(options = {}) {
       source: isAutomaticUpdate ? 'auto' : 'manual',
     });
   } catch (error) {
-    const message = error?.code ? getActiveSosGeolocationErrorMessage(error) : `Δεν ενημερώθηκε το SOS: ${error.message}`;
+    const message = error?.code ? getActiveSosGeolocationErrorMessage(error) : t('runtime.sosNotUpdated', { error: error.message });
     setActiveSosDiagnosticState({
       lastSupabaseSyncResult: error?.code ? activeSosDiagnostics.lastSupabaseSyncResult : t('runtime.errorLabel'),
       lastErrorMessage: error?.message || message,
@@ -3424,7 +3424,7 @@ async function testActiveSosLiveSyncNow() {
   } catch (error) {
     const message = error?.code
       ? getActiveSosGeolocationErrorMessage(error)
-      : `Σφάλμα Supabase live sync: ${error.message}`;
+      : t('runtime.supabaseLiveSyncError', { error: error.message });
     setActiveSosDiagnosticState({
       lastErrorMessage: error?.message || message,
       permissionStatus: error?.code === 1 ? t('runtime.permissionBlocked') : activeSosDiagnostics.permissionStatus,
@@ -3445,7 +3445,7 @@ async function refreshActiveSosGpsNow() {
   try {
     const position = await requestCurrentPosition();
     const location = updateCurrentLocationFromPosition(position);
-    renderActiveSosSession(`Ο browser επέστρεψε συντεταγμένες: ${formatLocation(location)}.`);
+    renderActiveSosSession(t('runtime.browserReturnedCoords', { location: formatLocation(location) }));
   } catch (error) {
     const message = getActiveSosGeolocationErrorMessage(error);
     setActiveSosDiagnosticState({
@@ -3507,7 +3507,7 @@ async function disableActiveSosTrackingLink() {
     activeSosSession.testMode = wasTestMode;
     renderActiveSosSession(t('runtime.trackingLinkDisabled'));
   } catch (error) {
-    renderActiveSosSession(`Δεν απενεργοποιήθηκε το tracking link: ${error.message}`);
+    renderActiveSosSession(t('runtime.trackingDisableFailed', { error: error.message }));
   } finally {
     setActiveSosButtonsLoading(false);
   }
@@ -3554,7 +3554,7 @@ async function endActiveSosSession() {
     });
   } catch (error) {
     clearActiveSosRuntimeState({
-      message: `Το SOS έκλεισε τοπικά και δεν θα αποκατασταθεί μετά από refresh. Δεν ενημερώθηκε το public tracking link: ${error.message}`,
+      message: t('runtime.sosEndedNoPublicUpdate', { error: error.message }),
       endedSession: endingSession,
       status: 'ended',
     });
@@ -3702,7 +3702,7 @@ function renderSafeWalk() {
   safeWalkActiveDestination.textContent = activeSafeWalk.destination || t('runtime.destinationNotSet');
   safeWalkStartedTime.textContent = formatCheckInDateTime(activeSafeWalk.startedAt);
   safeWalkExpectedTime.textContent = formatCheckInDateTime(activeSafeWalk.expiresAt);
-  safeWalkStatusText.textContent = 'active / σε εξέλιξη';
+  safeWalkStatusText.textContent = t('runtime.safeWalkInProgress');
   safeWalkLocationTime.textContent = currentLocation?.updatedAt ? formatCheckInDateTime(currentLocation.updatedAt) : t('runtime.notYetAvailable');
   safeWalkStatusPill.textContent = `${activeSafeWalk.minutes === 1 ? '1-minute test • ' : ''}active`;
   safeWalkStatusPill.className = 'safe-walk-status-pill safe-walk-status-active';
@@ -3785,16 +3785,18 @@ async function expireSafeWalkWhileOpen() {
       if (activeSosSession?.status === 'active') { if (currentLocation) await syncActiveSosLocationToSupabase(currentLocation, { successMessage: '', source: 'safe-walk' }); }
       else { await createActiveSosSession(null, currentLocation); }
     } else { createLocalActiveSosSession(currentLocation); }
-  } catch (error) { historyMessage = `${historyMessage} Δεν ενημερώθηκε το active_sos_sessions: ${error.message}`; }
-  const safeWalkNote = `Το Safe Walk έληξε χωρίς επιβεβαίωση.${expiredWalk?.destination ? ` Προορισμός: ${expiredWalk.destination}.` : ''}`;
+  } catch (error) { historyMessage = t('runtime.activeSosUpdateFailed', { message: historyMessage, error: error.message }); }
+  const safeWalkNote = t('runtime.safeWalkExpiredNote', {
+    destination: expiredWalk?.destination ? t('runtime.destinationPrefix', { name: expiredWalk.destination }) : '',
+  });
   const message = `${buildSosMessage(currentLocation, activeSosSession?.shareToken)}\n\n${safeWalkNote}`;
   sosButton.classList.add('activated'); sosButton.setAttribute('aria-pressed', 'true');
   if (currentUser) {
     try { const savedEvent = await saveSosEventToSupabase(message, currentLocation); if (savedEvent) { sosHistoryEvents = [savedEvent, ...sosHistoryEvents].slice(0, 5); sosHistoryStatus = ''; renderSosHistory(); await attachSosEventToActiveSession(savedEvent.id); } }
-    catch { historyMessage = `${historyMessage} Το SOS δεν αποθηκεύτηκε στο ιστορικό.`; }
+    catch { historyMessage = `${historyMessage} ${t('runtime.sosHistoryNotSaved')}`; }
   }
   resetSosModal(); sosModal.hidden = false; document.body.classList.add('modal-open');
-  showSosActionPanel(message, contact, `${historyMessage} Δεν στάλθηκε αυτόματα SMS ή WhatsApp — διάλεξε παρακάτω χειροκίνητη αποστολή.`);
+  showSosActionPanel(message, contact, t('runtime.manualSendNote', { message: historyMessage }));
   showPage('home'); activeSosSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   safeWalkExpiryInProgress = false; renderSafeWalk();
 }
@@ -3919,7 +3921,7 @@ async function expireCheckInWhileOpen() {
       renderActiveSosSession(t('runtime.checkInExpiredSosLocal'));
     }
   } catch (error) {
-    historyMessage = `${historyMessage} Δεν ενημερώθηκε το active_sos_sessions: ${error.message}`;
+    historyMessage = t('runtime.activeSosUpdateFailed', { message: historyMessage, error: error.message });
   }
 
   const message = buildSosMessage(currentLocation, activeSosSession?.shareToken);
@@ -3936,14 +3938,14 @@ async function expireCheckInWhileOpen() {
         await attachSosEventToActiveSession(savedEvent.id);
       }
     } catch (error) {
-      historyMessage = `${historyMessage} Το SOS δεν αποθηκεύτηκε στο ιστορικό.`;
+      historyMessage = `${historyMessage} ${t('runtime.sosHistoryNotSaved')}`;
     }
   }
 
   resetSosModal();
   sosModal.hidden = false;
   document.body.classList.add('modal-open');
-  showSosActionPanel(message, contact, `${historyMessage} Δεν στάλθηκε αυτόματα SMS ή WhatsApp — διάλεξε παρακάτω χειροκίνητη αποστολή.`);
+  showSosActionPanel(message, contact, t('runtime.manualSendNote', { message: historyMessage }));
   showPage('home');
   activeSosSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   checkInExpiryInProgress = false;
@@ -3951,7 +3953,7 @@ async function expireCheckInWhileOpen() {
 }
 
 function formatSosEventDate(value) {
-  if (!value) return 'Άγνωστη ώρα';
+  if (!value) return t('runtime.unknownTime');
 
   return new Intl.DateTimeFormat(getDateLocale(), {
     dateStyle: 'medium',
@@ -3992,7 +3994,12 @@ function renderSosHistory() {
   if (sosHistoryCollapseButton) sosHistoryCollapseButton.hidden = !isSosHistoryExpanded;
   if (profileSosSummary) {
     profileSosSummary.textContent = sosHistoryEvents.length > 0
-      ? `Σύνολο SOS: ${sosHistoryEvents.length}${sosHistoryEvents[0]?.createdAt ? ` • Τελευταίο: ${formatSosEventDate(sosHistoryEvents[0].createdAt)}` : ''}`
+      ? t('profile.sosHistorySummary', {
+        count: sosHistoryEvents.length,
+        lastPart: sosHistoryEvents[0]?.createdAt
+          ? t('profile.sosHistoryLastPart', { date: formatSosEventDate(sosHistoryEvents[0].createdAt) })
+          : '',
+      })
       : t('profile.noHistory');
   }
 
@@ -4007,7 +4014,7 @@ function renderSosHistory() {
   }
 
   if (!currentUser) {
-    sosHistoryList.innerHTML = '<p class="sos-history-empty">Δεν υπάρχει ακόμα ιστορικό SOS.</p>';
+    sosHistoryList.innerHTML = `<p class="sos-history-empty">${escapeHtml(t('runtime.noSosHistory'))}</p>`;
     return;
   }
 
@@ -4017,7 +4024,7 @@ function renderSosHistory() {
   }
 
   if (sosHistoryEvents.length === 0) {
-    sosHistoryList.innerHTML = '<p class="sos-history-empty">Δεν υπάρχει ακόμα ιστορικό SOS.</p>';
+    sosHistoryList.innerHTML = `<p class="sos-history-empty">${escapeHtml(t('runtime.noSosHistory'))}</p>`;
     return;
   }
 
@@ -4031,7 +4038,7 @@ function renderSosHistory() {
         <article class="sos-history-item">
           <time datetime="${escapeHtml(event.createdAt || '')}">${escapeHtml(formatSosEventDate(event.createdAt))}</time>
           <p>${escapeHtml(getMessagePreview(event.message))}</p>
-          ${hasLocation ? `<a href="${escapeHtml(locationUrl)}" target="_blank" rel="noopener">Άνοιγμα τοποθεσίας</a>` : '<span>Χωρίς τοποθεσία</span>'}
+          ${hasLocation ? `<a href="${escapeHtml(locationUrl)}" target="_blank" rel="noopener">${escapeHtml(t('runtime.openLocation'))}</a>` : `<span>${escapeHtml(t('sos.noLocation'))}</span>`}
         </article>
       `;
     })
@@ -4069,7 +4076,7 @@ function showSosActionPanel(message, contact, historyMessage = '') {
   sosCopyTrackingButton.disabled = !preparedSosTrackingUrl;
   sosCopyTrackingButton.textContent = preparedSosTrackingUrl
     ? t('common.copy')
-    : 'Live tracking μη διαθέσιμο';
+    : t('sos.trackingUnavailable');
   if (sosModal) sosModal.hidden = false;
   document.body.classList.add('modal-open');
   sosActionPanel.hidden = false;
@@ -4079,7 +4086,7 @@ function showSosActionPanel(message, contact, historyMessage = '') {
   sosSendWhatsappButton.disabled = isSosTestMode;
   sosNativeShareButton.disabled = isSosTestMode;
   const contactMessage = contact
-    ? `Κύρια επαφή: ${contact.name} (${formatPhone(contact.phone)})`
+    ? t('runtime.primaryContactLine', { name: contact.name, phone: formatPhone(contact.phone) })
     : t('runtime.noPrimaryContact');
   const localTrackingNote = !currentUser
     ? t('runtime.sosLocalOnly')
@@ -4124,16 +4131,16 @@ function sendPreparedSosSms() {
   if (!preparedSosContact) return;
 
   window.location.href = getSmsLink(preparedSosContact, preparedSosMessage);
-  sosActionFeedback.textContent = `Άνοιξε έτοιμο SMS προς ${preparedSosContact.name}. Πάτα αποστολή.`;
-  sosStatus.textContent = `Άνοιξε έτοιμο SMS προς ${preparedSosContact.name}. Πάτα αποστολή.`;
+  sosActionFeedback.textContent = t('runtime.smsReadyFor', { name: preparedSosContact.name });
+  sosStatus.textContent = t('runtime.smsReadyFor', { name: preparedSosContact.name });
 }
 
 function sendPreparedSosWhatsapp() {
   if (!preparedSosMessage) return;
 
   window.open(getWhatsappLink(preparedSosMessage), '_blank', 'noopener');
-  sosActionFeedback.textContent = 'Άνοιξε WhatsApp με προσυμπληρωμένο μήνυμα SOS.';
-  sosStatus.textContent = 'Άνοιξε WhatsApp με προσυμπληρωμένο μήνυμα SOS.';
+  sosActionFeedback.textContent = t('runtime.whatsappReady');
+  sosStatus.textContent = t('runtime.whatsappReady');
 }
 
 async function copyPreparedSosMessage() {
@@ -4176,8 +4183,8 @@ async function sharePreparedSosMessage() {
       title: 'SafeMe SOS',
       text: preparedSosMessage,
     });
-    sosActionFeedback.textContent = 'Άνοιξε η κοινή χρήση SOS.';
-    sosStatus.textContent = 'Άνοιξε η κοινή χρήση SOS.';
+    sosActionFeedback.textContent = t('runtime.shareOpened');
+    sosStatus.textContent = t('runtime.shareOpened');
   } catch (error) {
     if (error?.name === 'AbortError') {
       sosActionFeedback.textContent = t('runtime.shareCancelled');
@@ -4239,7 +4246,7 @@ async function confirmSos() {
         await createActiveSosSession(null, currentLocation, { testMode: true, successMessage: t('runtime.testSosWithTracking') });
         testSosMessage = t('runtime.testSosWithTracking');
       } catch {
-        testSosMessage = 'Live tracking δεν δημιουργήθηκε. Το δοκιμαστικό SOS λειτουργεί τοπικά.';
+        testSosMessage = t('runtime.testTrackingNotCreated');
         renderActiveSosSession(testSosMessage);
       }
     }
@@ -4573,7 +4580,7 @@ function openContactInviteModal(index) {
 
   preparedContactInvite = contact;
   contactInvitePreview.textContent = getTrustedContactInviteMessage();
-  contactInviteFeedback.textContent = `Έτοιμο μήνυμα για ${contact.name}. Διάλεξε SMS ή WhatsApp και πάτα αποστολή στην εφαρμογή που θα ανοίξει.`;
+  contactInviteFeedback.textContent = t('runtime.inviteReady', { name: contact.name });
   contactInviteSmsButton.disabled = !normalizePhone(contact.phone);
   contactInviteModal.hidden = false;
   document.body.classList.add('modal-open');
@@ -4591,12 +4598,12 @@ function sendContactInviteSms() {
   if (!preparedContactInvite) return;
 
   window.location.href = getSmsLink(preparedContactInvite, getTrustedContactInviteMessage());
-  contactInviteFeedback.textContent = `Άνοιξε έτοιμο SMS προς ${preparedContactInvite.name}. Πάτα αποστολή αν θέλεις να το στείλεις.`;
+  contactInviteFeedback.textContent = t('runtime.inviteSmsReady', { name: preparedContactInvite.name });
 }
 
 function sendContactInviteWhatsapp() {
   window.open(getWhatsappLink(getTrustedContactInviteMessage()), '_blank', 'noopener');
-  contactInviteFeedback.textContent = 'Άνοιξε WhatsApp με προσυμπληρωμένο μήνυμα. Διάλεξε παραλήπτη και πάτα αποστολή.';
+  contactInviteFeedback.textContent = t('runtime.inviteWhatsappReady');
 }
 
 async function copyContactInviteMessage() {
@@ -5212,7 +5219,7 @@ async function refreshAccountContactsFromSupabase({ silent = true } = {}) {
   } catch (error) {
     const message = getSupabaseErrorMessage(error);
     setContactsSyncState('error', { lastError: message, message: '' });
-    if (!silent) showAuthMessage(`Σφάλμα Supabase: ${message}`, true);
+    if (!silent) showAuthMessage(t('runtime.supabaseErrorPrefix', { error: message }), true);
     renderContacts();
     throw error;
   } finally {
@@ -5260,8 +5267,8 @@ function renderLocalImportPrompt() {
   if (!hasCandidate) return;
   const parts = [];
   if (pendingLocalImport.profile) parts.push(t('runtime.profilePart'));
-  if (pendingLocalImport.contacts.length) parts.push(`${pendingLocalImport.contacts.length} επαφή/ές`);
-  localImportSummary.textContent = `Βρήκαμε ${parts.join(' και ')} αποθηκευμένα σε αυτή τη συσκευή. Θέλεις να τα αποθηκεύσεις στον λογαριασμό σου;`;
+  if (pendingLocalImport.contacts.length) parts.push(t('runtime.contactsCount', { count: pendingLocalImport.contacts.length }));
+  localImportSummary.textContent = t('runtime.localImportFound', { parts: parts.join(t('runtime.andJoin')) });
 }
 
 async function importLocalEmergencyInfo() {
@@ -5359,7 +5366,7 @@ async function loadSupabaseData() {
     isActiveSosSessionRestored = false;
     renderActiveSosSession();
     syncActiveSosLocationAutoUpdate();
-    sosHistoryStatus = `Δεν φορτώθηκε το ιστορικό SOS: ${error.message}`;
+    sosHistoryStatus = t('runtime.sosHistoryLoadFailed', { error: error.message });
     renderSosHistory();
     setContactsSyncState('error', { lastError: getSupabaseErrorMessage(error), message: '' });
     showAuthMessage(t('runtime.accountSyncFailed'), true);
@@ -5674,7 +5681,7 @@ sosContactList?.addEventListener('click', async (event) => {
   const action = event.target.closest('[data-sos-notify-index]');
   if (action) {
     const contact = contacts[Number(action.dataset.sosNotifyIndex)];
-    logSosNotification(contact, action.dataset.sosMethod, 'Άνοιξε');
+    logSosNotification(contact, action.dataset.sosMethod, t('sos.opened'));
   }
 });
 window.__safeMeUiEventsBound = true;

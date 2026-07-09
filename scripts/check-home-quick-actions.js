@@ -2,12 +2,14 @@ import { readFile } from 'node:fs/promises';
 
 const markup = await readFile('index.html', 'utf8');
 const source = await readFile('src/main.js', 'utf8');
+const i18n = await readFile('src/i18n.js', 'utf8');
+const corpus = `${markup}\n${source}\n${i18n}`;
 
 const markupRequirements = [
   ['Home readiness card', 'id="home-readiness-card"'],
   ['SOS button remains primary', 'class="sos-button" id="sos-button"'],
   ['test mode badge', 'id="home-test-mode-badge"'],
-  ['test mode helper', 'Δεν αποστέλλεται πραγματικό μήνυμα έκτακτης ανάγκης.'],
+  ['test mode helper', 'id="home-test-mode-helper"'],
   ['no-contact CTA', 'id="home-add-contact-cta" type="button" data-open-tool="contacts"'],
   ['location status chip', 'id="home-location-status"'],
   ['signed-out sync CTA', 'id="home-login-sync-cta" type="button" data-open-tool="profile-login"'],
@@ -25,7 +27,6 @@ for (const [label, pattern] of markupRequirements) {
   }
 }
 
-
 const homeReadinessIndex = markup.indexOf('id="home-readiness-card"');
 const sosButtonIndex = markup.indexOf('id="sos-button"');
 const readinessDetailsIndex = markup.indexOf('class="home-readiness-summary"');
@@ -34,21 +35,13 @@ if (!(homeReadinessIndex >= 0 && sosButtonIndex > homeReadinessIndex && readines
   process.exit(1);
 }
 
-const forbiddenEnglishLabels = ['SAFEME READINESS', 'SafeMe readiness'];
-for (const label of forbiddenEnglishLabels) {
-  if (markup.includes(label) || source.includes(label)) {
-    console.error(`Home contains untranslated readiness label: ${label}`);
-    process.exit(1);
-  }
-}
-
-if ((markup.match(/Δεν αποστέλλεται πραγματικό μήνυμα έκτακτης ανάγκης\./g) || []).length !== 1) {
-  console.error('Test mode helper should appear exactly once in Home markup.');
+if (!corpus.includes("'home.testModeHelper'")) {
+  console.error('Test mode helper must be wired through i18n.');
   process.exit(1);
 }
 
-if (!markup.includes('Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.')) {
-  console.error('Signed-out Home notice must use compact local-mode copy.');
+if (!corpus.includes("'accountBanner.localSos'")) {
+  console.error('Signed-out Home notice must use compact local-mode copy through i18n.');
   process.exit(1);
 }
 
@@ -66,10 +59,10 @@ const sourceRequirements = [
   ['signed-out CTA opens Profile Account/Login', 'openProfileAuthCard()'],
   ['contacts CTA opens add form', 'focusContactForm()'],
   ['GPS refresh uses existing logic', 'refreshLocation()'],
-  ['readiness ready message', 'Το SafeMe είναι έτοιμο για χρήση.'],
-  ['signed-out readiness message', 'Τοπική λειτουργία: το SOS λειτουργεί σε αυτή τη συσκευή.'],
-  ['no-contact Home shortcut copy avoids duplicate setup prompt', 'Άνοιγμα λίστας και προσθήκης.'],
-  ['missing location Home shortcut copy avoids duplicate setup prompt', 'Άνοιγμα ελέγχου τοποθεσίας.'],
+  ['readiness ready message', "t('home.readyToUse')"],
+  ['signed-out readiness message', "t('accountBanner.localSos')"],
+  ['no-contact Home shortcut copy avoids duplicate setup prompt', "t('home.openContactsList')"],
+  ['missing location Home shortcut copy avoids duplicate setup prompt', "t('home.openLocationCheck')"],
 ];
 
 for (const [label, pattern] of sourceRequirements) {
