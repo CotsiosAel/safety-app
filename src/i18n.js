@@ -108,6 +108,7 @@ const messages = {
       safetyStatus: 'Status',
       safetyReady: 'SOS is ready when you need it',
       contactsReady: '{{count}} trusted contacts ready for alerts',
+      contactsReadySuffix: 'trusted contacts ready for alerts',
       onlineChip: 'Online',
       offlineChip: 'Offline',
       contactsChip: '{{count}} trusted contacts',
@@ -338,6 +339,8 @@ const messages = {
       notesEmpty: 'Not filled in',
       sosHistory: 'SOS history',
       noHistory: 'No history yet',
+      sosHistorySummary: 'Total SOS: {{count}}{{lastPart}}',
+      sosHistoryLastPart: ' • Last: {{date}}',
       sosLog: 'SOS log',
       historyStatus: 'SOS events are saved to your account and local copy.',
       lastSos: 'Last SOS',
@@ -822,6 +825,7 @@ const messages = {
       safetyStatus: 'Κατάσταση',
       safetyReady: 'Το SOS είναι έτοιμο όταν το χρειαστείς',
       contactsReady: '{{count}} έμπιστες επαφές έτοιμες για ειδοποίηση',
+      contactsReadySuffix: 'έμπιστες επαφές έτοιμες για ειδοποίηση',
       onlineChip: 'Σε σύνδεση',
       offlineChip: 'Εκτός σύνδεσης',
       contactsChip: '{{count}} έμπιστες επαφές',
@@ -1052,6 +1056,8 @@ const messages = {
       notesEmpty: 'Δεν έχουν συμπληρωθεί',
       sosHistory: 'Ιστορικό SOS',
       noHistory: 'Δεν υπάρχει ακόμα ιστορικό',
+      sosHistorySummary: 'Σύνολο SOS: {{count}}{{lastPart}}',
+      sosHistoryLastPart: ' • Τελευταίο: {{date}}',
       sosLog: 'SOS log',
       historyStatus: 'Τα SOS αποθηκεύονται στον λογαριασμό σου και στο τοπικό αντίγραφο.',
       lastSos: 'Τελευταίο SOS',
@@ -1351,6 +1357,47 @@ const messages = {
       checkInRestored: 'Το ενεργό check-in αποκαταστάθηκε σε αυτή τη συσκευή.',
       checkInExpiredSos: 'Το check-in έληξε και ενεργοποιήθηκε SOS.',
       checkInExpiredSosLocal: 'Το check-in έληξε και ενεργοποιήθηκε SOS τοπικά. Συνδέσου για live tracking link.',
+      unknownTime: 'Άγνωστη ώρα',
+      unknownPermission: 'Άγνωστο',
+      unknownPermissionUnsupported: 'Άγνωστο (δεν υποστηρίζεται από τον browser)',
+      shareLocationTitle: 'SafeMe τοποθεσία',
+      shareLocationReady: '{{location}} • Η τοποθεσία είναι έτοιμη για κοινοποίηση.',
+      shareLinkCopied: '{{location}} • Ο σύνδεσμος αντιγράφηκε.',
+      myCurrentLocation: 'Η τρέχουσα θέση μου: {{url}}',
+      smsOpenedAll: 'Άνοιξαν SMS για όλες τις επαφές. Ολοκληρώθηκε η σειρά SMS.',
+      smsOpenFailed: 'Δεν μπόρεσε να ανοίξει SMS προς {{name}}. Έλεγξε τον αριθμό και συνέχισε.',
+      smsOpenedAllDetail: 'Άνοιξε SMS προς {{name}}. Το SafeMe άνοιξε το SMS. Πρέπει να πατήσεις αποστολή μέσα στην εφαρμογή μηνυμάτων. Άνοιξαν SMS για όλες τις επαφές.',
+      smsOpenedContinue: 'Άνοιξε SMS προς {{name}}. Αν το έστειλες, συνέχισε στην επόμενη επαφή. Το SafeMe άνοιξε το SMS. Πρέπει να πατήσεις αποστολή μέσα στην εφαρμογή μηνυμάτων.',
+      appWillKeepTrying: '{{message}} Η εφαρμογή θα συνεχίσει να προσπαθεί όσο μένει ανοιχτή.',
+      syncErrorSource: 'Σφάλμα ({{source}})',
+      syncSuccessSource: 'Επιτυχία ({{source}})',
+      sosNotUpdated: 'Δεν ενημερώθηκε το SOS: {{error}}',
+      supabaseLiveSyncError: 'Σφάλμα Supabase live sync: {{error}}',
+      browserReturnedCoords: 'Ο browser επέστρεψε συντεταγμένες: {{location}}.',
+      trackingDisableFailed: 'Δεν απενεργοποιήθηκε το tracking link: {{error}}',
+      sosEndedNoPublicUpdate: 'Το SOS έκλεισε τοπικά και δεν θα αποκατασταθεί μετά από refresh. Δεν ενημερώθηκε το public tracking link: {{error}}',
+      safeWalkInProgress: 'active / σε εξέλιξη',
+      safeWalkExpiredNote: 'Το Safe Walk έληξε χωρίς επιβεβαίωση.{{destination}}',
+      destinationPrefix: ' Προορισμός: {{name}}.',
+      activeSosUpdateFailed: '{{message}} Δεν ενημερώθηκε το active_sos_sessions: {{error}}',
+      sosHistoryNotSaved: 'Το SOS δεν αποθηκεύτηκε στο ιστορικό.',
+      manualSendNote: '{{message}} Δεν στάλθηκε αυτόματα SMS ή WhatsApp — διάλεξε παρακάτω χειροκίνητη αποστολή.',
+      noSosHistory: 'Δεν υπάρχει ακόμα ιστορικό SOS.',
+      openLocation: 'Άνοιγμα τοποθεσίας',
+      primaryContactLine: 'Κύρια επαφή: {{name}} ({{phone}})',
+      smsReadyFor: 'Άνοιξε έτοιμο SMS προς {{name}}. Πάτα αποστολή.',
+      whatsappReady: 'Άνοιξε WhatsApp με προσυμπληρωμένο μήνυμα SOS.',
+      shareOpened: 'Άνοιξε η κοινή χρήση SOS.',
+      testTrackingNotCreated: 'Live tracking δεν δημιουργήθηκε. Το δοκιμαστικό SOS λειτουργεί τοπικά.',
+      inviteReady: 'Έτοιμο μήνυμα για {{name}}. Διάλεξε SMS ή WhatsApp και πάτα αποστολή στην εφαρμογή που θα ανοίξει.',
+      inviteSmsReady: 'Άνοιξε έτοιμο SMS προς {{name}}. Πάτα αποστολή αν θέλεις να το στείλεις.',
+      inviteWhatsappReady: 'Άνοιξε WhatsApp με προσυμπληρωμένο μήνυμα. Διάλεξε παραλήπτη και πάτα αποστολή.',
+      supabaseErrorPrefix: 'Σφάλμα Supabase: {{error}}',
+      localImportFound: 'Βρήκαμε {{parts}} αποθηκευμένα σε αυτή τη συσκευή. Θέλεις να τα αποθηκεύσεις στον λογαριασμό σου;',
+      contactsCount: '{{count}} επαφή/ές',
+      andJoin: ' και ',
+      sosHistoryLoadFailed: 'Δεν φορτώθηκε το ιστορικό SOS: {{error}}',
+      opened: 'Άνοιξε',
       noPrimaryContact: 'Δεν βρέθηκε κύρια επαφή.',
       sosLocalOnly: 'Το SOS λειτουργεί τοπικά σε αυτή τη συσκευή. Συνδέσου για live tracking link.',
       testModeActive: 'Λειτουργία δοκιμής SOS. Δεν πρόκειται για πραγματική ανάγκη.',
@@ -1715,6 +1762,152 @@ export function applyDomBindings(root = document) {
   root.querySelectorAll('a[href="tel:199"]').forEach((el) => {
     el.textContent = t('common.call199');
   });
+
+  setDomText(root, '#sos-status', 'home.sosPrompt');
+  setDomText(root, '#sos-account-status', 'auth.sosOnDevice');
+  setDomText(root, '#end-active-sos', 'sos.endSos');
+  setDomText(root, '#account-sync-title', 'accountBanner.notSignedIn');
+  setDomText(root, '#account-sync-message', 'accountBanner.localSos');
+  setDomText(root, '#account-sync-login-button', 'accountBanner.signInToSync');
+  setDomText(root, '#auth-indicator', 'common.notSignedIn');
+  setDomAria(root, '#online-status-pill', 'auth.appOnline');
+  setDomAria(root, '#auth-indicator', 'auth.openProfile');
+  setDomText(root, '.quick-card > span', 'home.contactsReadySuffix');
+  setDomText(root, '#contacts-readiness-card h3', 'home.trustedContacts');
+  setDomText(root, '#location-readiness-card h3', 'home.gpsLocation');
+  setDomText(root, '#account-readiness-card h3', 'home.accountSync');
+  setDomAria(root, '.home-readiness-summary', 'home.readinessTitle');
+  setDomAria(root, '#home-readiness-chips', 'home.readinessTitle');
+  setDomAria(root, '.active-sos-emergency-actions', 'settings.immediateHelp');
+  setDomAria(root, '.active-sos-backup-actions', 'settings.advanced');
+  setDomAria(root, '.active-sos-compact-actions', 'sos.shareLocation');
+  setDomAria(root, '.active-sos-contact-extra-actions', 'sos.contactsAndSends');
+  setDomAria(root, '#contacts', 'contacts.title');
+  setDomAria(root, '#safety-tools', 'safetyTools.title');
+  setDomAria(root, '#profile', 'profile.eyebrow');
+  setDomAria(root, '#health', 'health.title');
+  setDomAria(root, '#settings', 'pageTitle.settings');
+  setDomAria(root, '.safe-walk-presets', 'safetyTools.estimatedDuration');
+  setDomAria(root, '.checkin-presets', 'safetyTools.quickTime');
+  setDomAria(root, '.health-actions', 'health.quickActions');
+  setDomAria(root, '.settings-status-chips', 'settings.subtitle');
+  setDomAria(root, '.settings-emergency-actions', 'settings.immediateHelp');
+  setDomAria(root, '.settings-version-card', 'settings.appVersion');
+  setDomAria(root, '.settings-legal-links', 'settings.legal');
+  setDomAria(root, '#sos-history-metrics', 'profile.sosHistory');
+  setDomAria(root, '#auth-mode-tabs', 'profile.account');
+
+  setDomText(root, '.safety-tools-grid .safety-tool-card:nth-child(1) p', 'safetyTools.safeWalkDesc');
+  setDomText(root, '.safety-tools-grid .safety-tool-card:nth-child(1) a', 'safetyTools.startSafeWalk');
+  setDomText(root, '.safety-tools-grid .safety-tool-card:nth-child(2) h3', 'safetyTools.checkIn');
+  setDomText(root, '.safety-tools-grid .safety-tool-card:nth-child(2) p', 'safetyTools.checkInDesc');
+  setDomText(root, '.safety-tools-grid .safety-tool-card:nth-child(2) a', 'safetyTools.doCheckIn');
+  setDomText(root, '.safety-tools-grid .safety-tool-card:nth-child(3) h3', 'safetyTools.currentLocation');
+  setDomText(root, '.safety-tools-grid .safety-tool-card:nth-child(3) p', 'safetyTools.currentLocationDesc');
+  setDomText(root, '.safety-tools-grid .safety-tool-card:nth-child(3) a', 'safetyTools.viewLocation');
+  setDomText(root, '.safety-tools-grid .safety-tool-card:nth-child(4) h3', 'safetyTools.testSos');
+  setDomText(root, '.safety-tools-grid .safety-tool-card:nth-child(4) p', 'safetyTools.testSosDesc');
+  setDomText(root, '#safety-tools-test-sos', 'safetyTools.testMode');
+  setDomText(root, '#current-location-card h3', 'safetyTools.currentLocation');
+  setDomText(root, '#location-text', 'safetyTools.locationPrompt');
+  setDomText(root, '.safe-walk-header .eyebrow', 'safetyTools.safeWalkEyebrow');
+  setDomText(root, '.checkin-header .eyebrow', 'safetyTools.checkInEyebrow');
+  setDomText(root, '#safe-walk-active-panel dt:nth-of-type(1)', 'safetyTools.destination');
+  setDomText(root, '#safe-walk-active-panel dt:nth-of-type(2)', 'safetyTools.startedTime');
+  setDomText(root, '#safe-walk-active-panel dt:nth-of-type(3)', 'safetyTools.expectedArrival');
+  setDomText(root, '#safe-walk-active-panel dt:nth-of-type(4)', 'common.status');
+  setDomText(root, '#safe-walk-active-panel dt:nth-of-type(5)', 'safetyTools.latestLocationTime');
+  setDomText(root, '#checkin-active-panel dt:nth-of-type(1)', 'safetyTools.startedTime');
+  setDomText(root, '#checkin-active-panel dt:nth-of-type(2)', 'safetyTools.expiryTime');
+  setDomText(root, '#checkin-active-panel dt:nth-of-type(3)', 'common.status');
+  setDomText(root, '.health-hero h2', 'health.title');
+  setDomText(root, '.health-hero > div > p', 'health.subtitle');
+  setDomText(root, '#health-copy-report', 'health.copyReport');
+  setDomText(root, '#health-open-profile', 'health.openProfile');
+  setDomText(root, '#health-open-contacts', 'health.openContacts');
+  setDomText(root, '#health-check-location', 'health.checkLocation');
+  setDomText(root, '#health-test-sos', 'health.testSos');
+  setDomText(root, '#health-test-checkin', 'health.testCheckIn');
+  setDomText(root, '#health-test-safe-walk', 'health.testSafeWalk');
+  setDomText(root, '.health-disclaimer', 'health.disclaimer');
+  setDomText(root, '#settings-privacy-panel .settings-legal-links strong', 'settings.legal');
+  setDomText(root, '#settings-privacy-panel .settings-legal-links a[href="/privacy-policy.html"]', 'settings.privacyPolicy');
+  setDomText(root, '#settings-privacy-panel .settings-legal-links a[href="/terms-of-use.html"]', 'settings.terms');
+  setDomText(root, '#settings-privacy-panel .settings-legal-links a[href="/support.html"]', 'settings.support');
+  setDomText(root, '#settings-help-toggle strong', 'settings.immediateHelp');
+  setDomText(root, '#settings-help-toggle small', 'settings.immediateHelpSummary');
+  setDomText(root, '#settings-help-panel > p:first-of-type', 'settings.immediateHelpNote');
+  setDomText(root, '#settings-help-panel > p:last-of-type', 'settings.emergencyOnly');
+  setDomText(root, '#settings-advanced-panel > p', 'settings.advancedNote');
+  setDomText(root, '.settings-version-card strong', 'settings.appVersion');
+  setDomText(root, '.settings-version-card dt:nth-of-type(1)', 'settings.version');
+  setDomText(root, '.settings-version-card dt:nth-of-type(2)', 'settings.loaded');
+  setDomText(root, '.settings-version-card dt:nth-of-type(3)', 'settings.environment');
+  setDomText(root, '#profile-local-status-text', 'profile.notSignedIn');
+  setDomText(root, '#profile-local-status-hint', 'profile.localHint');
+  setDomText(root, '#profile-status-login-button', 'profile.signInToSync');
+  setDomText(root, '.profile-summary-copy .eyebrow', 'profile.eyebrow');
+  setDomText(root, '#profile-name', 'profile.fillProfile');
+  setDomText(root, '#profile-phone', 'profile.noPhone');
+  setDomText(root, '#profile-account-label', 'profile.localProfile');
+  setDomText(root, '#profile-edit-title', 'profile.editProfile');
+  setDomText(root, '#sos-history-metrics dt:nth-of-type(1)', 'profile.lastSos');
+  setDomText(root, '#sos-history-metrics dt:nth-of-type(2)', 'profile.totalSos');
+  setDomText(root, '#auth-signed-in span', 'profile.signedInAs');
+  setDomText(root, '#password-reset-form .eyebrow', 'profile.passwordResetEyebrow');
+  setDomText(root, '#password-reset-form h2', 'profile.passwordResetTitle');
+  setDomText(root, '#password-reset-form > .section-heading p', 'profile.passwordResetHelper');
+  setDomText(root, '#password-reset-form label:nth-of-type(1) span', 'profile.newPassword');
+  setDomText(root, '#password-reset-form label:nth-of-type(2) span', 'profile.repeatNewPassword');
+  setDomText(root, '#password-reset-submit', 'profile.changePassword');
+  setDomText(root, '#local-import-card .eyebrow', 'profile.localImportEyebrow');
+  setDomText(root, '#local-import-card h2', 'profile.localImportTitle');
+  setDomText(root, '#local-import-button', 'profile.saveToAccount');
+  setDomText(root, '#local-import-skip', 'profile.skip');
+  setDomText(root, '#auth-password-field span:first-child', 'common.password');
+  setDomText(root, '#auth-repeat-password-field span:first-child', 'profile.repeatPassword');
+  setDomText(root, '#remember-email-option span', 'profile.rememberEmail');
+  setDomText(root, '#remember-email-helper', 'profile.rememberHelper');
+  setDomText(root, '#auth-signup-note', 'profile.signupNote');
+  setDomText(root, '#auth-logout-button', 'profile.logout');
+  setDomText(root, '#settings-sos-panel label span', 'settings.testModeToggle');
+  setDomText(root, '#settings-sos-panel > p', 'settings.testModeNote');
+  setDomText(root, '#settings-location-panel > p:last-of-type', 'settings.locationUsage');
+  setDomText(root, '#settings-sync-panel > p:nth-of-type(2)', 'settings.syncNote');
+  setDomText(root, '#settings-privacy-panel > p:nth-of-type(1)', 'settings.privacy1');
+  setDomText(root, '#settings-privacy-panel > p:nth-of-type(2)', 'settings.privacy2');
+  setDomText(root, '#settings-privacy-panel > p:nth-of-type(3)', 'settings.privacy3');
+  setDomText(root, '#settings-privacy-panel > p:nth-of-type(4)', 'settings.privacy4');
+  setDomText(root, '#settings-privacy-panel > p:nth-of-type(5)', 'settings.privacy5');
+  setDomText(root, '#contacts .contacts-summary-card .eyebrow', 'contacts.eyebrow');
+  setDomText(root, '#contacts-sync-toggle small', 'contacts.localMode');
+  setDomText(root, '#contacts-add-toggle small', 'contacts.name');
+  setDomPlaceholder(root, '#contact-form input[name="name"]', 'contacts.name');
+  setDomPlaceholder(root, '#contact-form input[name="relationship"]', 'contacts.relationship');
+  setDomPlaceholder(root, '#contact-form input[name="phone"]', 'contacts.phone');
+
+  root.querySelectorAll('.home-quick-action').forEach((button) => {
+    const tool = button.dataset.openTool;
+    const ariaMap = {
+      contacts: 'nav.contacts',
+      gps: 'home.updateGps',
+      'sos-settings': 'settings.sosMode',
+      'sos-history': 'profile.sosHistory',
+      'share-location': 'topbar.shareLocation',
+    };
+    if (ariaMap[tool]) button.setAttribute('aria-label', t(ariaMap[tool]));
+  });
+
+  root.querySelectorAll('.safe-walk-preset[data-minutes]').forEach((button) => {
+    const minutes = Number(button.dataset.minutes);
+    button.textContent = minutes === 1
+      ? t('safetyTools.oneMinuteTest')
+      : `${minutes} ${t('common.minutes')}`;
+  });
+
+  root.querySelectorAll('.checkin-preset[data-minutes]').forEach((button) => {
+    button.textContent = `${button.dataset.minutes} ${t('common.minutes')}`;
+  });
 }
 
-export { DEFAULT_LOCALE, SUPPORTED_LOCALES, STORAGE_KEY };
+export { DEFAULT_LOCALE, SUPPORTED_LOCALES, STORAGE_KEY, messages };
