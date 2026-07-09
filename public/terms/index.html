@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SafeMe — Terms of Use</title>
+    <style>
+      :root { color-scheme: light; --bg: #f7f7fb; --card: #fff; --text: #1f2937; --muted: #5f6b7a; --border: #d9deea; --accent: #7c3aed; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.65; }
+      main { width: min(100%, 860px); margin: 0 auto; padding: 24px 16px 48px; }
+      article { background: var(--card); border: 1px solid var(--border); border-radius: 22px; box-shadow: 0 18px 45px rgba(31, 41, 55, 0.08); padding: clamp(22px, 5vw, 44px); margin-bottom: 24px; }
+      article[hidden] { display: none; }
+      .eyebrow, .updated, .support { color: var(--muted); font-size: 0.98rem; }
+      h1 { margin: 0 0 8px; font-size: clamp(2rem, 8vw, 3.25rem); line-height: 1.08; }
+      h2 { margin-top: 2rem; font-size: 1.25rem; }
+      ul { padding-left: 1.25rem; }
+      a { color: var(--accent); font-weight: 700; }
+      nav { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 0; padding-top: 22px; border-top: 1px solid var(--border); }
+      nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 999px; background: #fff; text-decoration: none; }
+      .doc-crosslink { margin: 24px 0 0; font-size: 0.92rem; color: var(--muted); }
+      .doc-crosslink a { font-weight: 600; }
+      .lang-nav { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 20px; }
+      .lang-nav button { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px; background: #fff; font: inherit; font-size: 0.95rem; color: var(--text); cursor: pointer; }
+      .lang-nav button.is-active { border-color: var(--accent); background: #f3efff; color: var(--accent); font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="lang-nav" role="group" aria-label="Language">
+        <button type="button" data-lang="el">Ελληνικά</button>
+        <button type="button" data-lang="en">English</button>
+      </div>
+
+      <article id="en" lang="en">
+        <p class="eyebrow">SafeMe</p>
+        <h1>Terms of Use</h1>
+        <p class="updated">Last updated: 9 July 2026</p>
+        <p class="support">Support: <a href="mailto:get.safeme@outlook.com">get.safeme@outlook.com</a></p>
+
+        <h2>1. Acceptance of Terms</h2>
+        <p>By accessing or using SafeMe, you agree to these Terms of Use. If you do not agree, you must not use the app.</p>
+        <p>You agree to use SafeMe responsibly, lawfully, and in a way that respects the rights and privacy of others.</p>
+
+        <h2>2. What SafeMe Is</h2>
+        <p>SafeMe is a personal safety helper application. It helps you prepare for emergencies with features such as SOS messaging, trusted contacts, optional live location sharing during an active SOS session, and optional account sync.</p>
+        <p>SafeMe provides support tools only. It does <strong>not</strong> guarantee protection, rescue, monitoring, message delivery, or emergency response, and it is <strong>not</strong> a replacement for official emergency services, law enforcement, or medical professionals.</p>
+
+        <h2>3. Use in Emergency Situations</h2>
+        <p>SafeMe does not replace police, ambulance, fire services, or any official emergency authority.</p>
+        <p>In immediate danger, call your local emergency number (for example 112 in many European countries) or contact local authorities directly. SafeMe is not an official emergency response service.</p>
+        <p>Do not rely on SafeMe as your sole means of requesting help in life-threatening situations.</p>
+
+        <h2>4. User Responsibility</h2>
+        <p>You are responsible for:</p>
+        <ul>
+          <li>Using SafeMe lawfully and responsibly.</li>
+          <li>Keeping trusted contact details accurate and up to date.</li>
+          <li>Testing features safely without causing false alarms.</li>
+          <li>Understanding the limitations of the app.</li>
+          <li>Your decisions when activating SOS, sharing location, or sending messages.</li>
+          <li>Your phone, SMS capability, mobile data or Wi‑Fi connection, and the apps needed when you use SOS features.</li>
+        </ul>
+        <p>SafeMe is a helper tool. It does not remove the need for personal judgment, caution, and direct contact with appropriate authorities when required.</p>
+
+        <h2>5. Location Sharing and Trusted Contacts</h2>
+        <p>Location data is used only when you request it or when features that require location are active (such as SOS, Safe Walk, check-in, or live tracking during an active session).</p>
+        <p>You are responsible for obtaining appropriate permission or consent from people whose contact details you add. You must not use location sharing for unlawful tracking of others.</p>
+        <p>Location shown or shared through SafeMe may be inaccurate, delayed, or unavailable. Accuracy depends on device permissions, GPS, network conditions, battery, and system or browser limits. Do not rely on SafeMe location alone in urgent situations.</p>
+        <p>SOS messaging may open your device’s SMS app, email app, WhatsApp, native share sheet, or clipboard with prepared text. You choose whether and when to send messages. SafeMe does not guarantee that messages will be sent, delivered, or read.</p>
+
+        <h2>6. Account and Data</h2>
+        <p>Signing in is optional. Core SOS features can work locally on your device without an account, subject to device and browser support.</p>
+        <p>When signed in, selected data may sync through Supabase or other backend services. Sync depends on internet connectivity and service availability.</p>
+        <p>For details on data collection, use, retention, and deletion, see our <a href="/privacy-policy.html">Privacy Policy</a>.</p>
+
+        <h2>7. Prohibited Use</h2>
+        <p>You must not:</p>
+        <ul>
+          <li>Send false or misleading alerts.</li>
+          <li>Harass, abuse, or mislead trusted contacts.</li>
+          <li>Use SafeMe for unlawful surveillance or tracking of others.</li>
+          <li>Add contacts without appropriate permission or consent.</li>
+          <li>Use the app in any way that violates applicable laws or the rights of others.</li>
+        </ul>
+
+        <h2>8. Service Availability</h2>
+        <p>SafeMe does not guarantee uninterrupted app operation, message delivery, location accuracy, or sync availability.</p>
+        <p>The app may be affected by technical issues, device limitations, lack of connectivity, system permissions, maintenance, or other factors outside SafeMe’s control.</p>
+
+        <h2>9. Intellectual Property</h2>
+        <p>The SafeMe name, branding, design, and app content are owned by the SafeMe project or its licensors.</p>
+        <p>You may use the app for personal, non-commercial purposes as permitted by these Terms. You may not copy, modify, reverse engineer, sublicense, or redistribute the app or its content without permission.</p>
+
+        <h2>10. Limitation of Liability</h2>
+        <p>To the maximum extent permitted by applicable law, SafeMe and its operators are not liable for any indirect, incidental, special, or consequential damages arising from your use of the app.</p>
+        <p>SafeMe does not guarantee rescue, emergency response, message delivery, accurate location information, or uninterrupted service. Your use of SafeMe is at your own risk.</p>
+
+        <h2>11. Changes to the Terms</h2>
+        <p>We may update these Terms from time to time. The “Last updated” date at the top reflects the latest revision.</p>
+        <p>SafeMe features, text, settings, and sync behavior may also change over time. Continued use of SafeMe after changes to these Terms constitutes acceptance of the updated Terms.</p>
+
+        <h2>12. Contact</h2>
+        <p>Questions about these Terms: <a href="mailto:get.safeme@outlook.com">get.safeme@outlook.com</a></p>
+
+        <p class="doc-crosslink"><a href="/privacy-policy.html">Privacy Policy</a></p>
+
+        <nav aria-label="Document links">
+          <a href="/privacy-policy.html">Privacy Policy</a>
+          <a href="/support.html">Support</a>
+          <a href="/delete-account.html">Delete account</a>
+          <a href="/">Back to SafeMe</a>
+        </nav>
+      </article>
+
+      <article id="el" lang="el" hidden>
+        <p class="eyebrow">SafeMe</p>
+        <h1>Όροι Χρήσης</h1>
+        <p class="updated">Τελευταία ενημέρωση: 9 Ιουλίου 2026</p>
+        <p class="support">Υποστήριξη: <a href="mailto:get.safeme@outlook.com">get.safeme@outlook.com</a></p>
+
+        <h2>1. Αποδοχή των Όρων</h2>
+        <p>Με την πρόσβαση ή τη χρήση του SafeMe, αποδέχεσαι τους παρόντες Όρους Χρήσης. Αν δεν συμφωνείς, δεν πρέπει να χρησιμοποιείς την εφαρμογή.</p>
+        <p>Συμφωνείς να χρησιμοποιείς το SafeMe με υπεύθυνο, νόμιμο τρόπο και με σεβασμό στα δικαιώματα και την ιδιωτικότητα των άλλων.</p>
+
+        <h2>2. Τι είναι το SafeMe</h2>
+        <p>Το SafeMe είναι βοηθητική εφαρμογή προσωπικής ασφάλειας. Βοηθά στην προετοιμασία για καταστάσεις ανάγκης με λειτουργίες όπως μηνύματα SOS, έμπιστες επαφές, προαιρετική ζωντανή κοινοποίηση τοποθεσίας κατά τη διάρκεια ενεργής συνεδρίας SOS και προαιρετικό συγχρονισμό λογαριασμού.</p>
+        <p>Το SafeMe παρέχει μόνο εργαλεία υποστήριξης. <strong>Δεν</strong> εγγυάται προστασία, διάσωση, παρακολούθηση, παράδοση μηνυμάτων ή έκτακτη ανταπόκριση και <strong>δεν</strong> αντικαθιστά επίσημες υπηρεσίες έκτακτης ανάγκης, αστυνομία ή ιατρικούς επαγγελματίες.</p>
+
+        <h2>3. Χρήση σε Καταστάσεις Έκτακτης Ανάγκης</h2>
+        <p>Το SafeMe δεν αντικαθιστά αστυνομία, ασθενοφόρο, πυροσβεστική ή επίσημες αρχές έκτακτης ανάγκης.</p>
+        <p>Σε άμεσο κίνδυνο, κάλεσε τον τοπικό αριθμό έκτακτης ανάγκης (π.χ. 112 σε πολλές ευρωπαϊκές χώρες) ή τις αρμόδιες αρχές. Το SafeMe δεν είναι επίσημη υπηρεσία έκτακτης ανταπόκρισης.</p>
+        <p>Μην βασίζεσαι στο SafeMe ως τον μοναδικό τρόπο αίτησης βοήθειας σε καταστάσεις κινδύνου ζωής.</p>
+
+        <h2>4. Ευθύνη Χρήστη</h2>
+        <p>Είσαι υπεύθυνος/η για:</p>
+        <ul>
+          <li>Νόμιμη και υπεύθυνη χρήση του SafeMe.</li>
+          <li>Σωστά και ενημερωμένα στοιχεία έμπιστων επαφών.</li>
+          <li>Ασφαλή δοκιμή λειτουργιών χωρίς ψεύτικους συναγερμούς.</li>
+          <li>Κατανόηση των περιορισμών της εφαρμογής.</li>
+          <li>Τις αποφάσεις σου όταν ενεργοποιείς SOS, κοινοποιείς τοποθεσία ή στέλνεις μηνύματα.</li>
+          <li>Τη διαθεσιμότητα τηλεφώνου, SMS, δικτύου και σχετικών εφαρμογών όταν χρησιμοποιείς λειτουργίες SOS.</li>
+        </ul>
+        <p>Το SafeMe είναι βοηθητικό εργαλείο. Δεν αφαιρεί την ανάγκη για προσωπική κρίση, προσοχή και άμεση επικοινωνία με αρμόδιες αρχές όταν απαιτείται.</p>
+
+        <h2>5. Κοινοποίηση Τοποθεσίας και Έμπιστες Επαφές</h2>
+        <p>Η τοποθεσία χρησιμοποιείται μόνο όταν τη ζητάς ή όταν είναι ενεργές λειτουργίες που την απαιτούν (όπως SOS, Safe Walk, check-in ή live tracking σε ενεργή συνεδρία).</p>
+        <p>Είσαι υπεύθυνος/η για την κατάλληλη άδεια ή συναίνεση των προσώπων των οποίων καταχωρείς τα στοιχεία. Δεν πρέπει να χρησιμοποιείς κοινοποίηση τοποθεσίας για παράνομη παρακολούθηση άλλων.</p>
+        <p>Η τοποθεσία μπορεί να είναι ανακριβής, καθυστερημένη ή μη διαθέσιμη. Η ακρίβεια εξαρτάται από άδειες, GPS, δίκτυο, μπαταρία και περιορισμούς συσκευής ή browser. Μην βασίζεσαι αποκλειστικά στην τοποθεσία του SafeMe σε επείγουσες καταστάσεις.</p>
+        <p>Το SOS μπορεί να ανοίξει SMS, email, WhatsApp, native share ή clipboard με προετοιμασμένο κείμενο. Εσύ αποφασίζεις αν και πότε θα σταλεί κάτι. Το SafeMe δεν εγγυάται αποστολή, παράδοση ή ανάγνωση μηνυμάτων.</p>
+
+        <h2>6. Λογαριασμός και Δεδομένα</h2>
+        <p>Η σύνδεση είναι προαιρετική. Το βασικό SOS μπορεί να λειτουργεί τοπικά στη συσκευή χωρίς λογαριασμό, ανάλογα με συσκευή και browser.</p>
+        <p>Όταν είσαι συνδεδεμένος/η, επιλεγμένα δεδομένα μπορεί να συγχρονίζονται μέσω Supabase ή άλλων backend υπηρεσιών, ανάλογα με τη σύνδεση και τη διαθεσιμότητα.</p>
+        <p>Για λεπτομέρειες σχετικά με συλλογή, χρήση, διατήρηση και διαγραφή δεδομένων, δες την <a href="/privacy-policy.html">Πολιτική Απορρήτου</a>.</p>
+
+        <h2>7. Απαγορευμένη Χρήση</h2>
+        <p>Δεν πρέπει να:</p>
+        <ul>
+          <li>Στέλνεις ψεύτικες ή παραπλανητικές ειδοποιήσεις.</li>
+          <li>Παρενοχλείς, κακοποιείς ή παραπλανάς έμπιστες επαφές.</li>
+          <li>Χρησιμοποιείς το SafeMe για παράνομη παρακολούθηση άλλων.</li>
+          <li>Προσθέτεις επαφές χωρίς κατάλληλη άδεια ή συναίνεση.</li>
+          <li>Χρησιμοποιείς την εφαρμογή με τρόπο που παραβιάζει νόμους ή δικαιώματα τρίτων.</li>
+        </ul>
+
+        <h2>8. Διαθεσιμότητα Υπηρεσίας</h2>
+        <p>Το SafeMe δεν εγγυάται αδιάλειπτη λειτουργία, παράδοση μηνυμάτων, ακρίβεια τοποθεσίας ή διαθεσιμότητα συγχρονισμού.</p>
+        <p>Η εφαρμογή μπορεί να επηρεάζεται από τεχνικά προβλήματα, περιορισμούς συσκευής, έλλειψη σύνδεσης, άδειες συστήματος, συντήρηση ή άλλους παράγοντες εκτός ελέγχου του SafeMe.</p>
+
+        <h2>9. Πνευματική Ιδιοκτησία</h2>
+        <p>Το όνομα SafeMe, η επωνυμία, ο σχεδιασμός και το περιεχόμενο της εφαρμογής ανήκουν στο έργο SafeMe ή στους αδειοδότες του.</p>
+        <p>Μπορείς να χρησιμοποιείς την εφαρμογή για προσωπικούς, μη εμπορικούς σκοπούς σύμφωνα με τους παρόντες όρους. Δεν επιτρέπεται αντιγραφή, τροποποίηση, αντίστροφη μηχανική, υποαδειοδότηση ή αναδιανομή χωρίς άδεια.</p>
+
+        <h2>10. Περιορισμός Ευθύνης</h2>
+        <p>Στο μέγιστο βαθμό που επιτρέπεται από την ισχύουσα νομοθεσία, το SafeMe και οι διαχειριστές του δεν ευθύνονται για έμμεσες, τυχαίες, ειδικές ή επακόλουθες ζημίες από τη χρήση της εφαρμογής.</p>
+        <p>Το SafeMe δεν εγγυάται διάσωση, έκτακτη ανταπόκριση, παράδοση μηνυμάτων, ακριβή τοποθεσία ή αδιάλειπτη λειτουργία. Η χρήση του SafeMe γίνεται με δική σου ευθύνη.</p>
+
+        <h2>11. Αλλαγές στους Όρους</h2>
+        <p>Μπορούμε να ενημερώνουμε τους παρόντες όρους κατά καιρούς. Η ημερομηνία «Τελευταία ενημέρωση» στην κορυφή αντικατοπτρίζει την τελευταία αναθεώρηση.</p>
+        <p>Λειτουργίες, κείμενα, ρυθμίσεις και συμπεριφορά συγχρονισμού του SafeMe μπορεί επίσης να αλλάζουν. Η συνεχής χρήση μετά από αλλαγές στους όρους συνιστά αποδοχή των ενημερωμένων όρων.</p>
+
+        <h2>12. Επικοινωνία</h2>
+        <p>Ερωτήσεις σχετικά με τους όρους: <a href="mailto:get.safeme@outlook.com">get.safeme@outlook.com</a></p>
+
+        <p class="doc-crosslink"><a href="/privacy-policy.html">Πολιτική Απορρήτου</a></p>
+
+        <nav aria-label="Σύνδεσμοι εγγράφων">
+          <a href="/privacy-policy.html">Πολιτική Απορρήτου</a>
+          <a href="/support.html">Υποστήριξη</a>
+          <a href="/delete-account.html">Διαγραφή λογαριασμού</a>
+          <a href="/">Επιστροφή στο SafeMe</a>
+        </nav>
+      </article>
+    </main>
+    <script>
+      (function () {
+        var STORAGE_KEY = 'safety-app-preferred-language';
+        var articles = {
+          en: document.getElementById('en'),
+          el: document.getElementById('el')
+        };
+        var buttons = document.querySelectorAll('.lang-nav button[data-lang]');
+
+        function resolveLocale() {
+          var params = new URLSearchParams(window.location.search);
+          var fromQuery = params.get('lang');
+          if (fromQuery === 'el' || fromQuery === 'en') return fromQuery;
+
+          var hash = window.location.hash.replace('#', '');
+          if (hash === 'el' || hash === 'en') return hash;
+
+          try {
+            var stored = localStorage.getItem(STORAGE_KEY);
+            if (stored === 'el' || stored === 'en') return stored;
+          } catch (error) {}
+
+          return 'en';
+        }
+
+        function setLocale(locale) {
+          Object.keys(articles).forEach(function (key) {
+            var article = articles[key];
+            if (article) article.hidden = key !== locale;
+          });
+
+          buttons.forEach(function (button) {
+            var active = button.dataset.lang === locale;
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+          });
+
+          document.documentElement.lang = locale;
+          document.title = locale === 'el' ? 'SafeMe — Όροι Χρήσης' : 'SafeMe — Terms of Use';
+
+          if (window.location.hash !== '#' + locale) {
+            history.replaceState(null, '', window.location.pathname + '#' + locale);
+          }
+        }
+
+        buttons.forEach(function (button) {
+          button.addEventListener('click', function () {
+            setLocale(button.dataset.lang);
+          });
+        });
+
+        window.addEventListener('hashchange', function () {
+          var hash = window.location.hash.replace('#', '');
+          if (hash === 'el' || hash === 'en') setLocale(hash);
+        });
+
+        setLocale(resolveLocale());
+      })();
+    </script>
+  </body>
+</html>

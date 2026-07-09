@@ -1889,7 +1889,7 @@ export function applyDomBindings(root = document) {
   setDomText(root, '.health-disclaimer', 'health.disclaimer');
   setDomText(root, '#settings-privacy-panel .settings-legal-links strong', 'settings.legal');
   setDomText(root, '#settings-privacy-panel .settings-legal-links a[href="/privacy-policy.html"]', 'settings.privacyPolicy');
-  setDomText(root, '#settings-privacy-panel .settings-legal-links a[href="/terms-of-use.html"]', 'settings.terms');
+  setDomText(root, '#settings-privacy-panel .settings-legal-links a[href="/terms"]', 'settings.terms');
   setDomText(root, '#settings-privacy-panel .settings-legal-links a[href="/support.html"]', 'settings.support');
   setDomText(root, '#settings-privacy-panel .settings-legal-links a[href="/delete-account.html"]', 'settings.requestAccountDeletion');
   setDomText(root, '#settings-help-toggle strong', 'settings.immediateHelp');
