@@ -16,6 +16,7 @@
     "check:auth-session-ui": "node scripts/check-auth-session-ui.js",
     "check:contacts-sync": "node scripts/check-contacts-sync.js",
     "check:settings-accordion": "node scripts/check-settings-accordion.js",
-    "check:profile-language-save": "node scripts/check-profile-language-save.js"
+    "check:profile-language-save": "node scripts/check-profile-language-save.js",
+    "check:i18n": "node scripts/check-i18n.js"
   }
 }
