@@ -67,6 +67,7 @@ requirePattern(i18n, "greek: 'Ελληνικά'", 'Greek language label exists')
 requirePattern(i18n, 'export function t(', 'translation helper exists');
 requirePattern(i18n, 'export function applyDomBindings', 'DOM translation bindings exist');
 requirePattern(i18n, 'safety-app-preferred-language', 'language persistence key exists');
+requirePattern(i18n, 'safety-app-preferred-language-updated-at', 'manual language timestamp key exists');
 requirePattern(i18n, "title: 'Active SafeMe SOS'", 'English dictionary includes public SOS strings');
 requirePattern(i18n, "openGoogle: 'Open in Google Maps'", 'English dictionary includes public SOS map action');
 
@@ -80,7 +81,7 @@ requirePattern(source, 'initLocale(', 'locale initialization exists');
 requirePattern(source, 'refreshAllLocalizedUi', 'UI refresh on locale change exists');
 requirePattern(source, 'settingsLanguageSelect', 'settings language select is wired');
 requirePattern(source, 'handleSettingsLanguageChange', 'language change handler exists');
-requirePattern(source, 'persistLocale(', 'language persistence on change');
+requirePattern(source, 'persistManualLocale(', 'manual language persistence on change');
 requirePattern(source, "preferredLanguage || 'en'", 'profile default language is English');
 requirePattern(source, 'getSosTrackingUrl', 'SOS tracking URL builder exists');
 requirePattern(source, "searchParams.set('lang'", 'tracking URL includes language param');

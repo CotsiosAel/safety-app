@@ -1,6 +1,7 @@
 const SUPPORTED_LOCALES = ['en', 'el'];
 const DEFAULT_LOCALE = 'en';
 const STORAGE_KEY = 'safety-app-preferred-language';
+const STORAGE_UPDATED_AT_KEY = 'safety-app-preferred-language-updated-at';
 
 const messages = {
   en: {
@@ -1531,10 +1532,33 @@ export function readStoredLocale() {
   return DEFAULT_LOCALE;
 }
 
+export function readStoredLocaleUpdatedAt() {
+  try {
+    const raw = localStorage.getItem(STORAGE_UPDATED_AT_KEY);
+    if (!raw) return null;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function hasManualLocalePreference() {
+  return readStoredLocaleUpdatedAt() !== null;
+}
+
 export function persistLocale(locale) {
   const normalized = normalizeLocale(locale) || DEFAULT_LOCALE;
   try {
     localStorage.setItem(STORAGE_KEY, normalized);
+  } catch {}
+  return normalized;
+}
+
+export function persistManualLocale(locale) {
+  const normalized = persistLocale(locale);
+  try {
+    localStorage.setItem(STORAGE_UPDATED_AT_KEY, String(Date.now()));
   } catch {}
   return normalized;
 }
@@ -1941,4 +1965,4 @@ export function applyDomBindings(root = document) {
   });
 }
 
-export { DEFAULT_LOCALE, SUPPORTED_LOCALES, STORAGE_KEY, messages };
+export { DEFAULT_LOCALE, SUPPORTED_LOCALES, STORAGE_KEY, STORAGE_UPDATED_AT_KEY, messages };
