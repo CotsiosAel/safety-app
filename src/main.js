@@ -235,7 +235,12 @@ function renderPublicTrackingPage(state) {
   const hasLocation = publicTrackingHasLocation(session);
   const coordinates = hasLocation ? `${session.latestLatitude},${session.latestLongitude}` : '';
   const encodedCoordinates = encodeURIComponent(coordinates);
+  const trackingLocation = hasLocation
+    ? { latitude: session.latestLatitude, longitude: session.latestLongitude }
+    : null;
   const mapsUrl = hasLocation ? `https://maps.google.com/?q=${encodedCoordinates}` : '';
+  const googleMapsNavigationUrl = trackingLocation ? getNavigationUrl(trackingLocation) : '';
+  const appleMapsNavigationUrl = trackingLocation ? getAppleMapsNavigationUrl(trackingLocation) : '';
   const embedMapUrl = hasLocation ? `https://maps.google.com/maps?q=${encodedCoordinates}&z=16&output=embed` : '';
   const isActive = session.status === 'active';
   const statusText = isActive ? 'Ενεργό' : 'Τερματισμένο';
@@ -278,7 +283,9 @@ function renderPublicTrackingPage(state) {
         : '<p class="public-tracking-no-location">Δεν υπάρχει διαθέσιμη τοποθεσία ακόμα. Δοκίμασε ξανά σε λίγα δευτερόλεπτα.</p>'}
 
       <div class="public-tracking-actions">
-        ${hasLocation ? `<a class="public-tracking-action public-tracking-action-primary" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener">Άνοιγμα στο Google Maps</a>` : ''}
+        ${hasLocation ? `<a class="public-tracking-action public-tracking-action-primary" href="${escapeHtml(googleMapsNavigationUrl)}" target="_blank" rel="noopener">Πλοήγηση στο Google Maps</a>` : ''}
+        ${hasLocation ? `<a class="public-tracking-action" href="${escapeHtml(appleMapsNavigationUrl)}" target="_blank" rel="noopener">Πλοήγηση στο Apple Maps</a>` : ''}
+        ${hasLocation ? `<a class="public-tracking-action" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener">Άνοιγμα στο Google Maps</a>` : ''}
         <button class="public-tracking-action" id="public-tracking-refresh" type="button">Ανανέωση τοποθεσίας</button>
         <a class="public-tracking-action public-tracking-call" href="tel:112">Κλήση 112</a>
         <a class="public-tracking-action public-tracking-call" href="tel:199">Κλήση 199</a>
@@ -2448,6 +2455,11 @@ function buildSosMessage(location = currentLocation, shareToken = activeSosSessi
     lines.push('Τοποθεσία:', 'Δεν είναι διαθέσιμη αυτή τη στιγμή.');
   }
 
+  const trackingUrl = getSosTrackingUrl(shareToken);
+  if (trackingUrl) {
+    lines.push('', '🔗 Live tracking:', trackingUrl);
+  }
+
   if (profile?.name?.trim()) lines.push('', `👤 Όνομα: ${profile.name.trim()}`);
   if (profile?.phone?.trim()) lines.push(`📞 Τηλέφωνο: ${profile.phone.trim()}`);
   lines.push(`🕒 Ώρα ειδοποίησης: ${alertTime}`);
@@ -2614,7 +2626,7 @@ function renderHomeReadinessCards() {
   const isOnline = navigator.onLine !== false;
   const hasAccount = Boolean(currentUser);
   const hasContacts = contacts.length > 0;
-  const primaryContact = contacts.find((contact) => contact.isPrimary) || contacts[0];
+  const primaryContact = contacts.find((contact) => contact.tone === 'primary') || contacts[0];
   const hasLocation = Boolean(currentLocation);
 
   if (homeOnlineStatus) {
