@@ -74,11 +74,31 @@ for (const [label, pattern] of [
   ['public tracking Apple Maps navigation action', 'Πλοήγηση στο Apple Maps'],
   ['public tracking refresh action', 'Ανανέωση τοποθεσίας'],
   ['public tracking map embed helper', 'function getGoogleMapsEmbedUrl(location)'],
-  ['public tracking named map query helper', 'function getNamedMapQuery(location)'],
   ['public tracking coordinates copy helper', 'function getCoordinatesCopyText(location)'],
+  ['public tracking Google Maps search uses coordinates', 'https://www.google.com/maps/search/?api=1&query=${getCoordinatesCopyText(location)}'],
+  ['public tracking Google Maps navigation uses coordinates', 'destination=${getCoordinatesCopyText(location)}&travelmode=driving'],
+  ['public tracking Apple Maps navigation uses coordinates', 'daddr=${lat},${lng}&dirflg=d'],
+  ['public tracking map embed uses coordinates', 'maps?q=${lat},${lng}&z=16&output=embed'],
 ]) {
   if (!source.includes(pattern)) {
     console.error(`Missing public tracking regression safeguard: ${label}`);
+    process.exit(1);
+  }
+}
+
+const publicMapHelpersStart = source.indexOf('function getRoundedCoordinates(location)');
+const publicMapHelpersEnd = source.indexOf('function buildPublicTrackingDiagnosticCode', publicMapHelpersStart);
+const publicMapHelpersBody = source.slice(publicMapHelpersStart, publicMapHelpersEnd);
+
+for (const [label, pattern] of [
+  ['named map query helper removed', 'function getNamedMapQuery(location)'],
+  ['Google Maps navigation must not use label@coordinates', 'destination=${encodeURIComponent(SAFE_ME_SOS_LOCATION_LABEL)}'],
+  ['Google Maps search must not use label@coordinates', 'query=${encodeURIComponent(SAFE_ME_SOS_LOCATION_LABEL)}'],
+  ['Apple Maps navigation must not use label@coordinates', 'daddr=${encodeURIComponent(SAFE_ME_SOS_LOCATION_LABEL)}@'],
+  ['map embed must not use label@coordinates', 'getNamedMapQuery(location)'],
+]) {
+  if (publicMapHelpersBody.includes(pattern)) {
+    console.error(`Forbidden public map URL regression found: ${label}`);
     process.exit(1);
   }
 }
@@ -159,9 +179,9 @@ for (const [label, pattern] of [
   ['test SOS SafeMe heading', '🧪 ΔΟΚΙΜΗ SafeMe SOS'],
   ['test SOS clearly states no emergency', 'Δεν υπάρχει πραγματική ανάγκη.'],
   ['Apple Maps named location URL', 'encodeURIComponent(SAFE_ME_SOS_LOCATION_LABEL)'],
-  ['Apple Maps navigation URL', 'daddr=${encodeURIComponent(SAFE_ME_SOS_LOCATION_LABEL)}@${lat},${lng}&dirflg=d'],
-  ['Google Maps named location URL', 'https://www.google.com/maps/search/?api=1&query=${getNamedMapQuery(location)}'],
-  ['Google Maps driving navigation fallback URL', 'https://www.google.com/maps/dir/?api=1&destination=${getNamedMapQuery(location)}&travelmode=driving'],
+  ['Apple Maps navigation URL', 'daddr=${lat},${lng}&dirflg=d'],
+  ['Google Maps coordinates search URL', 'https://www.google.com/maps/search/?api=1&query=${getCoordinatesCopyText(location)}'],
+  ['Google Maps driving navigation URL', 'https://www.google.com/maps/dir/?api=1&destination=${getCoordinatesCopyText(location)}&travelmode=driving'],
   ['current location section label', '📍 Τοποθεσία μου:'],
   ['test location section label', '📍 Τοποθεσία δοκιμής:'],
   ['navigation section label', '🧭 Πλοήγηση προς εμένα:'],
