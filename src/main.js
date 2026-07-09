@@ -19,8 +19,10 @@ const SUPABASE_URL = resolveSupabaseUrl();
 const SUPABASE_PUBLISHABLE_KEY = resolveSupabasePublishableKey();
 
 const PUBLIC_TRACKING_ERRORS = {
+  notReady: 'Το live tracking δεν είναι έτοιμο ακόμα. Έλεγξε τη σύνδεσή σου και δοκίμασε ανανέωση.',
+  permissionDenied: 'Δεν επιτρέπεται η δημόσια πρόσβαση στο live tracking (RPC/RLS). Ο διαχειριστής πρέπει να εκτελέσει το SQL από το supabase/schema.sql.md.',
   invalidToken: 'Ο σύνδεσμος SOS δεν είναι έγκυρος.',
-  loadFailed: 'Δεν μπόρεσε να φορτώσει το live tracking. Δοκίμασε ανανέωση.',
+  networkError: 'Δεν ήταν δυνατή η επικοινωνία με το live tracking. Δοκίμασε ανανέωση.',
 };
 
 let supabase = createOfflineSupabaseClient();
@@ -395,9 +397,45 @@ function warnPublicTrackingError(error, details = {}) {
     status: error?.status || error?.details?.status || null,
     code: error?.code || null,
     isSupabaseReady,
+    hasSupabaseConfiguration: hasSupabaseConfiguration(),
     trackingTokenPresent: Boolean(trackingToken),
     ...details,
   });
+}
+
+function isPublicTrackingPermissionError(error) {
+  const code = String(error?.code || '').toUpperCase();
+  const message = String(error?.message || '').toLowerCase();
+  const status = Number(error?.status || 0);
+
+  return status === 401
+    || status === 403
+    || code === '42501'
+    || code === 'PGRST301'
+    || message.includes('permission denied')
+    || message.includes('row-level security')
+    || message.includes('invalid api key');
+}
+
+function isPublicTrackingNetworkError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return message.includes('failed to fetch')
+    || message.includes('networkerror')
+    || message.includes('network request failed')
+    || message.includes('load failed');
+}
+
+function resolvePublicTrackingLoadError(error, { reason } = {}) {
+  if (reason === 'missing_config' || reason === 'supabase_not_ready') {
+    return PUBLIC_TRACKING_ERRORS.notReady;
+  }
+  if (isPublicTrackingPermissionError(error)) {
+    return PUBLIC_TRACKING_ERRORS.permissionDenied;
+  }
+  if (isPublicTrackingNetworkError(error)) {
+    return PUBLIC_TRACKING_ERRORS.networkError;
+  }
+  return PUBLIC_TRACKING_ERRORS.networkError;
 }
 
 function normalizePublicTrackingRpcResult(data) {
@@ -406,33 +444,64 @@ function normalizePublicTrackingRpcResult(data) {
   return null;
 }
 
+async function loadPublicSosSessionByTokenViaRest(token) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_sos_session_by_token`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ token }),
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(payload?.message || `RPC failed (${response.status})`);
+    error.status = response.status;
+    error.code = payload?.code || null;
+    throw error;
+  }
+
+  return normalizePublicTrackingRpcResult(payload);
+}
+
 async function loadPublicSosSessionByToken(token) {
-  const { data, error } = await supabase.rpc('get_sos_session_by_token', { token });
-  if (error) throw error;
-  return normalizePublicTrackingRpcResult(data);
+  const ready = await ensureSupabaseReady();
+
+  if (ready && typeof supabase?.rpc === 'function') {
+    const { data, error } = await supabase.rpc('get_sos_session_by_token', { token });
+    if (error) throw error;
+    return normalizePublicTrackingRpcResult(data);
+  }
+
+  return loadPublicSosSessionByTokenViaRest(token);
 }
 
 async function fetchPublicTrackingSession() {
   if (!trackingToken) {
     const error = new Error('Missing public tracking token');
-    warnPublicTrackingError(error, { code: 'missing_token' });
+    warnPublicTrackingError(error, { code: 'missing_token', reason: 'invalid_token' });
     renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.invalidToken });
+    return;
+  }
+
+  if (!hasSupabaseConfiguration()) {
+    const error = new Error('Missing Supabase configuration for public tracking');
+    warnPublicTrackingError(error, { code: 'missing_config', reason: 'not_ready' });
+    renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.notReady });
     return;
   }
 
   renderPublicTrackingPage({ loading: true });
 
   try {
-    const ready = await ensureSupabaseReady();
-    if (!ready || typeof supabase?.rpc !== 'function') {
-      const error = new Error('Supabase is not ready for public tracking');
-      warnPublicTrackingError(error, { code: 'supabase_not_ready' });
-      renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.loadFailed });
-      return;
-    }
-
     const session = await loadPublicSosSessionByToken(trackingToken);
     if (!session) {
+      warnPublicTrackingError(new Error('No SOS session for token'), {
+        code: 'invalid_token',
+        reason: 'invalid_token',
+      });
       renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.invalidToken });
       return;
     }
@@ -446,8 +515,13 @@ async function fetchPublicTrackingSession() {
   } catch (error) {
     window.clearInterval(publicTrackingRefreshTimer);
     publicTrackingRefreshTimer = null;
-    warnPublicTrackingError(error);
-    renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.loadFailed });
+
+    let reason = 'network_error';
+    if (isPublicTrackingPermissionError(error)) reason = 'permission_denied';
+    else if (!isSupabaseReady) reason = 'not_ready';
+
+    warnPublicTrackingError(error, { code: error?.code || 'load_failed', reason });
+    renderPublicTrackingPage({ error: resolvePublicTrackingLoadError(error, { reason }) });
   }
 }
 
@@ -5515,8 +5589,8 @@ function startSafeMeWhenDomReady() {
       try {
         await initializePublicTrackingMode();
       } catch (error) {
-        warnPublicTrackingError(error, { code: 'startup_exception' });
-        renderPublicTrackingPage({ error: PUBLIC_TRACKING_ERRORS.loadFailed });
+        warnPublicTrackingError(error, { code: 'startup_exception', reason: 'not_ready' });
+        renderPublicTrackingPage({ error: resolvePublicTrackingLoadError(error, { reason: 'not_ready' }) });
       } finally {
         clearStartupBlockingState();
       }
