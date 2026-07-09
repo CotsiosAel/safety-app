@@ -217,6 +217,15 @@ const messages = {
       messageName: '👤 Name: {{name}}',
       messagePhone: '📞 Phone: {{phone}}',
       messageTime: '🕒 Alert time: {{time}}',
+      escalationTitle: 'SOS still active',
+      escalationPrompt: 'SOS is still active. Send an emergency SMS to your trusted contacts now?',
+      escalationSendSms: 'Send SMS now',
+      escalationRemindLater: 'Remind me again in 1 minute',
+      escalationAlreadyContacted: 'I already contacted them',
+      escalationSmsBlocked: 'Your phone blocked automatic SMS opening. Tap Send SMS now.',
+      escalationPrepareNote: 'SafeMe opens your SMS app with the message ready. You must tap send in your messaging app.',
+      escalationAria: 'SOS escalation reminder',
+      activateSosAria: 'Activate emergency SOS',
     },
     contacts: {
       title: 'Trusted contacts',
@@ -934,6 +943,15 @@ const messages = {
       messageName: '👤 Όνομα: {{name}}',
       messagePhone: '📞 Τηλέφωνο: {{phone}}',
       messageTime: '🕒 Ώρα ειδοποίησης: {{time}}',
+      escalationTitle: 'Το SOS είναι ακόμα ενεργό',
+      escalationPrompt: 'Το SOS είναι ακόμα ενεργό. Να στείλεις SMS έκτακτης ανάγκης στις αξιόπιστες επαφές τώρα;',
+      escalationSendSms: 'Αποστολή SMS τώρα',
+      escalationRemindLater: 'Υπενθύμιση ξανά σε 1 λεπτό',
+      escalationAlreadyContacted: 'Τους έχω ήδη ειδοποιήσει',
+      escalationSmsBlocked: 'Το κινητό μπλόκαρε το αυτόματο άνοιγμα SMS. Πάτησε Αποστολή SMS τώρα.',
+      escalationPrepareNote: 'Το SafeMe ανοίγει την εφαρμογή SMS με έτοιμο μήνυμα. Πρέπει να πατήσεις αποστολή στην εφαρμογή μηνυμάτων.',
+      escalationAria: 'Υπενθύμιση κλιμάκωσης SOS',
+      activateSosAria: 'Ενεργοποίηση έκτακτης ανάγκης SOS',
     },
     contacts: {
       title: 'Έμπιστες επαφές',
@@ -1755,6 +1773,17 @@ export function applyDomBindings(root = document) {
   setDomText(root, '#sos-copy-message', 'sos.copyMessage');
   setDomText(root, '#sos-native-share', 'sos.share');
   setDomText(root, '[data-close-sos]', 'common.close');
+
+  setDomText(root, '#sos-escalation-title', 'sos.escalationTitle');
+  setDomText(root, '#sos-escalation-prompt', 'sos.escalationPrompt');
+  setDomText(root, '#sos-escalation-send-sms', 'sos.escalationSendSms');
+  setDomText(root, '#sos-escalation-remind-later', 'sos.escalationRemindLater');
+  setDomText(root, '#sos-escalation-already-contacted', 'sos.escalationAlreadyContacted');
+  setDomText(root, '#sos-escalation-prepare-note', 'sos.escalationPrepareNote');
+  setDomAria(root, '#sos-escalation-modal', 'sos.escalationAria');
+  setDomAria(root, '#sos-button', 'sos.activateSosAria');
+  setDomAria(root, '#notify-all-sos-contacts-action', 'sos.sendSmsAll');
+  setDomAria(root, '#end-active-sos', 'sos.endSos');
 
   root.querySelectorAll('.emergency-call-button, #active-sos-call-112, a[href="tel:112"]').forEach((el) => {
     if (el.textContent.includes('112')) el.textContent = t('common.call112');

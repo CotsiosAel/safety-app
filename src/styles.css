@@ -3671,3 +3671,149 @@ body.tracking-mode .modal-backdrop {
 .home-sos-test-toggle strong { font-size: 0.95rem; }
 .home-sos-test-toggle small { margin-top: 2px; font-size: 0.78rem; line-height: 1.25; }
 .home-sos-test-toggle input { width: 42px; height: 24px; accent-color: #f97316; flex: 0 0 auto; }
+
+/* App-wide polish: touch targets, notices, and SOS escalation */
+.ghost-button,
+.primary-button,
+.secondary-button,
+.danger-button,
+.danger-outline-button,
+.inline-button {
+  min-height: 44px;
+}
+
+.section-heading {
+  margin-bottom: 18px;
+}
+
+.section-heading h2 {
+  font-size: clamp(1.55rem, 4vw, 2rem);
+  line-height: 1.15;
+}
+
+.section-heading p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: clamp(0.95rem, 2.8vw, 1.02rem);
+}
+
+.app-warning-box,
+.app-notice-box {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+  font-size: clamp(0.92rem, 2.8vw, 1rem);
+}
+
+.app-warning-box {
+  color: #9f1239;
+  background: #fff1f2;
+  border: 1px solid rgba(239, 35, 60, 0.22);
+}
+
+.app-notice-box {
+  color: #1e3a8a;
+  background: #eff6ff;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+}
+
+.empty-state {
+  padding: clamp(28px, 6vw, 36px) clamp(18px, 4vw, 24px);
+}
+
+.empty-state p {
+  font-size: clamp(0.95rem, 2.8vw, 1.02rem);
+}
+
+.sos-contact-warning {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff1f2;
+  border: 1px solid rgba(239, 35, 60, 0.16);
+  font-size: clamp(0.9rem, 2.7vw, 0.98rem);
+  line-height: 1.5;
+}
+
+.contacts-note,
+.settings-panel-note,
+.account-sync-banner p {
+  font-size: clamp(0.92rem, 2.7vw, 1rem);
+  line-height: 1.55;
+}
+
+.sos-escalation-backdrop {
+  z-index: 10020;
+}
+
+.sos-escalation-card {
+  border: 2px solid rgba(239, 35, 60, 0.34);
+  box-shadow: 0 28px 70px rgba(127, 29, 29, 0.28);
+}
+
+.sos-escalation-icon {
+  background: linear-gradient(135deg, #ef233c, #b80f25);
+}
+
+.sos-escalation-prompt {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.02rem, 3.2vw, 1.12rem);
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.sos-escalation-prepare-note {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: clamp(0.9rem, 2.7vw, 0.98rem);
+  line-height: 1.55;
+}
+
+.sos-escalation-actions {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.sos-escalation-actions .danger-button,
+.sos-escalation-actions .ghost-button {
+  width: 100%;
+  min-height: 48px;
+}
+
+.public-tracking-action,
+.public-tracking-copy-coordinates {
+  min-height: 44px;
+}
+
+.public-tracking-muted,
+.public-tracking-error {
+  font-size: clamp(0.92rem, 2.7vw, 1rem);
+  line-height: 1.55;
+}
+
+@media (max-width: 640px) {
+  .nav-item {
+    min-height: 48px;
+    padding: 15px 16px;
+  }
+
+  .home-inline-action,
+  .home-quick-action {
+    min-height: 44px;
+  }
+
+  .active-sos-primary-action,
+  .active-sos-end-action {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .auth-card button,
+  .profile-accordion-button,
+  .settings-accordion-button {
+    min-height: 44px;
+  }
+}

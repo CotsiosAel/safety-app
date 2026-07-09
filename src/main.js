@@ -968,6 +968,11 @@ const shareActiveSosLocationButton = document.querySelector('#share-active-sos-l
 const activeSosTestModeLabel = document.querySelector('#active-sos-test-mode-label');
 const activeSosTrackingReady = document.querySelector('#active-sos-tracking-ready');
 const disableActiveSosTrackingButton = document.querySelector('#disable-active-sos-tracking');
+const sosEscalationModal = document.querySelector('#sos-escalation-modal');
+const sosEscalationFallback = document.querySelector('#sos-escalation-fallback');
+const sosEscalationSendButton = document.querySelector('#sos-escalation-send-sms');
+const sosEscalationRemindLaterButton = document.querySelector('#sos-escalation-remind-later');
+const sosEscalationAlreadyContactedButton = document.querySelector('#sos-escalation-already-contacted');
 const safeWalkPresetButtons = document.querySelectorAll('.safe-walk-preset');
 const safeWalkDestination = document.querySelector('#safe-walk-destination');
 const safeWalkCustomMinutes = document.querySelector('#safe-walk-custom-minutes');
@@ -1463,6 +1468,150 @@ async function notifyAllSosContacts() {
   renderSosContactNotifications();
 }
 
+function isRealActiveSosSession(session = activeSosSession) {
+  return Boolean(session?.status === 'active' && session.testMode !== true && !isSosTestMode);
+}
+
+function clearSosEscalationTimerOnly() {
+  if (sosEscalationTimerId) {
+    window.clearTimeout(sosEscalationTimerId);
+    sosEscalationTimerId = null;
+  }
+}
+
+function updateModalOpenBodyClass() {
+  const anyModalOpen = [sosModal, contactInviteModal, sosEscalationModal].some((modal) => modal && !modal.hidden);
+  document.body.classList.toggle('modal-open', anyModalOpen);
+}
+
+function getSosEscalationDelayMs(session = activeSosSession) {
+  if (!session?.startedAt) return SOS_ESCALATION_DELAY_MS;
+  const elapsed = Date.now() - new Date(session.startedAt).getTime();
+  return Math.max(0, SOS_ESCALATION_DELAY_MS - elapsed);
+}
+
+function trySosEscalationVibrate() {
+  try {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate([180, 120, 180]);
+    }
+  } catch {
+    // Vibration is optional and may be blocked by the browser.
+  }
+}
+
+function hideSosEscalationFallback() {
+  if (!sosEscalationFallback) return;
+  sosEscalationFallback.hidden = true;
+  sosEscalationFallback.textContent = '';
+}
+
+function showSosEscalationFallback(message = t('sos.escalationSmsBlocked')) {
+  if (!sosEscalationFallback) return;
+  sosEscalationFallback.hidden = false;
+  sosEscalationFallback.textContent = message;
+}
+
+function hideSosEscalationReminder() {
+  if (!sosEscalationModal) return;
+  sosEscalationModal.hidden = true;
+  sosEscalationModalVisible = false;
+  hideSosEscalationFallback();
+  updateModalOpenBodyClass();
+}
+
+function showSosEscalationReminder() {
+  if (!sosEscalationModal || sosEscalationDismissedForSession || !isRealActiveSosSession()) return;
+  hideSosEscalationFallback();
+  sosEscalationModal.hidden = false;
+  sosEscalationModalVisible = true;
+  document.body.classList.add('modal-open');
+  trySosEscalationVibrate();
+  sosEscalationSendButton?.focus();
+}
+
+function stopSosEscalationReminder() {
+  clearSosEscalationTimerOnly();
+  hideSosEscalationReminder();
+  sosEscalationSessionId = null;
+}
+
+function startSosEscalationReminder(session = activeSosSession) {
+  if (!isRealActiveSosSession(session)) {
+    stopSosEscalationReminder();
+    return;
+  }
+
+  if (session.id !== sosEscalationSessionId) {
+    sosEscalationSessionId = session.id;
+    sosEscalationDismissedForSession = false;
+    clearSosEscalationTimerOnly();
+    hideSosEscalationReminder();
+  }
+
+  if (sosEscalationDismissedForSession || sosEscalationTimerId || sosEscalationModalVisible) return;
+
+  const delay = getSosEscalationDelayMs(session);
+  sosEscalationTimerId = window.setTimeout(() => {
+    sosEscalationTimerId = null;
+    if (!isRealActiveSosSession() || activeSosSession?.id !== session.id || sosEscalationDismissedForSession) return;
+    showSosEscalationReminder();
+  }, delay);
+}
+
+function syncSosEscalationReminder() {
+  if (!isRealActiveSosSession()) {
+    stopSosEscalationReminder();
+    return;
+  }
+  startSosEscalationReminder(activeSosSession);
+}
+
+function handleSosEscalationRemindLater() {
+  hideSosEscalationReminder();
+  clearSosEscalationTimerOnly();
+  if (!isRealActiveSosSession()) return;
+
+  sosEscalationTimerId = window.setTimeout(() => {
+    sosEscalationTimerId = null;
+    if (!isRealActiveSosSession() || sosEscalationDismissedForSession) return;
+    showSosEscalationReminder();
+  }, SOS_ESCALATION_DELAY_MS);
+}
+
+function handleSosEscalationAlreadyContacted() {
+  sosEscalationDismissedForSession = true;
+  stopSosEscalationReminder();
+}
+
+async function handleSosEscalationSendSms() {
+  if (!isRealActiveSosSession()) return;
+
+  const smsQueue = ensureActiveSosSmsQueue();
+  if (smsQueue.contacts.length === 0) {
+    showSosEscalationFallback(t('sos.addContactForSms'));
+    return;
+  }
+
+  hideSosEscalationFallback();
+  let leftPage = false;
+  const markLeftPage = () => { leftPage = true; };
+  window.addEventListener('blur', markLeftPage, { once: true });
+  window.addEventListener('pagehide', markLeftPage, { once: true });
+
+  await notifyAllSosContacts();
+
+  window.setTimeout(() => {
+    window.removeEventListener('blur', markLeftPage);
+    window.removeEventListener('pagehide', markLeftPage);
+    if (!leftPage) {
+      showSosEscalationFallback(t('sos.escalationSmsBlocked'));
+      return;
+    }
+    hideSosEscalationReminder();
+  }, 1500);
+}
+
 function loadJson(key, fallback) {
   try {
     const storedValue = localStorage.getItem(key);
@@ -1558,6 +1707,11 @@ let activeSosDiagnostics = {
 let locationPermissionStatus = null;
 let sosNotificationHistory = loadJson(storageKeys.notificationHistory, []);
 let activeSosSmsQueue = null;
+const SOS_ESCALATION_DELAY_MS = 60_000;
+let sosEscalationTimerId = null;
+let sosEscalationSessionId = null;
+let sosEscalationDismissedForSession = false;
+let sosEscalationModalVisible = false;
 let lastEndedSosSession = loadJson(storageKeys.endedSosSession, null);
 let waitingServiceWorker = null;
 let hasAppUpdateAvailable = false;
@@ -1619,6 +1773,7 @@ function markSosSessionEnded(session, status = 'ended') {
 function clearActiveSosRuntimeState({ message = t('sos.previousEnded'), endedSession = activeSosSession, status = 'ended' } = {}) {
   if (endedSession) markSosSessionEnded(endedSession, status);
   stopActiveSosLocationAutoUpdate();
+  stopSosEscalationReminder();
   activeSosSession = null;
   isActiveSosSessionRestored = false;
   isAutoUpdatingActiveSosLocation = false;
@@ -2923,6 +3078,7 @@ function createLocalActiveSosSession(location = currentLocation, options = {}) {
 
   renderActiveSosSession(options.testMode ? t('sos.activatedTest') : t('sos.activatedReal'));
   syncActiveSosLocationAutoUpdate();
+  syncSosEscalationReminder();
   return activeSosSession;
 }
 
@@ -3279,6 +3435,7 @@ async function createActiveSosSession(sosEventId, location = currentLocation, op
   activeSosSession.testMode = options.testMode === true;
   renderActiveSosSession(options.successMessage || t('sos.activated'));
   syncActiveSosLocationAutoUpdate();
+  syncSosEscalationReminder();
   return activeSosSession;
 }
 
@@ -3919,6 +4076,7 @@ async function expireCheckInWhileOpen() {
         updatedAt: now,
       };
       renderActiveSosSession(t('runtime.checkInExpiredSosLocal'));
+      syncSosEscalationReminder();
     }
   } catch (error) {
     historyMessage = t('runtime.activeSosUpdateFailed', { message: historyMessage, error: error.message });
@@ -5358,6 +5516,7 @@ async function loadSupabaseData() {
       sosButton?.classList.add('activated');
       sosButton?.setAttribute('aria-pressed', 'true');
       sosStatus.textContent = t('runtime.restoredSosStatus');
+      syncSosEscalationReminder();
       showPage('home');
     }
     showAuthMessage(getAuthStatusMessages().signedIn);
@@ -5552,6 +5711,10 @@ document.addEventListener('keydown', (event) => {
     closeContactInviteModal();
     return;
   }
+  if (sosEscalationModal && !sosEscalationModal.hidden) {
+    handleSosEscalationRemindLater();
+    return;
+  }
   if (sosModal && !sosModal.hidden) closeSosModal();
 });
 authSignupTab?.addEventListener('click', () => setAuthMode('signup'));
@@ -5634,6 +5797,9 @@ copyActiveSosMessageButton?.addEventListener('click', copyActiveSosMessage);
 shareActiveSosLocationButton?.addEventListener('click', shareLocation);
 disableActiveSosTrackingButton?.addEventListener('click', disableActiveSosTrackingLink);
 notifyAllSosContactsActionButton?.addEventListener('click', notifyAllSosContacts);
+sosEscalationSendButton?.addEventListener('click', handleSosEscalationSendSms);
+sosEscalationRemindLaterButton?.addEventListener('click', handleSosEscalationRemindLater);
+sosEscalationAlreadyContactedButton?.addEventListener('click', handleSosEscalationAlreadyContacted);
 endActiveSosButton?.addEventListener('click', endActiveSosSession);
 safeWalkPresetButtons?.forEach((button) => {
   button.addEventListener('click', () => {

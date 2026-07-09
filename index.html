@@ -826,6 +826,22 @@
       </div>
     </div>
 
+    <div class="modal-backdrop sos-escalation-backdrop" id="sos-escalation-modal" role="alertdialog" aria-modal="true" aria-labelledby="sos-escalation-title" hidden>
+      <div class="modal-card sos-escalation-card">
+        <span class="modal-icon sos-escalation-icon" aria-hidden="true">🆘</span>
+        <p class="eyebrow">SafeMe SOS</p>
+        <h2 id="sos-escalation-title">SOS still active</h2>
+        <p class="sos-escalation-prompt" id="sos-escalation-prompt">SOS is still active. Send an emergency SMS to your trusted contacts now?</p>
+        <p class="app-warning-box sos-escalation-fallback" id="sos-escalation-fallback" role="alert" hidden></p>
+        <p class="sos-escalation-prepare-note" id="sos-escalation-prepare-note">SafeMe opens your SMS app with the message ready. You must tap send in your messaging app.</p>
+        <div class="modal-actions sos-escalation-actions">
+          <button class="danger-button" id="sos-escalation-send-sms" type="button">Send SMS now</button>
+          <button class="ghost-button" id="sos-escalation-remind-later" type="button">Remind me again in 1 minute</button>
+          <button class="ghost-button" id="sos-escalation-already-contacted" type="button">I already contacted them</button>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-backdrop" id="sos-modal" role="dialog" aria-modal="true" aria-labelledby="sos-action-title" hidden>
       <div class="modal-card">
         <button class="modal-close" type="button" data-close-sos aria-label="Close SOS">×</button>
