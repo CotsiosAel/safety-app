@@ -310,11 +310,6 @@ function getCoordinatesCopyText(location) {
   return `${lat},${lng}`;
 }
 
-function getNamedMapQuery(location) {
-  const { lat, lng } = getRoundedCoordinates(location);
-  return `${encodeURIComponent(SAFE_ME_SOS_LOCATION_LABEL)}%40${lat}%2C${lng}`;
-}
-
 function getAppleMapsPinUrl(location) {
   const { lat, lng } = getRoundedCoordinates(location);
   return `https://maps.apple.com/?ll=${lat},${lng}&q=${encodeURIComponent(SAFE_ME_SOS_LOCATION_LABEL)}`;
@@ -322,20 +317,20 @@ function getAppleMapsPinUrl(location) {
 
 function getAppleMapsNavigationUrl(location) {
   const { lat, lng } = getRoundedCoordinates(location);
-  return `https://maps.apple.com/?daddr=${encodeURIComponent(SAFE_ME_SOS_LOCATION_LABEL)}@${lat},${lng}&dirflg=d`;
+  return `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`;
 }
 
 function getLocationUrl(location) {
-  return `https://www.google.com/maps/search/?api=1&query=${getNamedMapQuery(location)}`;
+  return `https://www.google.com/maps/search/?api=1&query=${getCoordinatesCopyText(location)}`;
 }
 
 function getNavigationUrl(location) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${getNamedMapQuery(location)}&travelmode=driving`;
+  return `https://www.google.com/maps/dir/?api=1&destination=${getCoordinatesCopyText(location)}&travelmode=driving`;
 }
 
 function getGoogleMapsEmbedUrl(location) {
   const { lat, lng } = getRoundedCoordinates(location);
-  return `https://maps.google.com/maps?q=${getNamedMapQuery(location)}&z=16&output=embed`;
+  return `https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
 }
 
 function buildPublicTrackingDiagnosticCode(details = {}) {
